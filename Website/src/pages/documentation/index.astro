@@ -1,0 +1,20 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import DocCard from "../../components/DocCard.astro";
+import { internalPath } from "../../lib/links";
+
+const guides = [
+  { title: "Getting started", href: internalPath("/documentation/getting-started/"), description: "Add Calder from its main branch and select package products." },
+  { title: "CalderStdLib API reference", href: internalPath("/api/calder-stdlib/documentation/calderstdlib/"), description: "Extensions and value utilities for Swift types." },
+  { title: "CalderSwiftUI API reference", href: internalPath("/api/calder-swiftui/documentation/calderswiftui/"), description: "SwiftUI values, views, and extensions." },
+  { title: "CalderTheme API reference", href: internalPath("/api/calder-theme/documentation/caldertheme/"), description: "Reusable themed controls and layouts." },
+  { title: "CalderUIKit API reference", href: internalPath("/api/calder-uikit/documentation/calderuikit/"), description: "UIKit and AppKit helpers." }
+];
+---
+
+<BaseLayout title="Calder documentation" description="Getting started and API references for Calder's four Swift products.">
+  <section class="border-b border-sky-100 bg-gradient-to-br from-sky-50 via-white to-teal-50 py-18 md:py-24">
+    <div class="page-shell"><p class="text-sm font-semibold text-sky-ink">Documentation</p><h1 class="mt-3 text-4xl font-bold tracking-tight text-ink sm:text-5xl">Calder's module references.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-muted">Start with the package setup, then open the generated DocC reference for the product you import.</p></div>
+  </section>
+  <section class="page-shell py-16"><div class="grid gap-5 md:grid-cols-2">{guides.map((guide) => <DocCard {...guide} />)}</div></section>
+</BaseLayout>

@@ -1,0 +1,48 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+import DocCard from "../components/DocCard.astro";
+import { internalPath, repositoryURL } from "../lib/links";
+
+const quickStart = `import CalderSwiftUI
+import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        Text("Hello, Calder")
+    }
+}`;
+---
+
+<BaseLayout title="Calder for Swift" description="Focused Swift utilities for Apple application code, split into nine modules.">
+  <section class="overflow-hidden border-b border-sky-100 bg-[radial-gradient(circle_at_75%_20%,#ccfbf1,transparent_28rem),linear-gradient(135deg,#f8fcff,#e0f2fe_55%,#f0fdfa)]">
+    <div class="page-shell grid gap-12 py-20 md:grid-cols-[1.08fr_.92fr] md:items-center md:py-28">
+      <div class="entry">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-sky-ink">Swift utilities for Apple apps</p>
+        <h1 class="mt-5 max-w-3xl text-5xl font-bold tracking-[-0.04em] text-ink sm:text-6xl">Take only the modules <span class="gradient-text">your app uses.</span></h1>
+        <p class="mt-6 max-w-2xl text-lg leading-8 text-muted">Calder packages UI components, asynchronous helpers, logging, image loading, and Foundation extensions as separate Swift products.</p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a class="rounded-xl bg-sky-700 px-5 py-3 font-semibold text-white no-underline shadow-lg shadow-sky-700/20 transition hover:bg-sky-800" href={internalPath("/documentation/getting-started/")}>Get started</a>
+          <a class="rounded-xl border border-sky-200 bg-white px-5 py-3 font-semibold text-sky-ink no-underline transition hover:border-sky-300" href={repositoryURL}>View on GitHub ↗</a>
+        </div>
+      </div>
+      <div class="entry [animation-delay:120ms]"><CodeBlock code={quickStart} title="A SwiftUI view" /></div>
+    </div>
+  </section>
+
+  <section class="page-shell grid gap-5 py-16 md:grid-cols-3">
+    <div class="surface p-6"><h2 class="text-xl font-bold text-ink">Nine products</h2><p class="mt-3 leading-7 text-muted">Choose a foundational module, an Apple UI module, or the shared XCTest helpers. Each product has its own DocC reference.</p></div>
+    <div class="surface p-6"><h2 class="text-xl font-bold text-ink">Apple platforms</h2><p class="mt-3 leading-7 text-muted">Calder supports iOS 18, macOS 15, tvOS 18, watchOS 11, and visionOS 2 with Swift 6.</p></div>
+    <div class="surface p-6"><h2 class="text-xl font-bold text-ink">Source and docs</h2><p class="mt-3 leading-7 text-muted">The package source and DocC catalogs live in the public repository. Documentation on this site follows the current <code>main</code> branch.</p><a class="mt-4 inline-block font-semibold text-sky-ink" href={repositoryURL}>Inspect the source ↗</a></div>
+  </section>
+
+  <section class="border-y border-sky-100 bg-white py-20">
+    <div class="page-shell">
+      <p class="text-sm font-semibold text-sky-ink">Start here</p>
+      <div class="mt-6 grid gap-5 md:grid-cols-2">
+        <DocCard href={internalPath("/documentation/getting-started/")} title="Getting started" description="Add the main branch and select the Calder products your target imports." />
+        <DocCard href={internalPath("/documentation/")} title="API documentation" description="Open the generated DocC reference for any of Calder's nine products." />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
