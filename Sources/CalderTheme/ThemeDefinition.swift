@@ -8,6 +8,9 @@ import UIKit
 /// A theme definition that defines various colors and fonts used throughout the UI.
 public struct ThemeDefinition {
 
+    /// Creates a theme definition with Calder's default colors.
+    public init() {}
+
     // MARK: - Primary Colors
     public var primary: ThemeColor = .init(lighten: "#066CDB", ratio: 0.1)
     public var textOverPrimary: ThemeColor = .init(light: .white, dark: .white)

@@ -25,13 +25,13 @@ public struct Theme {
     // MARK: - Properties
 
     /// The theme definition that contains color and font specifications.
-    private let definition: ThemeDefinition
+    public let definition: ThemeDefinition
 
-    /// The current color scheme (light or dark).
-    private let scheme: ColorScheme
+    /// The current color scheme, either light or dark.
+    public let scheme: ColorScheme
 
-    /// The current contrast setting (standard or increased for accessibility).
-    private let contrast: ColorSchemeContrast
+    /// The current contrast setting, standard or increased.
+    public let contrast: ColorSchemeContrast
 
     /// The dynamic content size for the font
     private let dynamicTypeSize: DynamicTypeSize
@@ -177,11 +177,13 @@ public struct Theme {
         ], startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
-    var border: Color {
+    /// The border color for the current scheme and contrast.
+    public var border: Color {
         definition.border.getColor(scheme: scheme, contrast: contrast)
     }
 
-    var shadow: Color {
+    /// The shadow color for the current scheme and contrast.
+    public var shadow: Color {
         definition.shadow.getColor(scheme: scheme, contrast: contrast)
     }
 }
