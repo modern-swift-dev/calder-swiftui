@@ -85,17 +85,17 @@ public struct TextView: View {
                     }
                 }
             }
-            .padding(.horizontal, .xs)
-            .padding(.vertical, .xxs)
-            .background(Material.regular)
-            .contentShape(RoundedRectangle(cornerRadius: .xxs))
-            .clipShape(RoundedRectangle(cornerRadius: .xxs))
+            .padding(.xxs)
+            .background(Material.thin)
+            .contentShape(RoundedRectangle(cornerRadius: .small))
+            .clipShape(RoundedRectangle(cornerRadius: .small))
             .overlay(
-                RoundedRectangle(cornerRadius: .xxs)
+                RoundedRectangle(cornerRadius: .small)
                     .stroke(
                         borderColor,
                         lineWidth: displayTextViewBorder ? 1 : 0
                     )
+                    .shadow(color: theme.shadow, radius: 4, x: 2, y: 2)
             )
 
             if let invalidMessage {
