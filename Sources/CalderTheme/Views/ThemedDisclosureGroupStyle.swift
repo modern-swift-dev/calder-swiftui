@@ -27,38 +27,34 @@ public struct ThemedDisclosureGroupStyle: DisclosureGroupStyle {
     ///   providing access to its label, content, and `isExpanded` state.
     /// - Returns: A view that displays the themed disclosure group.
     public func makeBody(configuration: Configuration) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button(action: {
-                configuration.isExpanded.toggle()
-            }, label: {
-                HStack(alignment: .center, spacing: 0) {
+        VStack(alignment: .leading, spacing: .xs) {
+            Button {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                    configuration.isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 0) {
                     configuration.label
-                        .multilineTextAlignment(.leading)
-                        .foregroundStyle(theme.text1)
-                        .font(.title3)
+                        .font(.headline)
 
                     Spacer()
 
                     Image(systemSymbol: .chevronRight)
-                        .imageScale(.medium)
+                        .font(.subheadline)
                         .rotationEffect(configuration.isExpanded ? .degrees(90) : .zero)
-                        .foregroundStyle(theme.text1)
-                        .flipsForRightToLeftLayoutDirection(true)
-                        .font(.body)
                 }
-                .padding(EdgeInsets(
-                    top: .xs,
-                    leading: 0,
-                    bottom: .xs,
-                    trailing: .small
-                ))
-                .contentShape(Rectangle())
-                .clipShape(Rectangle())
-            })
+                .padding(.xs)
+                .foregroundStyle(theme.text1)
+                .background(Material.thin)
+                .contentShape(RoundedRectangle(cornerRadius: .xxs))
+                .clipShape(RoundedRectangle(cornerRadius: .xxs))
+            }
             .buttonStyle(.plain)
 
             if configuration.isExpanded {
                 configuration.content
+                    .padding(.top, .xxs)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
@@ -81,13 +77,21 @@ import SwiftUI
 
     @SnapshotBuilder static var snapshots: [PreviewSnapshot] {
         PreviewSnapshot("expanded") {
-            ThemedDisclosureGroupStylePreviewHost()
+            ThemedDisclosureGroupStylePreviewHost(isExpanded: true)
+        }
+
+        PreviewSnapshot("collapsed") {
+            ThemedDisclosureGroupStylePreviewHost(isExpanded: false)
         }
     }
 
     private struct ThemedDisclosureGroupStylePreviewHost: View {
         @Environment(\.theme) private var theme
-        @State private var isExpanded = true
+        @State private var isExpanded: Bool
+
+        init(isExpanded: Bool) {
+            _isExpanded = State(initialValue: isExpanded)
+        }
 
         var body: some View {
             List {

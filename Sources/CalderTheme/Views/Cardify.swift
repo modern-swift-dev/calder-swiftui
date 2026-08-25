@@ -12,23 +12,39 @@ import SwiftUI
 public struct Cardify: ViewModifier {
 
     @Environment(\.theme) var theme
+    public var horizontalPadding: CGFloat
+    public var verticalPadding: CGFloat
+    public var radius: CGFloat
+    public var thick: Bool
 
     /// Initializes a new instance of `Cardify`.
-    public init() {}
+    public init(
+        horizontalPadding: CGFloat = .medium,
+        verticalPadding: CGFloat = .medium,
+        radius: CGFloat = .small,
+        thick: Bool = false
+    ) {
+        self.horizontalPadding = horizontalPadding
+        self.verticalPadding = verticalPadding
+        self.radius = radius
+        self.thick = thick
+    }
 
     /// The content and behavior of the `Cardify` modifier.
     /// - Parameter content: The content view to which the modifier is applied.
     /// - Returns: A view that wraps the content in a card-like style.
     public func body(content: Content) -> some View {
         content
-            .background(Material.regular)
-            .contentShape(RoundedRectangle(cornerRadius: .xxs))
-            .clipShape(RoundedRectangle(cornerRadius: .xxs))
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
+            .background(thick ? Material.thick : Material.thin)
+            .contentShape(RoundedRectangle(cornerRadius: radius))
+            .clipShape(RoundedRectangle(cornerRadius: radius))
             .overlay {
-                RoundedRectangle(cornerRadius: .xxs)
+                RoundedRectangle(cornerRadius: radius)
                     .stroke(theme.border, lineWidth: 1)
+                    .shadow(color: theme.shadow, radius: 4, x: 2, y: 2)
             }
-            .shadow(color: theme.shadow, radius: 4, x: 2, y: 2)
     }
 }
 
@@ -40,8 +56,35 @@ public extension View {
     /// This modifier wraps the view in a styled "card," adding the theme's
     /// background, rounded corners, and a subtle shadow, as defined by `Cardify`.
     /// - Returns: A view with the card-like style applied.
-    func cardify() -> some View {
-        modifier(Cardify())
+    func cardify(
+        horizontalPadding: CGFloat = .medium,
+        verticalPadding: CGFloat = .medium,
+        radius: CGFloat = .small,
+        thick: Bool = false
+    ) -> some View {
+        modifier(
+            Cardify(
+                horizontalPadding: horizontalPadding,
+                verticalPadding: verticalPadding,
+                radius: radius,
+                thick: thick
+            )
+        )
+    }
+
+    func cardify(
+        padding: CGFloat,
+        radius: CGFloat = .small,
+        thick: Bool = false
+    ) -> some View {
+        modifier(
+            Cardify(
+                horizontalPadding: padding,
+                verticalPadding: padding,
+                radius: radius,
+                thick: thick
+            )
+        )
     }
 }
 
@@ -66,6 +109,11 @@ import SwiftUI
             }
             .padding(.medium)
             .cardify()
+        }
+
+        PreviewSnapshot("custom") {
+            Text("Custom card")
+                .cardify(horizontalPadding: .large, verticalPadding: .xxs, radius: .large, thick: true)
         }
     }
 }

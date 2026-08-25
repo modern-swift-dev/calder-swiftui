@@ -46,9 +46,9 @@ public struct ThemedButtonStyle: ButtonStyle {
                     theme: theme,
                     enabled: isEnabled
                 )
+                .shadow(color: variant.shadowColor(theme: theme), radius: 4, x: 2, y: 2)
             )
             .opacity(configuration.isPressed ? 0.5 : 1.0)
-            .shadow(color: variant.shadowColor(theme: theme), radius: 4, x: 2, y: 2)
     }
 }
 
@@ -59,6 +59,21 @@ public extension Button {
     ///   - style: The text style to apply. Defaults to `.medium`.
     ///   - variant: The visual variant to apply. Defaults to `.primary(destructive: false)`.
     /// - Returns: A view with the themed button style applied.
+    @MainActor func applyThemedStyle(
+        _ style: ThemedButtonStyle.TextStyle = .medium,
+        variant: ThemedButtonStyle.Variant = .primary(destructive: false)
+    ) -> some View {
+        buttonStyle(ThemedButtonStyle(style: style, variant: variant))
+    }
+}
+
+public extension NavigationLink {
+
+    /// Applies the `ThemedButtonStyle` to the navigation link.
+    /// - Parameters:
+    ///   - style: The text style to apply. Defaults to `.medium`.
+    ///   - variant: The visual variant to apply. Defaults to `.primary(destructive: false)`.
+    /// - Returns: A navigation link with the themed button style applied.
     @MainActor func applyThemedStyle(
         _ style: ThemedButtonStyle.TextStyle = .medium,
         variant: ThemedButtonStyle.Variant = .primary(destructive: false)

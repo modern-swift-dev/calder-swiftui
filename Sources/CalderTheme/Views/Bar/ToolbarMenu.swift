@@ -42,14 +42,28 @@ public struct ToolbarMenu<Content: View, Label: View>: ToolbarContent {
                 content()
             }, label: {
                 Button(action: {}, label: label)
-                    .buttonStyle(BarButtonStyle(variant: .regular))
+                    .buttonStyle(BarButtonStyle(variant: variant))
+                    .opacity(enabled ? 1 : 0.5)
+                    .disabled(!enabled)
             })
+            .disabled(!enabled)
         }
-        .disableSharedbackground(disable: true)
+        .disableSharedbackground(disable: variant.sharedBackgroundDisabled)
     }
 }
 
 public extension ToolbarMenu where Label == Text {
+    /// Initializes a text menu using the original argument ordering.
+    init(
+        placement: ToolbarItemPlacement,
+        enabled: Bool,
+        variant: BarButtonStyle.Variant,
+        @ViewBuilder content: @escaping () -> Content,
+        text: String
+    ) {
+        self.init(placement: placement, variant: variant, enabled: enabled, content: content, text: text)
+    }
+
     /// Initializes a `ToolbarMenu` with a plain text label.
     ///
     /// - Parameters:
@@ -59,8 +73,8 @@ public extension ToolbarMenu where Label == Text {
     ///   - text: The string to display as the menu's label.
     init(
         placement: ToolbarItemPlacement,
-        enabled: Bool = true,
         variant: BarButtonStyle.Variant = .regular,
+        enabled: Bool = true,
         @ViewBuilder content: @escaping () -> Content,
         text: String
     ) {
@@ -75,6 +89,17 @@ public extension ToolbarMenu where Label == Text {
 }
 
 public extension ToolbarMenu where Label == Image {
+    /// Initializes an image menu using the original argument ordering.
+    init(
+        placement: ToolbarItemPlacement,
+        enabled: Bool,
+        variant: BarButtonStyle.Variant,
+        @ViewBuilder content: @escaping () -> Content,
+        icon: Image
+    ) {
+        self.init(placement: placement, variant: variant, content: content, enabled: enabled, icon: icon)
+    }
+
     /// Initializes a `ToolbarMenu` with a custom image as its label.
     ///
     /// - Parameters:
@@ -84,9 +109,9 @@ public extension ToolbarMenu where Label == Image {
     ///   - icon: The `Image` to display as the menu's label.
     init(
         placement: ToolbarItemPlacement,
-        enabled: Bool = true,
         variant: BarButtonStyle.Variant = .regular,
         @ViewBuilder content: @escaping () -> Content,
+        enabled: Bool = true,
         icon: Image
     ) {
         self.placement = placement
@@ -98,6 +123,17 @@ public extension ToolbarMenu where Label == Image {
         }
     }
 
+    /// Initializes a symbol menu using the original argument ordering.
+    init(
+        placement: ToolbarItemPlacement,
+        enabled: Bool,
+        variant: BarButtonStyle.Variant,
+        @ViewBuilder content: @escaping () -> Content,
+        symbol: SFSymbol
+    ) {
+        self.init(placement: placement, variant: variant, content: content, enabled: enabled, symbol: symbol)
+    }
+
     /// Initializes a `ToolbarMenu` with an SF Symbols icon as its label.
     ///
     /// - Parameters:
@@ -107,9 +143,9 @@ public extension ToolbarMenu where Label == Image {
     ///   - symbol: The `SFSymbol` to display as the menu's label.
     init(
         placement: ToolbarItemPlacement,
-        enabled: Bool = true,
         variant: BarButtonStyle.Variant = .regular,
         @ViewBuilder content: @escaping () -> Content,
+        enabled: Bool = true,
         symbol: SFSymbol
     ) {
         self.placement = placement
@@ -135,12 +171,18 @@ import SwiftUI
 
     static var snapshots: [PreviewSnapshot] {
         PreviewSnapshot("default") {
-            PreviewContent()
+            PreviewContent(variant: .title, enabled: true)
+        }
+
+        PreviewSnapshot("disabled primary") {
+            PreviewContent(variant: .primary, enabled: false)
         }
     }
 
     private struct PreviewContent: View {
         @Environment(\.theme) private var theme
+        let variant: BarButtonStyle.Variant
+        let enabled: Bool
 
         var body: some View {
             NavigationStack {
@@ -154,8 +196,8 @@ import SwiftUI
                 .toolbar {
                     ToolbarMenu(
                         placement: .title,
-                        enabled: true,
-                        variant: .title,
+                        enabled: enabled,
+                        variant: variant,
                         content: {
                             Button("actioN!", action: {})
                         },

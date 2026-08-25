@@ -7,7 +7,7 @@ import SwiftUI
 
 /// A custom `ToolbarContent` that displays a button in the navigation bar with a specific style.
 /// This button applies the `BarButtonStyle` automatically.
-struct ToolbarButton<Label: View>: ToolbarContent {
+public struct ToolbarButton<Label: View>: ToolbarContent {
 
     private var label: () -> Label
     private var action: @Sendable @MainActor () -> Void
@@ -21,7 +21,7 @@ struct ToolbarButton<Label: View>: ToolbarContent {
     ///   - placement: The placement of the toolbar item within the navigation bar.
     ///   - action: The action to perform when the button is tapped.
     ///   - label: A `ViewBuilder` that creates the content of the button's label.
-    init(
+    public init(
         placement: ToolbarItemPlacement,
         variant: BarButtonStyle.Variant = .regular,
         enabled: Bool = true,
@@ -35,7 +35,7 @@ struct ToolbarButton<Label: View>: ToolbarContent {
         self.variant = variant
     }
 
-    @ToolbarContentBuilder var body: some ToolbarContent {
+    @ToolbarContentBuilder public var body: some ToolbarContent {
         ToolbarItem(placement: placement) {
             Button(action: {
                 action()
@@ -48,7 +48,7 @@ struct ToolbarButton<Label: View>: ToolbarContent {
     }
 }
 
-extension ToolbarButton where Label == Text {
+public extension ToolbarButton where Label == Text {
     /// Initializes a `ToolbarButton` with a plain text label.
     ///
     /// - Parameters:
@@ -67,12 +67,12 @@ extension ToolbarButton where Label == Text {
         self.enabled = enabled
         self.action = action
         self.label = {
-            Text(verbatim: text)
+            Text(text)
         }
     }
 }
 
-extension ToolbarButton where Label == Image {
+public extension ToolbarButton where Label == Image {
     /// Initializes a `ToolbarButton` with a custom image as its label.
     ///
     /// - Parameters:
@@ -145,12 +145,17 @@ import SwiftUI
         PreviewSnapshot("destructive") {
             PreviewContent(variant: .destructive)
         }
+
+        PreviewSnapshot("disabled primary") {
+            PreviewContent(variant: .primary, enabled: false)
+        }
     }
 
     private struct PreviewContent: View {
         @Environment(\.theme) private var theme
 
         let variant: BarButtonStyle.Variant
+        var enabled = true
 
         var body: some View {
             NavigationStack {
@@ -162,7 +167,7 @@ import SwiftUI
                 .frame(maxWidth: .infinity)
                 .background(theme.backgroundGradient)
                 .toolbar {
-                    ToolbarButton(placement: .topBarTrailing, variant: variant, symbol: .trash, action: {})
+                    ToolbarButton(placement: .topBarTrailing, variant: variant, symbol: .trash, enabled: enabled, action: {})
                 }
             }
         }

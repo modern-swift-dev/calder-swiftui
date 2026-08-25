@@ -50,9 +50,9 @@ public extension ThemedButtonStyle {
                 case .primary,
                      .secondary,
                      .tertiary:
-                    .init(vertical: .xs, horizontal: .medium)
+                    .init(vertical: .small, horizontal: .medium)
                 case .pill:
-                    .init(vertical: .xs, horizontal: .medium)
+                    .init(vertical: .xxs, horizontal: .small)
                 case .link:
                     .init(vertical: .xxxs, horizontal: 0)
                 case .round:
@@ -94,7 +94,7 @@ public extension ThemedButtonStyle {
             let shape: any Shape = switch self {
                 case .primary,
                      .secondary:
-                    RoundedRectangle(cornerRadius: .xxs)
+                    RoundedRectangle(cornerRadius: .small)
                 case .tertiary,
                      .link:
                     Rectangle()

@@ -1,9 +1,13 @@
 #if canImport(SwiftUI)
 import CalderStdLib
 import CalderSwiftUI
+import CalderUIKit
 import Combine
 import RegexBuilder
 import SwiftUI
+#if canImport(UIKit) && !os(watchOS)
+import UIKit
+#endif
 
 /// A SwiftUI view for inputting integer numbers with optional formatting and validation.
 ///
@@ -30,6 +34,17 @@ public struct InputNumber: View {
     /// An optional message to display when the input is invalid.
     let invalidMessage: String?
 
+    #if canImport(UIKit) && !os(watchOS)
+    /// The decimal binding used by the app-compatible initializer.
+    private let decimalValue: Binding<Double>?
+    /// The keyboard displayed for decimal input.
+    private let keyboardType: UIKeyboardType
+    /// Validation applied to decimal input.
+    private let decimalIsValid: (Double) -> Bool
+    /// Whether the decimal input displays a border.
+    private let decimalShowBorder: Bool
+    #endif
+
     /// Initializes an `InputNumber` view.
     /// - Parameters:
     ///   - value: A binding to an optional `Int64` value that will be displayed and updated by the input.
@@ -52,20 +67,79 @@ public struct InputNumber: View {
         self.displayTextViewBorder = displayTextViewBorder
         self.invalid = invalid
         self.invalidMessage = invalidMessage
+        #if canImport(UIKit) && !os(watchOS)
+        decimalValue = nil
+        keyboardType = .numbersAndPunctuation
+        decimalIsValid = { _ in true }
+        decimalShowBorder = displayTextViewBorder
+        #endif
 
         let formatter = InputNumber.numberFormatter(maxIntegerDigits: maxIntegerDigits)
         numberFormatter = formatter
 
         if let intValue = value.wrappedValue,
            let text = formatter.string(from: NSNumber(value: intValue)) {
-            textValue = text
+            _textValue = State(initialValue: text)
         } else {
-            textValue = ""
+            _textValue = State(initialValue: "")
         }
     }
 
+    #if canImport(UIKit) && !os(watchOS)
+    /// Initializes a themed decimal input field.
+    public init(
+        value: Binding<Double>,
+        placeholder: String,
+        keyboardType: UIKeyboardType = .decimalPad,
+        showBorder: Bool = false,
+        isValid: @escaping (Double) -> Bool = { _ in true }
+    ) {
+        _value = .constant(nil)
+        _textValue = State(initialValue: value.wrappedValue == 0 ? "" : String(value.wrappedValue))
+        self.placeholder = placeholder
+        displayTextViewBorder = showBorder
+        maxIntegerDigits = 15
+        numberFormatter = Self.numberFormatter(maxIntegerDigits: 15)
+        invalid = false
+        invalidMessage = nil
+        decimalValue = value
+        self.keyboardType = keyboardType
+        decimalIsValid = isValid
+        decimalShowBorder = showBorder
+    }
+
+    /// Initializes a themed decimal input field with its placeholder first.
+    public init(
+        _ placeholder: String,
+        value: Binding<Double>,
+        keyboardType: UIKeyboardType = .decimalPad,
+        showBorder: Bool = false,
+        isValid: @escaping (Double) -> Bool = { _ in true }
+    ) {
+        self.init(
+            value: value,
+            placeholder: placeholder,
+            keyboardType: keyboardType,
+            showBorder: showBorder,
+            isValid: isValid
+        )
+    }
+    #endif
+
     /// The content and behavior of the view.
     public var body: some View {
+        #if canImport(UIKit) && !os(watchOS)
+        if let decimalValue {
+            decimalBody(value: decimalValue)
+        } else {
+            integerBody
+        }
+        #else
+        integerBody
+        #endif
+    }
+
+    private var integerBody: some View {
         InputText(
             text: $textValue,
             placeholder: placeholder,
@@ -90,6 +164,35 @@ public struct InputNumber: View {
             }
         }
     }
+
+    #if canImport(UIKit) && !os(watchOS)
+    private func decimalBody(value: Binding<Double>) -> some View {
+        TextField(placeholder, text: $textValue)
+            .keyboardType(keyboardType)
+            .textFieldStyle(.plain)
+            .foregroundStyle(decimalIsValid(value.wrappedValue) ? theme.text1 : theme.error)
+            .padding(.small)
+            .background(Material.thick)
+            .contentShape(RoundedRectangle(cornerRadius: .small))
+            .clipShape(RoundedRectangle(cornerRadius: .small))
+            .overlay {
+                RoundedRectangle(cornerRadius: .small)
+                    .stroke(decimalShowBorder ? theme.text3 : theme.transparent, lineWidth: 1)
+            }
+            .onChange(of: textValue, initial: false) { oldValue, newValue in
+                guard oldValue != newValue else {
+                    return
+                }
+
+                value.wrappedValue = newValue.isEmpty ? 0 : Double(newValue) ?? 0
+            }
+            .onChange(of: value.wrappedValue, initial: false) { _, newValue in
+                if (Double(textValue) ?? 0) != newValue {
+                    textValue = newValue == 0 ? "" : String(newValue)
+                }
+            }
+    }
+    #endif
 
     /// Parses the input text into an optional `Int64` value.
     /// - Parameter input: The string to parse.
@@ -159,6 +262,12 @@ import SwiftUI
         PreviewSnapshot("default") {
             InputNumberPreviewHost()
         }
+
+        #if canImport(UIKit) && !os(watchOS)
+        PreviewSnapshot("decimal") {
+            DecimalInputNumberPreviewHost()
+        }
+        #endif
     }
 
     private struct InputNumberPreviewHost: View {
@@ -175,6 +284,24 @@ import SwiftUI
             .background(theme.backgroundGradient)
         }
     }
+
+    #if canImport(UIKit) && !os(watchOS)
+    private struct DecimalInputNumberPreviewHost: View {
+        @Environment(\.theme) private var theme
+        @State private var validValue = 13.5
+        @State private var invalidValue = -1.0
+
+        var body: some View {
+            VStack(spacing: .small) {
+                InputNumber(value: $validValue, placeholder: "Amount", showBorder: true)
+                InputNumber("Positive amount", value: $invalidValue, isValid: { $0 >= 0 })
+                Spacer()
+            }
+            .padding()
+            .background(theme.backgroundGradient)
+        }
+    }
+    #endif
 }
 #endif
 #endif

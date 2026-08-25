@@ -11,6 +11,10 @@ import SwiftUI
 ///
 /// The layout of the row adapts based on the `horizontalSizeClass`.
 public struct ListRow<BodyContentType: View, HeaderContentType: View, DetailContentType: View>: View {
+    private enum Presentation {
+        case adaptive
+        case card
+    }
 
     /// Defines the positioning of the detail view in compact size classes.
     public enum CompactDetailPositionning: String {
@@ -39,6 +43,8 @@ public struct ListRow<BodyContentType: View, HeaderContentType: View, DetailCont
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     /// The preferred positioning for the detail view when in a compact horizontal size class.
     public let compactDetailPositioning: CompactDetailPositionning
+    private let presentation: Presentation
+    private let cardBackground: AnyShapeStyle?
 
     /// Initializes a new instance of `ListRow`.
     /// - Parameters:
@@ -59,6 +65,8 @@ public struct ListRow<BodyContentType: View, HeaderContentType: View, DetailCont
         self.detail = detail
         self.accessory = accessory
         self.compactDetailPositioning = compactDetailPositioning
+        presentation = .adaptive
+        cardBackground = nil
     }
 
     /// Initializes a new instance of `ListRow` with an SF Symbol as the accessory.
@@ -80,9 +88,19 @@ public struct ListRow<BodyContentType: View, HeaderContentType: View, DetailCont
         self.detail = detail
         self.accessory = .init(systemSymbol: symbol)
         self.compactDetailPositioning = compactDetailPositioning
+        presentation = .adaptive
+        cardBackground = nil
     }
 
     public var body: some View {
+        if presentation == .card {
+            cardBody
+        } else {
+            adaptiveBody
+        }
+    }
+
+    private var adaptiveBody: some View {
         Group {
             if horizontalSizeClass == .regular {
                 HStack(alignment: .center, spacing: .small) {
@@ -158,6 +176,70 @@ public struct ListRow<BodyContentType: View, HeaderContentType: View, DetailCont
         .background(theme.background1)
         .listRowInsets(.zero)
     }
+
+    private var cardBody: some View {
+        HStack(spacing: .xs) {
+            if let header = header() {
+                header
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                    .font(.body)
+                    .foregroundStyle(theme.text2)
+            }
+
+            content()
+
+            Spacer()
+
+            if let detail = detail() {
+                detail
+                    .font(.caption)
+                    .foregroundStyle(theme.text2)
+                    .multilineTextAlignment(.trailing)
+            }
+
+            if let accessory {
+                accessory
+                    .font(.subheadline)
+                    .foregroundStyle(theme.text3)
+            }
+        }
+        .padding(.small)
+        .background(cardBackground ?? AnyShapeStyle(Material.thin))
+        .contentShape(RoundedRectangle(cornerRadius: .small))
+        .clipShape(RoundedRectangle(cornerRadius: .small))
+        .overlay {
+            RoundedRectangle(cornerRadius: .small)
+                .stroke(theme.border, lineWidth: 1)
+                .shadow(color: theme.shadow, radius: 4, x: 2, y: 2)
+        }
+    }
+}
+
+public extension ListRow where BodyContentType == ListRowBody, HeaderContentType == Image, DetailContentType == Text {
+    /// Initializes a compact, card-styled list row.
+    init(
+        icon: SFSymbol? = nil,
+        title: String,
+        subtitle: String? = nil,
+        caption: String? = nil,
+        detail: String? = nil,
+        background: (any ShapeStyle)? = nil,
+        showChevron: Bool = true
+    ) {
+        content = { ListRowBody(title: title, subtitle: subtitle, caption: caption) }
+        header = {
+            icon.map {
+                Image(systemSymbol: $0)
+                    .resizable()
+            }
+        }
+        self.detail = { detail.map { Text($0) } }
+        accessory = showChevron ? Image(systemSymbol: .chevronRight) : nil
+        compactDetailPositioning = .trailing
+        presentation = .card
+        cardBackground = background.map { AnyShapeStyle($0) }
+    }
 }
 
 #endif
@@ -168,6 +250,7 @@ public struct ListRow<BodyContentType: View, HeaderContentType: View, DetailCont
 
     static var snapshots: [PreviewSnapshot] {
         PreviewSnapshot("default") { Content() }
+        PreviewSnapshot("card") { CardContent() }
     }
 
     private struct Content: View {
@@ -191,6 +274,33 @@ public struct ListRow<BodyContentType: View, HeaderContentType: View, DetailCont
                 StatusPill(text: "Beta", background: theme.success, foreground: theme.textOverSuccess)
             })
             .cardify()
+        }
+    }
+
+    private struct CardContent: View {
+        @Environment(\.theme) private var theme
+
+        var body: some View {
+            VStack(spacing: .small) {
+                ListRow(
+                    icon: .eye,
+                    title: "Title",
+                    subtitle: "Subtitle",
+                    caption: "Caption",
+                    detail: "Detail"
+                )
+
+                ListRow(
+                    title: "Custom background",
+                    detail: "No chevron",
+                    background: theme.background2,
+                    showChevron: false
+                )
+
+                Spacer()
+            }
+            .padding()
+            .background(theme.backgroundGradient)
         }
     }
 }

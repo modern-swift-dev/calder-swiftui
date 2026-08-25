@@ -115,9 +115,6 @@ public struct BarButtonStyle: ButtonStyle {
             }
         }
 
-        @MainActor func shadowColor(theme: Theme) -> Color {
-            theme.shadow
-        }
     }
 
     @Environment(\.theme) private var theme
@@ -126,7 +123,7 @@ public struct BarButtonStyle: ButtonStyle {
     /// The visual variant to apply to the button. Defaults to `.regular`.
     var variant: Variant = .regular
 
-    public init(variant: Variant) {
+    public init(variant: Variant = .regular) {
         self.variant = variant
     }
 
@@ -137,7 +134,6 @@ public struct BarButtonStyle: ButtonStyle {
             .foregroundStyle(variant.foregroundColor(theme: theme))
             .background(variant.backgroundColor(theme: theme))
             .opacity(configuration.isPressed || !enabled ? 0.5 : 1)
-            .shadow(color: variant.shadowColor(theme: theme), radius: 4, x: 2, y: 2)
     }
 }
 

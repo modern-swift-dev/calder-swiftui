@@ -8,6 +8,11 @@ import SwiftUI
 /// This component provides a `TextField` for text entry,
 /// supporting leading accessories, placeholder text, and validation messages.
 public struct InputText: View {
+    private enum Style {
+        case validated
+        case standard
+    }
+
     /// The theme of the environment.
     @Environment(\.theme) private var theme
 
@@ -31,6 +36,14 @@ public struct InputText: View {
 
     /// A boolean indicating whether to display a border around the text view.
     public var displayTextViewBorder: Bool
+
+    private let axis: Axis
+    private let background: AnyShapeStyle
+    private let showBorder: Bool
+    private let style: Style
+    private let verbatimPlaceholder: String?
+
+    @Environment(\.isEnabled) private var isEnabled
 
     /// The horizontal size class of the environment.
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -57,10 +70,79 @@ public struct InputText: View {
         self.displayTextViewBorder = displayTextViewBorder
         self.invalid = invalid
         self.invalidMessage = invalidMessage
+        axis = .horizontal
+        background = AnyShapeStyle(Material.regular)
+        showBorder = displayTextViewBorder
+        style = .validated
+        verbatimPlaceholder = nil
+    }
+
+    /// Initializes a standard themed text field.
+    public init(
+        text: Binding<String>,
+        placeholder: String,
+        axis: Axis = .horizontal,
+        background: (any ShapeStyle)? = nil,
+        showBorder: Bool = false
+    ) {
+        _text = text
+        self.placeholder = placeholder
+        leftAccessory = nil
+        invalid = false
+        invalidMessage = nil
+        displayTextViewBorder = showBorder
+        self.axis = axis
+        let shape: any ShapeStyle = background ?? Material.thick
+        self.background = AnyShapeStyle(shape)
+        self.showBorder = showBorder
+        style = .standard
+        verbatimPlaceholder = nil
+    }
+
+    /// Initializes a standard themed text field with its placeholder first.
+    public init(
+        _ placeholder: String,
+        text: Binding<String>,
+        axis: Axis = .horizontal,
+        background: (any ShapeStyle)? = nil,
+        showBorder: Bool = false
+    ) {
+        self.init(text: text, placeholder: placeholder, axis: axis, background: background, showBorder: showBorder)
+    }
+
+    /// Initializes a standard themed text field with a nonlocalized placeholder.
+    public init(
+        verbatimPlaceholder: String,
+        text: Binding<String>,
+        axis: Axis = .horizontal,
+        background: (any ShapeStyle)? = nil,
+        showBorder: Bool = false
+    ) {
+        _text = text
+        placeholder = ""
+        leftAccessory = nil
+        invalid = false
+        invalidMessage = nil
+        displayTextViewBorder = showBorder
+        self.axis = axis
+        let shape: any ShapeStyle = background ?? Material.thick
+        self.background = AnyShapeStyle(shape)
+        self.showBorder = showBorder
+        style = .standard
+        self.verbatimPlaceholder = verbatimPlaceholder
     }
 
     /// The content and behavior of the view.
     public var body: some View {
+        switch style {
+            case .validated:
+                validatedBody
+            case .standard:
+                standardBody
+        }
+    }
+
+    private var validatedBody: some View {
         VStack(alignment: .leading, spacing: .xxs) {
             HStack(spacing: .small) {
                 if let leftAccessory {
@@ -106,6 +188,28 @@ public struct InputText: View {
                 }
             }
 
+        }
+    }
+
+    private var standardBody: some View {
+        Group {
+            if let verbatimPlaceholder {
+                TextField(text: $text, prompt: Text(verbatim: verbatimPlaceholder), axis: axis) {
+                    EmptyView()
+                }
+            } else {
+                TextField(placeholder, text: $text, axis: axis)
+            }
+        }
+        .textFieldStyle(.plain)
+        .foregroundStyle(isEnabled ? theme.text1 : theme.text2)
+        .padding(.small)
+        .background(background)
+        .contentShape(RoundedRectangle(cornerRadius: .small))
+        .clipShape(RoundedRectangle(cornerRadius: .small))
+        .overlay {
+            RoundedRectangle(cornerRadius: .small)
+                .stroke(showBorder ? theme.text3 : theme.transparent, lineWidth: 1)
         }
     }
 
@@ -182,6 +286,10 @@ import SwiftUI
                 leftAccessory: Image(systemSymbol: .person)
             )
         }
+
+        PreviewSnapshot("standard") {
+            StandardInputTextPreviewHost()
+        }
     }
 
     private struct InputTextPreviewHost: View {
@@ -216,6 +324,31 @@ import SwiftUI
                     invalid: invalid,
                     invalidMessage: invalidMessage
                 )
+                Spacer()
+            }
+            .padding()
+            .background(theme.backgroundGradient)
+        }
+    }
+
+    private struct StandardInputTextPreviewHost: View {
+        @Environment(\.theme) private var theme
+        @State private var enabledValue = "Filled value"
+        @State private var disabledValue = "Disabled value"
+
+        var body: some View {
+            VStack(spacing: .small) {
+                InputText(
+                    text: $enabledValue,
+                    placeholder: "Standard input",
+                    axis: .vertical,
+                    background: theme.background2,
+                    showBorder: true
+                )
+
+                InputText("Disabled input", text: $disabledValue)
+                    .disabled(true)
+
                 Spacer()
             }
             .padding()

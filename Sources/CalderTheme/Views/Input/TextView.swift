@@ -28,6 +28,8 @@ public struct TextView: View {
     let displayTextViewBorder: Bool
     /// The maximum length of text allowed in the text area.
     let maxLength: Int?
+    /// The fixed height of the text area.
+    let height: CGFloat?
 
     /// Initializes a `TextView` view.
     /// - Parameters:
@@ -37,18 +39,21 @@ public struct TextView: View {
     ///   - placeholder: The placeholder text. Defaults to `nil`.
     ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text area. Defaults to `true`.
     ///   - maxLength: The maximum length of text allowed. Defaults to `nil`.
+    ///   - height: The fixed height of the text area. Defaults to `nil`.
     public init(
         text: Binding<String>,
         invalid: Bool = false,
         invalidMessage: String? = nil,
         placeholder: String? = nil,
         displayTextViewBorder: Bool = true,
-        maxLength: Int? = nil
+        maxLength: Int? = nil,
+        height: CGFloat? = nil
     ) {
         _text = text
         self.invalid = invalid
         self.placeholder = placeholder
         self.maxLength = maxLength
+        self.height = height
         self.displayTextViewBorder = displayTextViewBorder
         self.invalidMessage = invalidMessage
     }
@@ -64,6 +69,7 @@ public struct TextView: View {
                         .font(.body)
                         .foregroundStyle(theme.text1)
                         .scrollContentBackground(.hidden)
+                        .frame(height: height)
                         .focused($isFocused)
                         .onChange(of: text, initial: false) {
                             if let maxLength, text.count > maxLength {
@@ -101,6 +107,16 @@ public struct TextView: View {
                         .foregroundStyle(theme.text1)
                         .lineLimit(3)
                         .padding(.horizontal, .xxs)
+                }
+            }
+
+            if let maxLength {
+                HStack(spacing: 0) {
+                    Spacer()
+
+                    Text(verbatim: "\(text.count) / \(maxLength) characters")
+                        .font(.caption)
+                        .foregroundStyle(theme.text2)
                 }
             }
         }
@@ -156,6 +172,14 @@ import SwiftUI
         PreviewSnapshot("placeholder") {
             TextViewPreviewHost(initialText: "", placeholder: "Placeholder")
         }
+
+        PreviewSnapshot("fixed height with character counter") {
+            TextViewPreviewHost(
+                initialText: String.loremIpsum,
+                maxLength: 100,
+                height: 120
+            )
+        }
     }
 
     private struct TextViewPreviewHost: View {
@@ -165,17 +189,23 @@ import SwiftUI
         private let invalid: Bool
         private let invalidMessage: String?
         private let placeholder: String?
+        private let maxLength: Int?
+        private let height: CGFloat?
 
         init(
             initialText: String,
             invalid: Bool = false,
             invalidMessage: String? = nil,
-            placeholder: String? = nil
+            placeholder: String? = nil,
+            maxLength: Int? = nil,
+            height: CGFloat? = nil
         ) {
             _text = State(initialValue: initialText)
             self.invalid = invalid
             self.invalidMessage = invalidMessage
             self.placeholder = placeholder
+            self.maxLength = maxLength
+            self.height = height
         }
 
         var body: some View {
@@ -185,7 +215,8 @@ import SwiftUI
                     invalid: invalid,
                     invalidMessage: invalidMessage,
                     placeholder: placeholder,
-                    maxLength: 3000
+                    maxLength: maxLength,
+                    height: height
                 )
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 300)
                 Spacer()

@@ -9,7 +9,7 @@ public struct ThemedListCell: ViewModifier {
 
     let spacing: CGFloat
 
-    public init(spacing: CGFloat = 1.0) {
+    public init(spacing: CGFloat = .xxs) {
         self.spacing = spacing
     }
 
@@ -23,16 +23,16 @@ public struct ThemedListCell: ViewModifier {
                 .init(
                     top: spacing,
                     leading: .small,
-                    bottom: 0,
+                    bottom: spacing,
                     trailing: .small
                 )
             )
     }
 }
 
-extension View {
+public extension View {
 
-    func applyThemedCell(spacing: CGFloat = 1.0) -> some View {
+    func applyThemedCell(spacing: CGFloat = .xxs) -> some View {
         modifier(ThemedListCell(spacing: spacing))
     }
 }

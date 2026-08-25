@@ -31,20 +31,20 @@ public struct ListRowBody: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: .xxxs) {
-            Text(verbatim: title)
+            Text(title)
                 .font(.headline)
                 .foregroundStyle(theme.text1)
                 .lineLimit(2)
 
             if let subtitle {
-                Text(verbatim: subtitle)
+                Text(subtitle)
                     .font(.subheadline)
                     .foregroundStyle(theme.text2)
                     .lineLimit(2)
             }
 
             if let caption {
-                Text(verbatim: caption)
+                Text(caption)
                     .font(.caption)
                     .foregroundStyle(theme.text3)
                     .lineLimit(2)
