@@ -60,6 +60,10 @@ The data source and its loaders run on `@MainActor`. Reloading or clearing it
 invalidates earlier requests, including outstanding next-page loads. Concurrent
 requests for the same page are ignored; cancelled requests do not report errors.
 
+`PaginatedList.Selection` writes every selection or deselection to its binding.
+Multi-selection remains presented so callers can provide their own dismissal UI;
+single-selection dismisses after choosing an item.
+
 ## Development
 
 Install tools and hooks, then run the checks:

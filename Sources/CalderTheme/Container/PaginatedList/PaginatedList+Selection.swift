@@ -8,7 +8,8 @@ public extension PaginatedList {
     /// A SwiftUI view for selecting items from a paginated list, supporting single or multiple selections.
     ///
     /// This view integrates with a `PaginatedList.DataSource` to display selectable items
-    /// and manages the selection state.
+    /// and writes each selection change to the supplied binding. Multi-selection
+    /// leaves the view presented; selecting a single item dismisses it.
     struct Selection<DataType: Identifiable & Codable & Sendable, Content: View, Header: View, Footer: View>: View {
 
         /// Defines the selection mode for the list.
@@ -24,8 +25,6 @@ public extension PaginatedList {
         @Binding var isPresented: Bool
         /// A binding to an array that stores the selected data items.
         @Binding var selection: [DataType]
-        /// An internal state variable to manage the current selection within the view.
-        @State var selectionValues: [DataType] = []
         /// The selection mode (single or multiple).
         let mode: Mode
         /// The data source providing the paginated items.
@@ -41,7 +40,7 @@ public extension PaginatedList {
         /// A boolean indicating whether the maximum selection limit has been reached in multi-selection mode.
         var isMaxReached: Bool {
             if case let .multi(max) = mode, let max, max > 0 {
-                return selectionValues.count >= max
+                return selection.count >= max
             }
             return false
         }
@@ -67,7 +66,6 @@ public extension PaginatedList {
         ) {
             _isPresented = isPresented
             _selection = selection
-            _selectionValues = State(initialValue: selection.wrappedValue)
             self.mode = mode
             self.model = model
             self.tableHeader = header
@@ -158,7 +156,7 @@ public extension PaginatedList {
         /// - Parameter item: The item to check.
         /// - Returns: `true` if the item is selected, `false` otherwise.
         private func isSelected(item: DataType) -> Bool {
-            selectionValues.contains(where: { $0.id == item.id })
+            selection.contains(where: { $0.id == item.id })
         }
 
         /// Creates a `PaginatedList.SelectionItem` for a given item, wrapping the custom content and selection indicator.
@@ -172,20 +170,22 @@ public extension PaginatedList {
 
         /// Handles the selection/deselection of an item based on the current selection mode.
         /// - Parameter item: The item that was tapped.
-        private func onSelection(item: DataType) {
-            if let index = selectionValues.firstIndex(where: { $0.id == item.id }) {
-                selectionValues.remove(at: index)
+        func onSelection(item: DataType) {
+            if let index = selection.firstIndex(where: { $0.id == item.id }) {
+                selection.remove(at: index)
             } else {
+                guard !isMaxReached else {
+                    return
+                }
                 switch mode {
                     case .single:
-                        selectionValues = [item]
+                        selection = [item]
                     case .multi:
-                        selectionValues.append(item)
+                        selection.append(item)
                 }
             }
 
-            if mode == .single, !selectionValues.isEmpty {
-                selection = selectionValues
+            if mode == .single, !selection.isEmpty {
                 isPresented = false
             }
         }
