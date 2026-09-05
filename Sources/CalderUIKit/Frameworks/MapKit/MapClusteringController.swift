@@ -89,7 +89,7 @@ import UIKit
     fileprivate let batchSize: Int
 
     /// The map view
-    fileprivate weak var map: MKMapView?
+    private weak var map: (any MapClusteringMap)?
 
     /// The Last Delta of the map
     fileprivate var lastLongitudeDeltaUsedForClustering: CLLocationDegrees = 0.0
@@ -114,6 +114,19 @@ import UIKit
         self.batchSize = batchSize
         self.longitudeDeltaDiffToleranceFactor = longitudeDeltaDiffToleranceFactor
         self.clusterSize = clusterSize ?? Self.getDefaultClusterSize(mapView)
+    }
+
+    init(
+        map: any MapClusteringMap,
+        clusterSize: CLLocationDegrees,
+        minLongitudeDeltaToCluster: CLLocationDegrees,
+        longitudeDeltaDiffToleranceFactor: CLLocationDegrees = 0.015
+    ) {
+        self.map = map
+        self.clusterSize = clusterSize
+        self.minLongitudeDeltaToCluster = minLongitudeDeltaToCluster
+        self.longitudeDeltaDiffToleranceFactor = longitudeDeltaDiffToleranceFactor
+        batchSize = 100
     }
 
     /// Return the default cluster size in degrees
@@ -202,6 +215,7 @@ import UIKit
     }
 
     /// Performs the clustering logic on the map.
+    /// Requests execute in submission order on the main actor, including their state updates.
     /// - Parameters:
     ///   - newAnnotations: An array of new `MapClusterable` annotations to add to the map. Defaults to an empty array.
     ///   - removedAnnotations: An array of `MapClusterable` annotations to remove from the map. Defaults to an empty array.
@@ -239,62 +253,36 @@ import UIKit
             let radius = longitudeDelta * self.clusterSize
             let center = map.region.center
 
-            self.serialQ.enqueue { [weak self] in
-
-                guard let self, let map = self.map, map.superview != nil else {
-                    return
-                }
-
-                // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
-                // Step 3: Add & Remove annotations for the master list
-                // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
-
-                for removedAnnotation in removedAnnotations {
-                    allClusterables.removeValue(forKey: removedAnnotation.id)
-                    allRemoved.append(removedAnnotation)
-                }
-
-                for newAnnotation in newAnnotations {
-                    if let previous = allClusterables[newAnnotation.id] {
-                        allRemoved.append(previous)
-                    }
-                    allClusterables[newAnnotation.id] = newAnnotation
-                }
-
-                // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
-                // Step 4: Resolve new clusters
-                // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
-                var newClusters = [any MapCluster]()
-
-                if allClusterables.count >= clusterOnlyIfMoreThan {
-                    self.resolveClusters(
-                        clusterables: &allClusterables,
-                        removed: &allRemoved,
-                        newClusters: &newClusters,
-                        center: center,
-                        longitudeDelta: longitudeDelta,
-                        minDelta: minDelta,
-                        radius: radius
-                    )
-                }
-
-                // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
-                // Step 5: Apply the new state of the map
-                // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
-
-                self.serialQ.enqueue { [weak self] in
-                    guard let self, let map = self.map, map.superview != nil else {
-                        return
-                    }
-
-                    map.removeAnnotations(allRemoved)
-                    map.addAnnotations(Array(allClusterables.values))
-                    map.addAnnotations(Array(newClusters))
-                    self.lastLongitudeDeltaUsedForClustering = longitudeDelta
-                    completion?()
-                }
-
+            for removedAnnotation in removedAnnotations {
+                allClusterables.removeValue(forKey: removedAnnotation.id)
+                allRemoved.append(removedAnnotation)
             }
+
+            for newAnnotation in newAnnotations {
+                if let previous = allClusterables[newAnnotation.id] {
+                    allRemoved.append(previous)
+                }
+                allClusterables[newAnnotation.id] = newAnnotation
+            }
+
+            var newClusters = [any MapCluster]()
+            if allClusterables.count >= clusterOnlyIfMoreThan {
+                self.resolveClusters(
+                    clusterables: &allClusterables,
+                    removed: &allRemoved,
+                    newClusters: &newClusters,
+                    center: center,
+                    longitudeDelta: longitudeDelta,
+                    minDelta: minDelta,
+                    radius: radius
+                )
+            }
+
+            map.removeAnnotations(allRemoved)
+            map.addAnnotations(Array(allClusterables.values))
+            map.addAnnotations(Array(newClusters))
+            self.lastLongitudeDeltaUsedForClustering = longitudeDelta
+            completion?()
         }
     }
 

@@ -1,183 +1,114 @@
-#if canImport(SwiftUI) || canImport(UIKit) || canImport(AppKit)
 #if canImport(MapKit) && canImport(UIKit) && !os(watchOS)
-import CalderUIKit
+@testable import CalderUIKit
 import CoreLocation
-import Foundation
 import MapKit
 import Testing
 import UIKit
 
-/// Helper class to manage MKMapView lifecycle in tests.
-/// MKMapView internally creates CLLocationManager which can hang indefinitely
-/// waiting for authorization. This wrapper ensures proper cleanup.
-@MainActor private final class TestMapViewContainer {
-    let window: UIWindow
-    let mapView: MKMapView
-
-    init() {
-        window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
-        mapView = MKMapView(frame: window.bounds)
-        mapView.showsUserLocation = false
-        window.addSubview(mapView)
-    }
-
-    deinit {
-        MainActor.assumeIsolated {
-            mapView.showsUserLocation = false
-            mapView.removeAnnotations(mapView.annotations)
-            mapView.removeOverlays(mapView.overlays)
-            mapView.delegate = nil
-            mapView.removeFromSuperview()
-        }
-    }
-}
-
-// Disabled: MKMapView internally creates CLLocationManager which waits indefinitely
-// for authorization in test environments, causing the test process to hang.
-@Suite(.serialized, .disabled("MKMapView CLLocationManager hangs test process"))
+@Suite(.serialized, .timeLimit(.minutes(1)))
 @MainActor struct MapClusteringControllerTests {
+    private final class TestMap: MapClusteringMap {
+        var annotations: [any MKAnnotation] = []
+        var region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 45, longitude: -73),
+            span: MKCoordinateSpan(latitudeDelta: 1, longitudeDelta: 1)
+        )
+        let superview: UIView? = UIView()
 
-    /// Creates an MKMapView configured for unit testing (location services disabled).
-    /// This prevents CLLocationManager from waiting indefinitely for authorization.
-    private func createMapView() -> MKMapView {
-        let mapView = MKMapView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
-        mapView.showsUserLocation = false
-        return mapView
-    }
-
-    /// Cleans up an MKMapView to prevent hanging on CLLocationManager authorization.
-    private func cleanupMapView(_ mapView: MKMapView) {
-        mapView.showsUserLocation = false
-        mapView.removeAnnotations(mapView.annotations)
-        mapView.removeOverlays(mapView.overlays)
-        mapView.delegate = nil
-    }
-
-    // MARK: - Initialization Tests
-
-    @Test func `init with default parameters`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView)
-        let clusterables = controller.clusterables()
-        #expect(clusterables.isEmpty)
-    }
-
-    @Test func `init with custom cluster size`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView, clusterSize: 0.05)
-        let clusterables = controller.clusterables()
-        #expect(clusterables.isEmpty)
-    }
-
-    @Test func `init with custom batch size`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView, batchSize: 50)
-        let clusters = controller.clusters()
-        #expect(clusters.isEmpty)
-    }
-
-    @Test func `init with custom tolerance factor`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView, longitudeDeltaDiffToleranceFactor: 0.02)
-        let clusterables = controller.clusterables()
-        #expect(clusterables.isEmpty)
-    }
-
-    // MARK: - clusterables Tests
-
-    @Test func `clusterables empty map`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView)
-        let clusterables = controller.clusterables()
-        #expect(clusterables.isEmpty)
-    }
-
-    @Test func `clusterables mode clusterable`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView)
-        let clusterables = controller.clusterables(mode: .clusterable)
-        #expect(clusterables.isEmpty)
-    }
-
-    @Test func `clusterables mode clustered`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView)
-        let clusterables = controller.clusterables(mode: .clustered)
-        #expect(clusterables.isEmpty)
-    }
-
-    @Test func `clusterables mode both`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView)
-        let clusterables = controller.clusterables(mode: .both)
-        #expect(clusterables.isEmpty)
-    }
-
-    // MARK: - clusters Tests
-
-    @Test func `clusters empty map`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView)
-        let clusters = controller.clusters()
-        #expect(clusters.isEmpty)
-    }
-
-    // MARK: - ExplodingMode Tests
-
-    @Test func `exploding mode clusterable case`() {
-        let mode = MapClusteringController.ExplodingMode.clusterable
-        #expect(mode == .clusterable)
-    }
-
-    @Test func `exploding mode clustered case`() {
-        let mode = MapClusteringController.ExplodingMode.clustered
-        #expect(mode == .clustered)
-    }
-
-    @Test func `exploding mode both case`() {
-        let mode = MapClusteringController.ExplodingMode.both
-        #expect(mode == .both)
-    }
-
-    // MARK: - mapViewRegionDidChange Tests
-
-    @Test func `map view region did change empty map`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView)
-
-        var completionCalled = false
-        controller.mapViewRegionDidChange {
-            completionCalled = true
+        func addAnnotations(_ annotations: [any MKAnnotation]) {
+            for annotation in annotations where !self.annotations.contains(where: { $0 === annotation }) {
+                self.annotations.append(annotation)
+            }
         }
 
-        // Note: Completion may or may not be called depending on delta
-        #expect(completionCalled == false || completionCalled == true)
+        func removeAnnotations(_ annotations: [any MKAnnotation]) {
+            self.annotations.removeAll { current in annotations.contains { $0 === current } }
+        }
     }
 
-    // MARK: - clusterize Tests
+    private final class Annotation: NSObject, MapClusterable {
+        let id: String
+        nonisolated let coordinate: CLLocationCoordinate2D
 
-    @Test func `clusterize empty map`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView)
-
-        controller.clusterize(completion: nil)
-
-        // After clusterize, map should still have no clusterables
-        let clusterables = controller.clusterables()
-        #expect(clusterables.isEmpty)
-    }
-
-    @Test func `clusterize with completion`() {
-        let mapView = createMapView()
-        let controller = MapClusteringController(mapView: mapView)
-
-        controller.clusterize {
-            // Completion called
+        init(id: String, latitude: Double = 45) {
+            self.id = id
+            coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: -73)
         }
 
-        #expect(controller.clusters().isEmpty)
+        func update(value: any MapClusterable) -> Bool {
+            false
+        }
+
+        func newCluster(center: CLLocationCoordinate2D) -> any MapCluster {
+            Cluster(center: center)
+        }
     }
+
+    private final class Cluster: NSObject, MapCluster {
+        let id = UUID().uuidString
+        nonisolated let coordinate: CLLocationCoordinate2D
+        var annotations: [any MapClusterable] = []
+        var annotationCount: Int {
+            annotations.count
+        }
+
+        init(center: CLLocationCoordinate2D) {
+            coordinate = center
+        }
+
+        func add(annotation: any MapClusterable) {
+            annotations.append(annotation)
+        }
+
+        func remove(annotation: any MapClusterable) -> Bool {
+            let previous = annotations.count
+            annotations.removeAll { $0.id == annotation.id }
+            return annotations.count != previous
+        }
+
+        func replace(annotations: [any MapClusterable]) {
+            self.annotations = annotations
+        }
+
+        func update() {}
+        func update(annotation: any MapClusterable) -> Bool {
+            false
+        }
+    }
+
+    @Test func `queued removal is visible to the following clustering request`() async {
+        let map = TestMap()
+        let removed = Annotation(id: "removed")
+        let retained = Annotation(id: "retained")
+        map.annotations = [removed, retained]
+        let controller = MapClusteringController(map: map, clusterSize: 0.1, minLongitudeDeltaToCluster: 0)
+        var completed: [Int] = []
+
+        await withCheckedContinuation { continuation in
+            controller.clusterize(removedAnnotations: [removed]) { completed.append(1) }
+            controller.clusterize {
+                completed.append(2)
+                continuation.resume()
+            }
+        }
+
+        #expect(completed == [1, 2])
+        #expect(controller.clusterables(mode: .both).map(\.id) == ["retained"])
+    }
+
+    @Test func `back to back clustering replaces previously generated clusters`() async {
+        let map = TestMap()
+        map.annotations = [Annotation(id: "first"), Annotation(id: "second", latitude: 45.001)]
+        let controller = MapClusteringController(map: map, clusterSize: 0.1, minLongitudeDeltaToCluster: 0)
+
+        await withCheckedContinuation { continuation in
+            controller.clusterize(clusterOnlyIfMoreThan: 2, completion: nil)
+            controller.clusterize(clusterOnlyIfMoreThan: 2) { continuation.resume() }
+        }
+
+        #expect(controller.clusters().count == 1)
+        #expect(Set(controller.clusterables(mode: .both).map(\.id)) == ["first", "second"])
+    }
+
 }
-#endif
-
 #endif
