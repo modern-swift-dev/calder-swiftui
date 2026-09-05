@@ -1,5 +1,5 @@
 #if canImport(SwiftUI)
-@testable import CalderTheme
+import CalderTheme
 import Foundation
 import Testing
 

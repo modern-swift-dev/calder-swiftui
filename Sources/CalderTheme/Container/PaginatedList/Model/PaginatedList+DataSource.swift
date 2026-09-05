@@ -21,7 +21,7 @@ public extension PaginatedList {
         /// The current state of the data source, indicating whether it's pristine, loading, displaying, or in an error state.
         ///
         /// When the state changes, a debug log message is emitted.
-        var state: GenericState = .pristine() {
+        public private(set) var state: GenericState = .pristine() {
             didSet {
                 os_log(
                     "%{public}@",
@@ -33,9 +33,9 @@ public extension PaginatedList {
         }
 
         /// The total count of items available, if known.
-        var count: Int?
+        public private(set) var count: Int?
         /// The array of currently loaded data items.
-        var items: [DataType]
+        public internal(set) var items: [DataType]
 
         /// The most recently loaded page of data.
         private var currentPage: Results<DataType>?
@@ -56,7 +56,7 @@ public extension PaginatedList {
         ///
         /// This initializer sets the initial state to `.displaying` and populates the `items` array.
         /// - Parameter items: The initial array of data items.
-        init(
+        public init(
             items: [DataType]
         ) {
             self.items = items
@@ -73,7 +73,7 @@ public extension PaginatedList {
         /// - Parameters:
         ///   - firstPageLoader: A closure to load the initial page of data.
         ///   - nextPageLoader: A closure to load subsequent pages of data, taking the previous page as input.
-        func configureAndLoad(
+        public func configureAndLoad(
             firstPageLoader: @MainActor @Sendable @escaping () async throws -> Results<DataType>,
             nextPageLoader: @MainActor @Sendable @escaping (Results<DataType>) async throws -> Results<DataType>
         ) async {
@@ -85,14 +85,14 @@ public extension PaginatedList {
         /// Checks if a given item ID corresponds to the last item currently loaded in the data source.
         /// - Parameter id: The ID of the item to check.
         /// - Returns: `true` if the item is the last one, `false` otherwise.
-        func isLast(_ id: DataType.ID) -> Bool {
+        public func isLast(_ id: DataType.ID) -> Bool {
             items.last?.id == id
         }
 
         /// Removes a specific item from the data source.
         /// After removal, the view state is recalculated.
         /// - Parameter item: The item to remove.
-        func remove(_ item: DataType) {
+        public func remove(_ item: DataType) {
             if let index = items.firstIndex(where: { $0.id == item.id }) {
                 items.remove(at: index)
             }
@@ -102,7 +102,7 @@ public extension PaginatedList {
         /// Removes an item from the data source by its ID.
         /// After removal, the view state is recalculated.
         /// - Parameter id: The ID of the item to remove.
-        func remove(id: DataType.ID) {
+        public func remove(id: DataType.ID) {
             if let index = items.firstIndex(where: { $0.id == id }) {
                 items.remove(at: index)
             }
@@ -116,7 +116,7 @@ public extension PaginatedList {
         ///   - item: The item to upsert.
         ///   - append: If `true`, the item is appended if it doesn't exist. If `false`, it's inserted at the beginning. Defaults to `true`.
         ///   - computeState: If `true`, the view state is recalculated after the operation. Defaults to `true`.
-        func upsert(_ item: DataType, append: Bool = true, computeState: Bool = true) {
+        public func upsert(_ item: DataType, append: Bool = true, computeState: Bool = true) {
             if let index = items.firstIndex(where: { $0.id == item.id }) {
                 items[index] = item
             } else if append {
@@ -134,7 +134,7 @@ public extension PaginatedList {
         /// - Parameters:
         ///   - item: The new item to append.
         ///   - after: The existing item after which the new item should be appended.
-        func append(item: DataType, after: DataType) {
+        public func append(item: DataType, after: DataType) {
             if let index = items.firstIndex(where: { $0.id == after.id }) {
                 if index == items.endIndex {
                     upsert(item, computeState: false)
@@ -150,7 +150,7 @@ public extension PaginatedList {
         /// - Parameters:
         ///   - item: The new item to append.
         ///   - after id: The ID of the existing item after which the new item should be appended.
-        func append(item: DataType, after id: DataType.ID) {
+        public func append(item: DataType, after id: DataType.ID) {
             if let index = items.firstIndex(where: { $0.id == id }) {
                 if index == items.endIndex {
                     upsert(item, computeState: false)
@@ -164,7 +164,7 @@ public extension PaginatedList {
         /// Appends all items from a `Results` page to the current list of items.
         /// After appending, the view state is recalculated.
         /// - Parameter page: The `Results` page containing items to append.
-        func appendAll(_ page: Results<DataType>) {
+        public func appendAll(_ page: Results<DataType>) {
             for value in page.results {
                 upsert(value, computeState: false)
             }
@@ -173,13 +173,13 @@ public extension PaginatedList {
 
         /// Replaces all existing items with the items from a `Results` page.
         /// - Parameter page: The `Results` page containing items to replace all current items.
-        func replaceAll(_ page: Results<DataType>) {
+        public func replaceAll(_ page: Results<DataType>) {
             replaceAll(values: page.results)
         }
 
         /// Replaces all existing items with a new array of values.
         /// - Parameter values: The new array of items to replace all current items.
-        func replaceAll(values: [DataType]) {
+        public func replaceAll(values: [DataType]) {
             items = []
             for value in values {
                 upsert(value, computeState: false)
@@ -188,7 +188,7 @@ public extension PaginatedList {
         }
 
         /// Removes all items from the data source and recalculates the view state.
-        func removeAll() {
+        public func removeAll() {
             currentPage = nil
             items = []
             calculateViewState()
@@ -197,19 +197,19 @@ public extension PaginatedList {
         /// Checks if a given item is the last item currently loaded in the data source.
         /// - Parameter item: The item to check.
         /// - Returns: `true` if the item is the last one, `false` otherwise.
-        func isLast(_ item: DataType) -> Bool {
+        public func isLast(_ item: DataType) -> Bool {
             items.last?.id == item.id
         }
 
         /// Reloads the data from the first page in a non-async context.
-        func reload() {
+        public func reload() {
             Task { @MainActor [weak self] in
                 await self?.reload()
             }
         }
 
         /// Reloads the data from the first page, clearing the current page and initiating a new load.
-        func reload() async {
+        public func reload() async {
             currentPage = nil
             await load()
         }
@@ -218,7 +218,7 @@ public extension PaginatedList {
         ///
         /// Sets the state to `.loading`, performs the `firstPageLoader` operation,
         /// and updates the `items` and `state` based on the result. Handles cancellation.
-        @MainActor func load() async {
+        @MainActor public func load() async {
             do {
                 guard currentPage == nil else {
                     return
@@ -268,7 +268,7 @@ public extension PaginatedList {
         ///
         /// This method checks if there's a next page and uses the `nextPageLoader` to fetch it.
         /// The new items are then appended to the existing `items`. Error handling is included.
-        @MainActor func next() async {
+        @MainActor public func next() async {
             do {
                 guard let page = currentPage, page.hasNext else {
                     return
@@ -283,7 +283,7 @@ public extension PaginatedList {
         }
 
         /// A boolean indicating whether there are more pages of data to load.
-        var hasNext: Bool {
+        public var hasNext: Bool {
             currentPage?.hasNext == true
         }
     }

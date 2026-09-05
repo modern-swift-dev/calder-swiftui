@@ -48,6 +48,14 @@ make documentation
 
 The command creates `.build/documentation/Calder-Documentation.zip`. Tagged GitHub releases attach that archive.
 
+## Pagination
+
+Create `PaginatedList.DataSource(items:)` to supply a paginated list. Use
+`configureAndLoad(firstPageLoader:nextPageLoader:)` to install asynchronous loaders,
+`reload()` to refresh, and `next()` to request another page. The loaded `items`,
+`count`, `state`, and `hasNext` are readable by client applications; use the data
+source's mutation methods to insert, update, or remove items.
+
 ## Development
 
 Install tools and hooks, then run the checks:
