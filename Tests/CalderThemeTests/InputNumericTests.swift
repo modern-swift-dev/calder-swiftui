@@ -115,6 +115,20 @@ import Testing
         #expect(decimal.formattedText(for: nil) == "")
     }
 
+    @Test func `numeric inputs accept each step when typing a negative number`() {
+        let integer = InputNumber(value: .constant(nil))
+        let decimal = InputDecimal(value: .constant(nil))
+
+        for text in ["", "-", "-1", "-12"] {
+            #expect(integer.isValidInput(text: text))
+            #expect(decimal.isValidInput(text: text))
+        }
+        #expect(integer.parseInput("-") == nil)
+        #expect(decimal.parseInput("-") == nil)
+        #expect(integer.parseInput("-12") == -12)
+        #expect(decimal.parseInput("-12.5") == -12.5)
+    }
+
     @Test func `number formatter uses posix separator and integer limit`() {
         let formatter = InputNumber.numberFormatter(maxIntegerDigits: 3)
 

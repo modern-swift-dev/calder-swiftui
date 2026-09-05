@@ -8,7 +8,7 @@ import SwiftUI
 /// A SwiftUI view for inputting decimal numbers with optional formatting and validation.
 ///
 /// This view provides a numeric input field that can handle decimal values.
-/// External binding changes update the displayed text.
+/// External binding changes update the displayed text. A minus sign is accepted while editing.
 /// The field enforces a maximum number of fraction digits and offers validation feedback.
 public struct InputDecimal: View {
 
@@ -141,7 +141,7 @@ public struct InputDecimal: View {
     /// - Parameter text: The string to validate.
     /// - Returns: `true` if the input is valid, `false` otherwise.
     func isValidInput(text: String) -> Bool {
-        if text.isEmpty {
+        if text.isEmpty || text == "-" {
             return true
         }
 

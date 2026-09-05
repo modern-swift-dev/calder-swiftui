@@ -12,7 +12,7 @@ import UIKit
 /// A SwiftUI view for inputting integer numbers with optional formatting and validation.
 ///
 /// This view provides a numeric input field that can handle integer values.
-/// External binding changes update the displayed text.
+/// External binding changes update the displayed text. A minus sign is accepted while editing.
 /// The field enforces a maximum number of integer digits and offers validation feedback.
 public struct InputNumber: View {
 
@@ -229,7 +229,7 @@ public struct InputNumber: View {
     /// - Parameter text: The string to validate.
     /// - Returns: `true` if the input is valid, `false` otherwise.
     func isValidInput(text: String) -> Bool {
-        if text.isEmpty {
+        if text.isEmpty || text == "-" {
             return true
         }
 
