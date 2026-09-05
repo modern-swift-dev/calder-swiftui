@@ -13,3 +13,6 @@ them to the chart initializer.
 Vertical bar and Pareto charts support empty and all-zero data with a zero axis mark.
 Tick counts below one use one interval, and tick spacing is always positive. Pareto
 percentages remain finite when all category values are zero.
+
+Calling `BarcodeScannerView.suspend()` suppresses both new scan results and queued delegate
+callbacks until `resume()` is called.

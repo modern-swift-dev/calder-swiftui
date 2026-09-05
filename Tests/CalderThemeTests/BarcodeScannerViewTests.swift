@@ -106,6 +106,20 @@ import UIKit
         #expect(!view.isSuspended)
     }
 
+    @Test func `suspension suppresses callback delivery until resumed`() {
+        let view = BarcodeScannerView(model: .init(crossHairImage: UIImage()))
+        let delegate = BarcodeScannerViewTestDelegate()
+        view.delegate = delegate
+
+        view.suspend()
+        view.deliverScannedCode("first", type: .qr, rect: .zero, path: UIBezierPath())
+        #expect(delegate.scannedCodes.isEmpty)
+
+        view.resume()
+        view.deliverScannedCode("second", type: .qr, rect: .zero, path: UIBezierPath())
+        #expect(delegate.scannedCodes == ["second"])
+    }
+
     @Test func `delegate default layout callback is noop`() {
         let delegate = BarcodeScannerViewTestDelegate()
 
@@ -146,11 +160,15 @@ import UIKit
 }
 
 private final class BarcodeScannerViewTestDelegate: BarcodeScannerViewDelegate {
+    var scannedCodes: [String] = []
+
     func supportedObjectTypes(_: AVCaptureMetadataOutput) -> [AVMetadataObject.ObjectType] {
         [.qr]
     }
 
-    func onCodeScanned(_: String, type _: AVMetadataObject.ObjectType, rect _: CGRect, path _: UIBezierPath) {}
+    func onCodeScanned(_ code: String, type _: AVMetadataObject.ObjectType, rect _: CGRect, path _: UIBezierPath) {
+        scannedCodes.append(code)
+    }
 }
 #endif
 

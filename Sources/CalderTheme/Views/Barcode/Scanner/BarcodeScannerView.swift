@@ -495,6 +495,10 @@ extension BarcodeScannerView: @preconcurrency AVCaptureMetadataOutputObjectsDele
         didOutput metadataObjects: [AVMetadataObject],
         from _: AVCaptureConnection
     ) {
+        guard !isSuspended else {
+            return
+        }
+
         if let codeObject = metadataObjects.first {
 
             self.scanRegionImageView.tintColor = self.model.scanRegionImageActiveTint
@@ -512,12 +516,20 @@ extension BarcodeScannerView: @preconcurrency AVCaptureMetadataOutputObjectsDele
                 self.lastScanValue = code
 
                 DispatchQueue.main.async { [weak self] in
-                    self?.delegate?.onCodeScanned(code, type: type, rect: rect, path: path)
+                    self?.deliverScannedCode(code, type: type, rect: rect, path: path)
                 }
             }
         }
 
         self.scanRegionImageView.tintColor = self.model.scanRegionImageTint
+    }
+
+    /// Delivers a recognized code only while scanning is active, including queued callbacks.
+    func deliverScannedCode(_ code: String, type: AVMetadataObject.ObjectType, rect: CGRect, path: UIBezierPath) {
+        guard !isSuspended else {
+            return
+        }
+        delegate?.onCodeScanned(code, type: type, rect: rect, path: path)
     }
 }
 
