@@ -32,6 +32,7 @@ public extension UIViewController {
     }
 
     /// Transitions from an existing child view controller to a new child view controller with a fade animation.
+    /// The new child fills the selected container, including when there is no previous child.
     /// - Parameters:
     ///   - fromChild: The previous child view controller to be removed. If `nil`, the new child will simply fade in.
     ///   - newChild: The new child view controller to add.
@@ -49,27 +50,23 @@ public extension UIViewController {
         completion: CompletionHandler? = nil
     ) -> UIViewController {
 
-        guard let child else {
-            newChild.fadeIn(in: self, duration: duration, delay: delay, completion: completion)
+        guard child !== newChild else {
             return newChild
         }
 
-        guard child != newChild else {
-            return child
-        }
-
         newChild.view.alpha = 0
+        newChild.view.translatesAutoresizingMaskIntoConstraints = false
         addChildViewController(newChild, toContainerView: containerView ?? view)
         NSLayoutConstraint.activate {
             newChild.view.pinned(to: containerView ?? view)
         }
 
         UIView.animateKeyframes(withDuration: duration, delay: delay, options: .beginFromCurrentState, animations: {
-            child.view.alpha = 0.0
+            child?.view.alpha = 0.0
             newChild.view.alpha = 1.0
         }, completion: { _ in
             Task { @MainActor in
-                child.removeViewAndControllerFromParentViewController()
+                child?.removeViewAndControllerFromParentViewController()
             }
             completion?()
         })

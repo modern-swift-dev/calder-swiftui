@@ -13,3 +13,5 @@ Clustering requests now finish their map updates in submission order. Consecutiv
 `UserNotificationService` and `UserNotificationServiceDelegate` are main-actor isolated. Access service state and implement delegate methods on the main actor; background callers must hop to that actor. System notification callbacks automatically deliver to the delegate on the main actor.
 
 Notification callbacks complete even when the service's weak delegate has been released or cleared. Foreground notifications use no presentation options in that case.
+
+A child transition with no previous child now inserts the new child into the supplied container and pins it to that container, matching subsequent transitions.

@@ -96,6 +96,21 @@ import UIKit
         #expect(result === newChild)
     }
 
+    @Test func `initial transition fills the supplied container`() {
+        let parent = UIViewController()
+        parent.view.frame = CGRect(x: 0, y: 0, width: 400, height: 600)
+        let container = UIView(frame: CGRect(x: 20, y: 30, width: 150, height: 200))
+        parent.view.addSubview(container)
+        let child = UIViewController()
+
+        parent.transition(fromChild: nil, toNewChild: child, inContainerView: container, duration: 0)
+        container.layoutIfNeeded()
+
+        #expect(child.parent === parent)
+        #expect(child.view.superview === container)
+        #expect(child.view.frame == container.bounds)
+    }
+
     @Test func `transition same child returns same`() {
         let parent = UIViewController()
         _ = parent.view // Load view
