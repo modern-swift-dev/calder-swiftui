@@ -17,6 +17,15 @@ public struct ParetoChart: View {
         var name: String
         /// The absolute value associated with the category (left Y-axis).
         var value: Int
+
+        /// Creates a category and its absolute value for a Pareto chart.
+        /// - Parameters:
+        ///   - name: The category label.
+        ///   - value: The absolute value for the category.
+        public init(name: String, value: Int) {
+            self.name = name
+            self.value = value
+        }
     }
 
     /// Represents a processed data point with cumulative percentage for the Pareto chart.

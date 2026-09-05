@@ -6,3 +6,6 @@ Start with ``Theme`` and ``ThemeDefinition`` to define colors and component beha
 default definition with ``ThemeDefinition/init()`` or customize its colors before injecting it
 into the SwiftUI environment. ``Theme`` exposes its definition, color scheme, and contrast so
 components can make decisions that depend on the active appearance.
+
+Create Pareto chart categories with ``ParetoChart/RawDataPoint/init(name:value:)`` and pass
+them to the chart initializer.
