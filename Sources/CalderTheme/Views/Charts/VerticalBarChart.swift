@@ -27,7 +27,7 @@ public struct VerticalBarChart: View {
         }
     }
 
-    /// The number of marks on the Y-axis.
+    /// The requested number of intervals on the Y-axis. Values below one use one interval.
     public var nbMarks: Int
 
     /// The title of the chart.
@@ -126,7 +126,7 @@ public struct VerticalBarChart: View {
                 }
             }
         }
-        .chartYScale(domain: 0 ... maxValue)
+        .chartYScale(domain: 0 ... max(1, maxValue))
         .chartLegend(.visible)
         .chartLegend(position: .bottom, alignment: .center, spacing: .small)
         .padding(.large)
@@ -134,9 +134,13 @@ public struct VerticalBarChart: View {
 
     /// Computes evenly spaced Y-axis values.
     /// - Returns: An array of `Int` values for axis marks.
-    private func markValues() -> [Int] {
+    func markValues() -> [Int] {
+        guard maxValue > 0 else {
+            return [0]
+        }
+        let step = max(1, maxValue / max(1, nbMarks))
         var values: [Int] = []
-        for x in stride(from: 0, to: maxValue, by: maxValue / nbMarks) {
+        for x in stride(from: 0, to: maxValue, by: step) {
             values.append(x)
         }
         values.append(maxValue)

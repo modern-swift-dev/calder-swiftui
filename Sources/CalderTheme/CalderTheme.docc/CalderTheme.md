@@ -9,3 +9,7 @@ components can make decisions that depend on the active appearance.
 
 Create Pareto chart categories with ``ParetoChart/RawDataPoint/init(name:value:)`` and pass
 them to the chart initializer.
+
+Vertical bar and Pareto charts support empty and all-zero data with a zero axis mark.
+Tick counts below one use one interval, and tick spacing is always positive. Pareto
+percentages remain finite when all category values are zero.
