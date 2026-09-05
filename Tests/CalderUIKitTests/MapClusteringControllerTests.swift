@@ -110,5 +110,29 @@ import UIKit
         #expect(Set(controller.clusterables(mode: .both).map(\.id)) == ["first", "second"])
     }
 
+    @Test func `public initializer honors the supplied minimum longitude delta`() {
+        let map = MKMapView(frame: .zero)
+        defer {
+            map.showsUserLocation = false
+            map.delegate = nil
+            map.removeFromSuperview()
+        }
+        let controller = MapClusteringController(mapView: map, minLongitudeDeltaToCluster: 2)
+
+        #expect(controller.minLongitudeDeltaToCluster == 2)
+    }
+
+    @Test func `minimum longitude delta prevents clustering below the configured threshold`() async {
+        let map = TestMap()
+        map.annotations = [Annotation(id: "first"), Annotation(id: "second", latitude: 45.001)]
+        let controller = MapClusteringController(map: map, clusterSize: 0.1, minLongitudeDeltaToCluster: 2)
+
+        await withCheckedContinuation { continuation in
+            controller.clusterize(clusterOnlyIfMoreThan: 2) { continuation.resume() }
+        }
+
+        #expect(controller.clusters().isEmpty)
+        #expect(controller.clusterables().count == 2)
+    }
 }
 #endif

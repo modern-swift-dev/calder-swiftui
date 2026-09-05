@@ -77,7 +77,7 @@ import UIKit
     }
 
     /// Minimal Longitude Delta to consider for clusterization
-    fileprivate let minLongitudeDeltaToCluster: CLLocationDegrees
+    let minLongitudeDeltaToCluster: CLLocationDegrees
 
     /// Size of a cluster
     fileprivate let clusterSize: CLLocationDegrees
@@ -106,11 +106,11 @@ import UIKit
         mapView: MKMapView,
         clusterSize: CLLocationDegrees? = nil,
         longitudeDeltaDiffToleranceFactor: CLLocationDegrees = 0.015,
-        minLongitudeDeltaToCluster _: CLLocationDegrees? = nil,
+        minLongitudeDeltaToCluster: CLLocationDegrees? = nil,
         batchSize: Int = 100
     ) {
         map = mapView
-        minLongitudeDeltaToCluster = Self.getMinLongitudeDeltaToCluster(mapView)
+        self.minLongitudeDeltaToCluster = minLongitudeDeltaToCluster ?? Self.getMinLongitudeDeltaToCluster(mapView)
         self.batchSize = batchSize
         self.longitudeDeltaDiffToleranceFactor = longitudeDeltaDiffToleranceFactor
         self.clusterSize = clusterSize ?? Self.getDefaultClusterSize(mapView)
