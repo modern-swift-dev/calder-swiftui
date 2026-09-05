@@ -8,12 +8,11 @@ import SwiftUI
 
 public extension PaginatedList {
 
-    /// A paging data source that used the paged results api to
-    /// lazy load new pages of data into the data-source, and publish
-    /// mutate the states accordingly
+    /// Loads and stores paginated data for the UI on the main actor.
     ///
-    /// This class manages the loading, storing, and state of paginated data.
-    @Observable class DataSource<DataType: Identifiable & Codable & Sendable>: @unchecked Sendable {
+    /// Reloading or clearing the source invalidates outstanding requests. Results
+    /// from those requests cannot change the current items or loading state.
+    @MainActor @Observable class DataSource<DataType: Identifiable & Codable & Sendable> {
 
         /// A unique identifier for debugging purposes.
         let debugId: UUID = .init()
@@ -41,6 +40,8 @@ public extension PaginatedList {
         private var currentPage: Results<DataType>?
         /// The ID of the current data loading request, used to cancel outdated requests.
         private var currentRequestId: UUID = .init()
+        private var isLoadingFirstPage = false
+        private var isLoadingNextPage = false
 
         /// A closure responsible for loading the first page of data.
         private var firstPageLoader: @MainActor @Sendable () async throws -> Results<DataType> = {
@@ -77,6 +78,9 @@ public extension PaginatedList {
             firstPageLoader: @MainActor @Sendable @escaping () async throws -> Results<DataType>,
             nextPageLoader: @MainActor @Sendable @escaping (Results<DataType>) async throws -> Results<DataType>
         ) async {
+            guard !Task.isCancelled else {
+                return
+            }
             self.firstPageLoader = firstPageLoader
             self.nextPageLoader = nextPageLoader
             await reload()
@@ -187,9 +191,11 @@ public extension PaginatedList {
             calculateViewState()
         }
 
-        /// Removes all items from the data source and recalculates the view state.
+        /// Clears the items and count, invalidating outstanding page requests.
         public func removeAll() {
+            invalidateRequests()
             currentPage = nil
+            count = nil
             items = []
             calculateViewState()
         }
@@ -208,8 +214,12 @@ public extension PaginatedList {
             }
         }
 
-        /// Reloads the data from the first page, clearing the current page and initiating a new load.
+        /// Loads the first page again, ignoring results from all earlier requests.
         public func reload() async {
+            guard !Task.isCancelled else {
+                return
+            }
+            invalidateRequests()
             currentPage = nil
             await load()
         }
@@ -218,32 +228,51 @@ public extension PaginatedList {
         ///
         /// Sets the state to `.loading`, performs the `firstPageLoader` operation,
         /// and updates the `items` and `state` based on the result. Handles cancellation.
-        @MainActor public func load() async {
+        public func load() async {
+            guard currentPage == nil, !isLoadingFirstPage, !Task.isCancelled else {
+                return
+            }
+            let requestId = currentRequestId
+            isLoadingFirstPage = true
+            state = .loading
+            defer {
+                if requestId == currentRequestId {
+                    isLoadingFirstPage = false
+                }
+            }
+
             do {
-                guard currentPage == nil else {
+                let response = try await firstPageLoader()
+                guard requestId == currentRequestId else {
                     return
                 }
-                state = .loading
-                let requestId = UUID()
-                currentRequestId = requestId
-                let response = try await firstPageLoader()
-
-                guard !Task.isCancelled, requestId == currentRequestId else {
+                guard !Task.isCancelled else {
                     calculateViewState()
                     return
                 }
-
                 currentPage = response
                 count = response.count
                 replaceAll(response)
-                calculateViewState()
             } catch {
+                guard requestId == currentRequestId else {
+                    return
+                }
+                guard !Task.isCancelled, !(error is CancellationError) else {
+                    calculateViewState()
+                    return
+                }
                 os_log("%{public}@", log: .default, type: .error, String(describing: error))
                 count = nil
                 currentPage = nil
-                removeAll()
+                items = []
                 state = .error(nil)
             }
+        }
+
+        private func invalidateRequests() {
+            currentRequestId = UUID()
+            isLoadingFirstPage = false
+            isLoadingNextPage = false
         }
 
         /// Recalculates the current view state based on the number of loaded items.
@@ -267,16 +296,33 @@ public extension PaginatedList {
         /// Loads the next page of data if available.
         ///
         /// This method checks if there's a next page and uses the `nextPageLoader` to fetch it.
-        /// The new items are then appended to the existing `items`. Error handling is included.
-        @MainActor public func next() async {
+        /// Overlapping next-page calls are ignored. Cancellation preserves the current
+        /// page for retry; results from before a reload or clear are discarded.
+        public func next() async {
+            guard let page = currentPage, page.hasNext,
+                  !isLoadingNextPage, !isLoadingFirstPage, !Task.isCancelled else {
+                return
+            }
+            let requestId = currentRequestId
+            isLoadingNextPage = true
+            defer {
+                if requestId == currentRequestId {
+                    isLoadingNextPage = false
+                }
+            }
+
             do {
-                guard let page = currentPage, page.hasNext else {
+                let newPage = try await nextPageLoader(page)
+                guard requestId == currentRequestId, !Task.isCancelled else {
                     return
                 }
-                let newPage = try await nextPageLoader(page)
                 currentPage = newPage
                 appendAll(newPage)
             } catch {
+                guard requestId == currentRequestId,
+                      !Task.isCancelled, !(error is CancellationError) else {
+                    return
+                }
                 currentPage = nil
                 os_log("%{public}@", log: .default, type: .error, String(describing: error))
             }

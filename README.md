@@ -56,6 +56,10 @@ Create `PaginatedList.DataSource(items:)` to supply a paginated list. Use
 `count`, `state`, and `hasNext` are readable by client applications; use the data
 source's mutation methods to insert, update, or remove items.
 
+The data source and its loaders run on `@MainActor`. Reloading or clearing it
+invalidates earlier requests, including outstanding next-page loads. Concurrent
+requests for the same page are ignored; cancelled requests do not report errors.
+
 ## Development
 
 Install tools and hooks, then run the checks:
