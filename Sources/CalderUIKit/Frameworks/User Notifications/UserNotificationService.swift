@@ -5,9 +5,10 @@ import Combine
 import Foundation
 import os
 import UIKit
+@preconcurrency import UserNotifications
 
-/// A protocol for delegating user notification service events.
-public protocol UserNotificationServiceDelegate: AnyObject {
+/// A protocol for delegating user notification service events on the main actor.
+@MainActor public protocol UserNotificationServiceDelegate: AnyObject {
 
     /// Called when a notification is about to be presented to the user.
     /// - Parameters:
@@ -39,7 +40,8 @@ public protocol UserNotificationServiceDelegate: AnyObject {
 }
 
 /// A service class for managing user notifications, including authorization, remote notifications, and local notifications.
-open class UserNotificationService: NSObject, @unchecked Sendable {
+/// All state and delegate interactions are isolated to the main actor.
+@MainActor open class UserNotificationService: NSObject {
 
     /// The delegate for handling notification-related events.
     public weak var delegate: (any UserNotificationServiceDelegate)?
@@ -66,7 +68,7 @@ open class UserNotificationService: NSObject, @unchecked Sendable {
             case (false, false):
                 break
             case (true, false):
-                await UIApplication.shared.openAppSettings()
+                UIApplication.shared.openAppSettings()
             case (false, true):
 
                 let settings = await UNUserNotificationCenter.current().settings
@@ -97,7 +99,7 @@ open class UserNotificationService: NSObject, @unchecked Sendable {
                     case .denied:
                         hasRequestedAuthorization = true
                         isEnabled = false
-                        await UIApplication.shared.openAppSettings()
+                        UIApplication.shared.openAppSettings()
                     @unknown default:
                         break
                 }
@@ -112,6 +114,22 @@ open class UserNotificationService: NSObject, @unchecked Sendable {
         willRegisterForRemoteNotifications()
         UIApplication.shared.registerForRemoteNotifications()
         didRegisterForRemoteNotifications()
+    }
+
+    init(delegate: (any UserNotificationServiceDelegate)?) {
+        self.delegate = delegate
+        super.init()
+    }
+
+    /// Delivers system callbacks on the main actor.
+    nonisolated func deliverToDelegate(
+        delivery: @escaping @MainActor @Sendable (any UserNotificationServiceDelegate) -> Void
+    ) {
+        Task { @MainActor in
+            if let delegate {
+                delivery(delegate)
+            }
+        }
     }
 
     /// Hook for setting up the notifications subsystem *before* calling `UIApplication.shared.registerForRemoteNotifications()`.
@@ -199,29 +217,35 @@ open class UserNotificationService: NSObject, @unchecked Sendable {
 extension UserNotificationService: UNUserNotificationCenterDelegate {
 
     /// Implements `UNUserNotificationCenterDelegate` method to handle notifications that are about to be presented.
+    /// Delivery hops to the main actor.
     /// - Parameters:
     ///   - center: The notification center.
     ///   - notification: The notification that is about to be presented.
     ///   - completionHandler: The handler to call to specify presentation options.
-    public func userNotificationCenter(
+    public nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
-        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+        withCompletionHandler completionHandler: @escaping @Sendable (UNNotificationPresentationOptions) -> Void
     ) {
-        delegate?.willPresent(notification: notification, completionHandler: completionHandler)
+        deliverToDelegate(delivery: { delegate in
+            delegate.willPresent(notification: notification, completionHandler: completionHandler)
+        })
     }
 
     /// Implements `UNUserNotificationCenterDelegate` method to handle user responses to notifications.
+    /// Delivery hops to the main actor.
     /// - Parameters:
     ///   - center: The notification center.
     ///   - response: The response object indicating the user's action.
     ///   - completionHandler: The handler to call when processing of the response is complete.
-    public func userNotificationCenter(
+    public nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
-        withCompletionHandler completionHandler: @escaping () -> Void
+        withCompletionHandler completionHandler: @escaping @Sendable () -> Void
     ) {
-        delegate?.didReceiveNotification(response: response, completionHandler: completionHandler)
+        deliverToDelegate(delivery: { delegate in
+            delegate.didReceiveNotification(response: response, completionHandler: completionHandler)
+        })
     }
 }
 
