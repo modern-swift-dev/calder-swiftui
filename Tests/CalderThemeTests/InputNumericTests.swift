@@ -105,6 +105,16 @@ import Testing
         #expect(!input.isValidInput(text: "abc"))
     }
 
+    @Test func `optional numeric binding updates format replacements and clear absent values`() {
+        let integer = InputNumber(value: .constant(12))
+        #expect(integer.formattedText(for: 34) == "34")
+        #expect(integer.formattedText(for: nil) == "")
+
+        let decimal = InputDecimal(value: .constant(12.5), maxFractionDigits: 2)
+        #expect(decimal.formattedText(for: 34.25) == "34.25")
+        #expect(decimal.formattedText(for: nil) == "")
+    }
+
     @Test func `number formatter uses posix separator and integer limit`() {
         let formatter = InputNumber.numberFormatter(maxIntegerDigits: 3)
 

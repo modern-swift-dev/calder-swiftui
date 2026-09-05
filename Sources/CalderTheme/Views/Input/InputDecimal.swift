@@ -7,8 +7,9 @@ import SwiftUI
 
 /// A SwiftUI view for inputting decimal numbers with optional formatting and validation.
 ///
-/// This view provides a numeric input field that can handle decimal values,
-/// enforcing a maximum number of fraction digits and offering validation feedback.
+/// This view provides a numeric input field that can handle decimal values.
+/// External binding changes update the displayed text.
+/// The field enforces a maximum number of fraction digits and offers validation feedback.
 public struct InputDecimal: View {
 
     @Environment(\.theme) var theme
@@ -81,6 +82,10 @@ public struct InputDecimal: View {
         #endif
         .onChange(of: textValue, initial: false) { oldValue, newValue in
             if oldValue != newValue {
+                // A formatted binding update must not round or truncate the source value.
+                if newValue == formattedText(for: value) {
+                    return
+                }
                 if !isValidInput(text: newValue) {
                     textValue = oldValue
                     return
@@ -92,6 +97,19 @@ public struct InputDecimal: View {
                 }
             }
         }
+        .onChange(of: value, initial: false) { _, newValue in
+            if parseInput(textValue) != newValue {
+                textValue = formattedText(for: newValue)
+            }
+        }
+    }
+
+    /// Formats a binding update for display, clearing the field for an absent value.
+    func formattedText(for value: Double?) -> String {
+        guard let value else {
+            return ""
+        }
+        return dotDecimalFormatter.string(from: NSNumber(value: value)) ?? ""
     }
 
     /// Parses the input text into an optional `Double` value.

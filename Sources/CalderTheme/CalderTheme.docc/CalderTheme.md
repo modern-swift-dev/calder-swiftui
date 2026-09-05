@@ -16,3 +16,7 @@ percentages remain finite when all category values are zero.
 
 Calling `BarcodeScannerView.suspend()` suppresses both new scan results and queued delegate
 callbacks until `resume()` is called.
+
+Optional numeric inputs update their displayed text when the bound value changes, including
+clearing it when the value becomes `nil`. Display formatting does not round or truncate the
+source binding.

@@ -11,8 +11,9 @@ import UIKit
 
 /// A SwiftUI view for inputting integer numbers with optional formatting and validation.
 ///
-/// This view provides a numeric input field that can handle integer values,
-/// enforcing a maximum number of integer digits and offering validation feedback.
+/// This view provides a numeric input field that can handle integer values.
+/// External binding changes update the displayed text.
+/// The field enforces a maximum number of integer digits and offers validation feedback.
 public struct InputNumber: View {
 
     @Environment(\.theme) var theme
@@ -152,6 +153,10 @@ public struct InputNumber: View {
         #endif
         .onChange(of: textValue, initial: false) { oldValue, newValue in
             if oldValue != newValue {
+                // A formatted binding update must not round or truncate the source value.
+                if newValue == formattedText(for: value) {
+                    return
+                }
                 if !isValidInput(text: newValue) {
                     textValue = oldValue
                     return
@@ -161,6 +166,11 @@ public struct InputNumber: View {
                 if value != newDoubleValue {
                     value = newDoubleValue
                 }
+            }
+        }
+        .onChange(of: value, initial: false) { _, newValue in
+            if parseInput(textValue) != newValue {
+                textValue = formattedText(for: newValue)
             }
         }
     }
@@ -193,6 +203,14 @@ public struct InputNumber: View {
             }
     }
     #endif
+
+    /// Formats a binding update for display, clearing the field for an absent value.
+    func formattedText(for value: Int64?) -> String {
+        guard let value else {
+            return ""
+        }
+        return numberFormatter.string(from: NSNumber(value: value)) ?? ""
+    }
 
     /// Parses the input text into an optional `Int64` value.
     /// - Parameter input: The string to parse.
