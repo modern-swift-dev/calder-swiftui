@@ -5,7 +5,8 @@ public extension String {
     ///   - len: The number of characters to include.
     /// - Returns: The substring, or the original string when either offset is invalid.
     func substr(start: Int = 0, len: Int) -> String {
-        guard let lowerBoundary = index(startIndex, offsetBy: start, limitedBy: endIndex),
+        guard start >= 0, len >= 0,
+              let lowerBoundary = index(startIndex, offsetBy: start, limitedBy: endIndex),
               let upperBoundary = index(lowerBoundary, offsetBy: len, limitedBy: endIndex) else {
             return self
         }
