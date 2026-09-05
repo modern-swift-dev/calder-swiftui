@@ -29,6 +29,31 @@ import UserNotifications
         }
     }
 
+    @Test func `missing delegate completes callback`() async {
+        let service = UserNotificationService(delegate: nil)
+        await withCheckedContinuation { continuation in
+            service.deliverToDelegate(orComplete: { continuation.resume() }, delivery: { _ in
+                Issue.record("A missing delegate must complete without delivery")
+                continuation.resume()
+            })
+        }
+    }
+
+    @Test func `released weak delegate completes callback`() async {
+        let service = UserNotificationService(delegate: nil)
+        var delegate: Delegate? = Delegate()
+        service.delegate = delegate
+        delegate = nil
+        #expect(service.delegate == nil)
+
+        await withCheckedContinuation { continuation in
+            service.deliverToDelegate(orComplete: { continuation.resume() }, delivery: { _ in
+                Issue.record("The service must not retain its delegate")
+                continuation.resume()
+            })
+        }
+    }
+
     @Test func `background callbacks deliver delegate and state on main actor`() async {
         let service = UserNotificationService(delegate: nil)
         let delegate = Delegate()
@@ -36,7 +61,10 @@ import UserNotifications
 
         await withCheckedContinuation { continuation in
             DispatchQueue.global().async {
-                service.deliverToDelegate(delivery: { receivedDelegate in
+                service.deliverToDelegate(orComplete: {
+                    Issue.record("A live delegate must receive delivery")
+                    continuation.resume()
+                }, delivery: { receivedDelegate in
                     MainActor.assertIsolated()
                     #expect(receivedDelegate === delegate)
                     #expect(!service.hasRequestedAuthorization)

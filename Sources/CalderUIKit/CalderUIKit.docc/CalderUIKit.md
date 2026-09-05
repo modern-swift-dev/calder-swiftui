@@ -11,3 +11,5 @@ Clustering requests now finish their map updates in submission order. Consecutiv
 `MapClusteringController` now honors an explicitly supplied `minLongitudeDeltaToCluster`; omit the argument to retain the device-dependent default.
 
 `UserNotificationService` and `UserNotificationServiceDelegate` are main-actor isolated. Access service state and implement delegate methods on the main actor; background callers must hop to that actor. System notification callbacks automatically deliver to the delegate on the main actor.
+
+Notification callbacks complete even when the service's weak delegate has been released or cleared. Foreground notifications use no presentation options in that case.

@@ -121,14 +121,17 @@ import UIKit
         super.init()
     }
 
-    /// Delivers system callbacks on the main actor.
+    /// Delivers system callbacks on the main actor, completing requests whose delegate has gone away.
     nonisolated func deliverToDelegate(
+        orComplete completion: @escaping @Sendable () -> Void,
         delivery: @escaping @MainActor @Sendable (any UserNotificationServiceDelegate) -> Void
     ) {
         Task { @MainActor in
-            if let delegate {
-                delivery(delegate)
+            guard let delegate else {
+                completion()
+                return
             }
+            delivery(delegate)
         }
     }
 
@@ -217,7 +220,7 @@ import UIKit
 extension UserNotificationService: UNUserNotificationCenterDelegate {
 
     /// Implements `UNUserNotificationCenterDelegate` method to handle notifications that are about to be presented.
-    /// Delivery hops to the main actor.
+    /// Delivery hops to the main actor; an absent delegate completes with no presentation options.
     /// - Parameters:
     ///   - center: The notification center.
     ///   - notification: The notification that is about to be presented.
@@ -227,13 +230,13 @@ extension UserNotificationService: UNUserNotificationCenterDelegate {
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping @Sendable (UNNotificationPresentationOptions) -> Void
     ) {
-        deliverToDelegate(delivery: { delegate in
+        deliverToDelegate(orComplete: { completionHandler([]) }, delivery: { delegate in
             delegate.willPresent(notification: notification, completionHandler: completionHandler)
         })
     }
 
     /// Implements `UNUserNotificationCenterDelegate` method to handle user responses to notifications.
-    /// Delivery hops to the main actor.
+    /// Delivery hops to the main actor; an absent delegate completes immediately on that actor.
     /// - Parameters:
     ///   - center: The notification center.
     ///   - response: The response object indicating the user's action.
@@ -243,7 +246,7 @@ extension UserNotificationService: UNUserNotificationCenterDelegate {
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping @Sendable () -> Void
     ) {
-        deliverToDelegate(delivery: { delegate in
+        deliverToDelegate(orComplete: completionHandler, delivery: { delegate in
             delegate.didReceiveNotification(response: response, completionHandler: completionHandler)
         })
     }
