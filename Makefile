@@ -29,7 +29,7 @@ test-macos:
 
 test-ios:
 	set -o pipefail && \
-	xcodebuild test \
+	TEST_RUNNER_TZ=UTC xcodebuild test \
 		-scheme "$(SCHEME)" \
 		-destination "$(IOS_DESTINATION)" | mint run --no-install cpisciotta/xcbeautify -q
 

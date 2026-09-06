@@ -95,6 +95,8 @@ jobs:
       - name: Test on ${{ matrix.platform }}
         env:
           SIMULATOR_ID: ${{ steps.simulator.outputs.device-id }}
+          # Swift Charts date axes also use the test process time zone.
+          TEST_RUNNER_TZ: UTC
         run: |
           if [ '${{ matrix.platform }}' = 'macOS' ]; then
             destination='platform=macOS'
