@@ -1,10 +1,10 @@
 SHELL := /bin/bash
 
 SCHEME ?= Calder-Package
-IOS_DESTINATION ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=latest
-TVOS_DESTINATION ?= platform=tvOS Simulator,name=Apple TV 4K (3rd generation),OS=latest
-WATCHOS_DESTINATION ?= platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=latest
-VISIONOS_DESTINATION ?= platform=visionOS Simulator,name=Apple Vision Pro,OS=latest
+IOS_DESTINATION ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5
+TVOS_DESTINATION ?= platform=tvOS Simulator,name=Apple TV 4K (3rd generation),OS=26.5
+WATCHOS_DESTINATION ?= platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=26.5
+VISIONOS_DESTINATION ?= platform=visionOS Simulator,name=Apple Vision Pro,OS=26.5
 
 .PHONY: setup lint format documentation test test-macos test-ios test-tvos test-watchos test-visionos
 

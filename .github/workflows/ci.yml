@@ -17,15 +17,20 @@ jobs:
           - platform: iOS
             simulator-name: iPhone 17 Pro
             runtime-platform: iOS
+            # Must match the runtime used to record snapshot baselines.
+            runtime-version: '26.5'
           - platform: tvOS
             simulator-name: Apple TV 4K (3rd generation)
             runtime-platform: tvOS
+            runtime-version: '26.5'
           - platform: visionOS
             simulator-name: Apple Vision Pro
             runtime-platform: visionOS
+            runtime-version: '26.5'
           - platform: watchOS
             simulator-name: Apple Watch Series 11 (46mm)
             runtime-platform: watchOS
+            runtime-version: '26.5'
     steps:
       - uses: actions/checkout@v4
       - name: Verify Xcode 26.6 and Swift 6.3
@@ -38,24 +43,30 @@ jobs:
         env:
           SIMULATOR_NAME: ${{ matrix.simulator-name }}
           RUNTIME_PLATFORM: ${{ matrix.runtime-platform }}
+          RUNTIME_VERSION: ${{ matrix.runtime-version }}
         run: |
           device_type_identifier="$(
             xcrun simctl list devicetypes --json |
               jq -er --arg name "$SIMULATOR_NAME" \
                 'first(.devicetypes[] | select(.name == $name) | .identifier)'
           )"
-          runtime_identifier="$(
+          if runtime="$(
             xcrun simctl list runtimes available --json |
-              jq -er --arg platform "$RUNTIME_PLATFORM" '
+              jq -cer --arg platform "$RUNTIME_PLATFORM" --arg version "$RUNTIME_VERSION" '
                 [
                   .runtimes[]
                   | select(.name | startswith($platform + " "))
+                  | select(.version == $version)
                 ]
-                | sort_by(.version | split(".") | map(tonumber))
-                | last
-                | .identifier
+                | first
               '
-          )"
+          )"; then
+            runtime_identifier="$(jq -r '.identifier' <<< "$runtime")"
+            jq -r '"Using runtime: \(.name), build \(.buildversion) (\(.identifier))"' <<< "$runtime"
+          else
+            echo "::error::No available $RUNTIME_PLATFORM $RUNTIME_VERSION runtime. Install the required runtime before running tests."
+            exit 1
+          fi
 
           if device_identifier="$(
             xcrun simctl list devices available --json |
