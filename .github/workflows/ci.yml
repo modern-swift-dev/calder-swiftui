@@ -4,7 +4,26 @@ on:
   push:
   pull_request:
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
+  lint:
+    runs-on: blacksmith-6vcpu-macos-26
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Swift 6.3
+        run: swift --version | grep -F 'Swift version 6.3'
+      - name: Install lint tools
+        run: |
+          brew install mint actionlint
+          mint bootstrap
+      - name: Lint
+        run: make lint
+
   apple:
     runs-on: blacksmith-6vcpu-macos-26
     env:
@@ -33,9 +52,13 @@ jobs:
             runtime-version: '26.5'
     steps:
       - uses: actions/checkout@v4
+      - name: Install xcbeautify
+        run: |
+          brew install mint
+          mint install cpisciotta/xcbeautify
       - name: Verify Xcode 26.6 and Swift 6.3
         run: |
-          xcodebuild -version | grep -F 'Xcode 26.6'
+          xcodebuild -version | grep -F 'Xcode 26.6' 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
           swift --version | grep -F 'Swift version 6.3'
       - name: Ensure ${{ matrix.simulator-name }} simulator exists
         id: simulator
@@ -101,7 +124,7 @@ jobs:
             CalderUIKit
           )
           for product in "${products[@]}"; do
-            xcodebuild build -scheme "$product" -destination "$destination"
+            xcodebuild build -scheme "$product" -destination "$destination" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
           done
       - name: Test on ${{ matrix.platform }}
         env:
@@ -115,4 +138,4 @@ jobs:
             destination="id=$SIMULATOR_ID"
           fi
 
-          xcodebuild test -scheme Calder-Package -destination "$destination"
+          xcodebuild test -scheme Calder-Package -destination "$destination" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q

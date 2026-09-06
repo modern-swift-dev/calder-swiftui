@@ -1,3 +1,6 @@
+# Override with a shell-quoted file list to check only changed Swift files.
+SWIFT_FILES ?= .
+
 SHELL := /bin/bash
 
 SCHEME ?= Calder-Package
@@ -13,12 +16,12 @@ setup:
 	mint bootstrap
 	lefthook install
 
-lint:
-	mint run --no-install realm/SwiftLint --config .swiftlint.yml --quiet
+lint: lint-workflows
+	mint run --no-install realm/SwiftLint lint --config .swiftlint.yml --quiet --force-exclude $(SWIFT_FILES)
 
 format:
-	mint run --no-install nicklockwood/SwiftFormat . --config .swiftformat --quiet
-	mint run --no-install realm/SwiftLint --config .swiftlint.yml --fix --quiet
+	mint run --no-install nicklockwood/SwiftFormat $(SWIFT_FILES) --config .swiftformat --quiet
+	mint run --no-install realm/SwiftLint lint --config .swiftlint.yml --fix --quiet --force-exclude $(SWIFT_FILES)
 
 documentation:
 	bash Scripts/build-documentation.sh
@@ -52,3 +55,8 @@ test-visionos:
 	xcodebuild test \
 		-scheme "$(SCHEME)" \
 		-destination "$(VISIONOS_DESTINATION)" | mint run --no-install cpisciotta/xcbeautify -q
+
+.PHONY: lint-workflows
+
+lint-workflows:
+	actionlint
