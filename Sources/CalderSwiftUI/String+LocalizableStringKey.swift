@@ -1,13 +1,13 @@
 #if canImport(SwiftUI)
-import Foundation
-import SwiftUI
+    import Foundation
+    import SwiftUI
 
-public extension String {
+    public extension String {
 
-    /// Return the localized string key
-    var localizedKey: LocalizedStringKey {
-        LocalizedStringKey(self)
+        /// Return the localized string key
+        var localizedKey: LocalizedStringKey {
+            LocalizedStringKey(self)
+        }
     }
-}
 
 #endif

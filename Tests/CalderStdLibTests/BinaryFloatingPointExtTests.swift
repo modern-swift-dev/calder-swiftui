@@ -1,6 +1,6 @@
 @testable import CalderStdLib
 #if canImport(CoreGraphics)
-import CoreGraphics
+    import CoreGraphics
 #endif
 import Testing
 
@@ -10,10 +10,10 @@ struct BinaryFloatingPointExtTests {
     }
 
     #if canImport(CoreGraphics)
-    @Test func `CGFloat conversion`() {
-        let value = 42.5
+        @Test func `CGFloat conversion`() {
+            let value = 42.5
 
-        #expect(value.cgf == 42.5)
-    }
+            #expect(value.cgf == 42.5)
+        }
     #endif
 }

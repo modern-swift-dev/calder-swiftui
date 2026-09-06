@@ -9,13 +9,13 @@ public extension Double {
 }
 
 #if canImport(CoreGraphics)
-import CoreGraphics
+    import CoreGraphics
 
-/// Extends `CGFloat` to provide an `NSNumber` representation.
-public extension CGFloat {
-    /// Converts the value to an `NSNumber`.
-    var asNumber: NSNumber {
-        NSNumber(value: Double(self))
+    /// Extends `CGFloat` to provide an `NSNumber` representation.
+    public extension CGFloat {
+        /// Converts the value to an `NSNumber`.
+        var asNumber: NSNumber {
+            NSNumber(value: Double(self))
+        }
     }
-}
 #endif

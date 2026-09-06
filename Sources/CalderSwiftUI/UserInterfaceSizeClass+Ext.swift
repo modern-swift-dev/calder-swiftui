@@ -1,38 +1,38 @@
 #if canImport(SwiftUI)
-import Foundation
-import SwiftUI
+    import Foundation
+    import SwiftUI
 
-public extension UserInterfaceSizeClass? {
+    public extension UserInterfaceSizeClass? {
 
-    func adaptativeValue(compact: CGFloat, regular: CGFloat) -> CGFloat {
-        if self == .regular {
-            return regular
+        func adaptativeValue(compact: CGFloat, regular: CGFloat) -> CGFloat {
+            if self == .regular {
+                return regular
+            }
+
+            return compact
         }
 
-        return compact
     }
 
-}
+    public struct AdaptativeValue<DataType> {
 
-public struct AdaptativeValue<DataType> {
+        public var sizeClass: UserInterfaceSizeClass?
+        public let compact: DataType
+        public let regular: DataType
 
-    public var sizeClass: UserInterfaceSizeClass?
-    public let compact: DataType
-    public let regular: DataType
-
-    public init(sizeClass: UserInterfaceSizeClass? = .compact, compact: DataType, regular: DataType) {
-        self.sizeClass = sizeClass
-        self.compact = compact
-        self.regular = regular
-    }
-
-    public var value: DataType {
-        if sizeClass == .regular {
-            return regular
+        public init(sizeClass: UserInterfaceSizeClass? = .compact, compact: DataType, regular: DataType) {
+            self.sizeClass = sizeClass
+            self.compact = compact
+            self.regular = regular
         }
 
-        return compact
+        public var value: DataType {
+            if sizeClass == .regular {
+                return regular
+            }
+
+            return compact
+        }
     }
-}
 
 #endif

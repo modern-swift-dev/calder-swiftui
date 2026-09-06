@@ -8,10 +8,10 @@ struct NSNumberExtTests {
     }
 
     #if canImport(CoreGraphics)
-    @Test func `CGFloat conversion`() {
-        let value: CGFloat = 123.456
+        @Test func `CGFloat conversion`() {
+            let value: CGFloat = 123.456
 
-        #expect(value.asNumber.doubleValue == 123.456)
-    }
+            #expect(value.asNumber.doubleValue == 123.456)
+        }
     #endif
 }
