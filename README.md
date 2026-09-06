@@ -38,7 +38,7 @@ The [Calder documentation site](https://modern-swift-dev.github.io/docs/calder-s
 - [CalderTheme API](https://modern-swift-dev.github.io/docs/calder-swiftui/api/calder-theme/documentation/caldertheme/)
 - [CalderUIKit API](https://modern-swift-dev.github.io/docs/calder-swiftui/api/calder-uikit/documentation/calderuikit/)
 
-The [central documentation repository](https://github.com/modern-swift-dev/docs) builds and publishes the site from `main` daily and on manual runs. Local builds write generated output to `.build/site/`; documentation sources remain here.
+The [central documentation repository](https://github.com/modern-swift-dev/docs) owns Astro, the shared theme, and website/API generation. It builds from `main` daily and on manual runs. Edit page Markdown in `Documentation/Site/` and keep DocC catalogs beside the module sources. See the [docs README](https://github.com/modern-swift-dev/docs/blob/main/README.md) for local build and preview commands. Do not commit generated HTML to this repository.
 
 Release documentation is a separate archive. Build it locally with:
 

@@ -29,20 +29,9 @@ make test-visionos
 
 `make test-all` runs all supported Apple platform tests.
 
-## Build the documentation site
+## Documentation
 
-Install the website dependencies and build the local `.build/site/` directory:
-
-```sh
-make site-setup
-make site-build
-make site-check
-make site-preview
-```
-
-The preview server runs at `http://127.0.0.1:4321/docs/calder-swiftui/`. `make site-build` replaces the ignored `.build/site/` directory with the Astro site and static API documentation for all nine products.
-
-The `Deploy Pages` workflow runs for pull requests and pushes to `main`. Pull requests validate the build without deploying. Pushes deploy the generated site through a GitHub Pages artifact. To publish documentation between releases, run that workflow manually in GitHub Actions. Manual runs always check out `main`, regardless of the ref selected in the workflow interface, and do not read GitHub release data.
+The [central documentation repository](https://github.com/modern-swift-dev/docs) owns Astro, the shared theme, and website/API generation. It builds from `main` daily and on manual runs. Edit page Markdown in `Documentation/Site/` and keep DocC catalogs beside the module sources. See the [docs README](https://github.com/modern-swift-dev/docs/blob/main/README.md) for local build and preview commands. Do not commit generated HTML to this repository.
 
 ## Build the release documentation archive
 
