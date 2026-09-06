@@ -31,7 +31,7 @@ make test-visionos
 
 ## Build the documentation site
 
-Install the website dependencies and build the local `docs/` directory:
+Install the website dependencies and build the local `.build/site/` directory:
 
 ```sh
 make site-setup
@@ -40,7 +40,7 @@ make site-check
 make site-preview
 ```
 
-The preview server runs at `http://127.0.0.1:4321/calder-swiftui/`. `make site-build` replaces the ignored `docs/` directory with the Astro site and static API documentation for all nine products.
+The preview server runs at `http://127.0.0.1:4321/docs/calder-swiftui/`. `make site-build` replaces the ignored `.build/site/` directory with the Astro site and static API documentation for all nine products.
 
 The `Deploy Pages` workflow runs for pull requests and pushes to `main`. Pull requests validate the build without deploying. Pushes deploy the generated site through a GitHub Pages artifact. To publish documentation between releases, run that workflow manually in GitHub Actions. Manual runs always check out `main`, regardless of the ref selected in the workflow interface, and do not read GitHub release data.
 

@@ -31,14 +31,14 @@ Then add only the products your target imports:
 
 ## Documentation
 
-The [Calder documentation site](https://modern-swift-dev.github.io/calder-swiftui/) publishes guides and API documentation from `main`.
+The [Calder documentation site](https://modern-swift-dev.github.io/docs/calder-swiftui/) publishes guides and API documentation from `main`.
 
-- [CalderStdLib API](https://modern-swift-dev.github.io/calder-swiftui/api/calder-stdlib/documentation/calderstdlib/)
-- [CalderSwiftUI API](https://modern-swift-dev.github.io/calder-swiftui/api/calder-swiftui/documentation/calderswiftui/)
-- [CalderTheme API](https://modern-swift-dev.github.io/calder-swiftui/api/calder-theme/documentation/caldertheme/)
-- [CalderUIKit API](https://modern-swift-dev.github.io/calder-swiftui/api/calder-uikit/documentation/calderuikit/)
+- [CalderStdLib API](https://modern-swift-dev.github.io/docs/calder-swiftui/api/calder-stdlib/documentation/calderstdlib/)
+- [CalderSwiftUI API](https://modern-swift-dev.github.io/docs/calder-swiftui/api/calder-swiftui/documentation/calderswiftui/)
+- [CalderTheme API](https://modern-swift-dev.github.io/docs/calder-swiftui/api/calder-theme/documentation/caldertheme/)
+- [CalderUIKit API](https://modern-swift-dev.github.io/docs/calder-swiftui/api/calder-uikit/documentation/calderuikit/)
 
-The Pages workflow builds the site from `main` and deploys the generated `docs/` directory as an artifact. Run the workflow manually between releases to publish the current `main` documentation.
+The [central documentation repository](https://github.com/modern-swift-dev/docs) builds and publishes the site from `main` daily and on manual runs. Local builds write generated output to `.build/site/`; documentation sources remain here.
 
 Release documentation is a separate archive. Build it locally with:
 

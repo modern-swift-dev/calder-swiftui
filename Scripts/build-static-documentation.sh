@@ -48,7 +48,7 @@ for module in "${modules[@]}"; do
         --experimental-skip-synthesized-symbols \
         --output-path "$destination" \
         --transform-for-static-hosting \
-        --hosting-base-path "calder-swiftui/api/$route_name"
+        --hosting-base-path "docs/calder-swiftui/api/$route_name"
 done
 
 echo "Created static DocC sites in $output_directory/api"

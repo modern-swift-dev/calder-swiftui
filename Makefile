@@ -30,10 +30,10 @@ site-setup:
 	npm ci --prefix Website
 
 site-preview:
-	node Scripts/preview-site.mjs docs
+	node Scripts/preview-site.mjs .build/site
 
 site-check:
-	node Website/scripts/check-internal-links.mjs docs
+	node Website/scripts/check-internal-links.mjs .build/site
 
 site-build:
 	bash Scripts/build-site.sh

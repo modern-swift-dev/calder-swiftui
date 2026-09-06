@@ -40,4 +40,4 @@ playground.xcworkspace
 Website/.astro/
 Website/node_modules/
 Website/dist/
-docs/
+/docs/
