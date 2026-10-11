@@ -51,3 +51,5 @@ The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangl
 `CGContext.drawStar(rect:color:nbPoint:)` now centres the star in `rect`, sizes it to the shorter side, and draws a star with `nbPoint` tips for both odd and even counts. `CGContext.drawSquare(frame:fillColor:strokeWidth:strokeColor:)` now fills before stroking, so the whole stroke is visible.
 
 `UIImage.resize(_:_:_:)` now scales the whole image to the target size when the aspect ratio is not kept, instead of cropping it. `resize(_:_:_:)` and `resizeToFit(_:_:)` account for orientation overrides that swap width and height, and render with `UIGraphicsImageRenderer` at the preferred format scale instead of `UIScreen.main.scale`.
+
+`ColorRanges(_:_:)` and `ColorRanges(_:_:_:)` now convert color components to the 0–255 scale used by `ColorRange`, so `fuzz` is likewise expressed on the 0–255 scale. They also normalize each component range when the two colors are not ordered instead of crashing. `UIImage.withColorMasked(_:_:)` now masks images that have an alpha channel instead of returning `nil`.

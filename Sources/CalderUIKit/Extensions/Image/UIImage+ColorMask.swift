@@ -54,24 +54,24 @@
             }
 
             /// Initializes a `ColorRanges` based on a single color with a fudging offset.
+            ///
+            /// The color's red, green, and blue components are converted to the 0–255 scale used by the ranges.
             /// - Parameters:
             ///   - color: The source `UIColor`.
-            ///   - fuzz: The fudging offset to apply to each color component's range. Defaults to 0.0.
+            ///   - fuzz: The fudging offset, between 0 and 255, to apply to each color component's range. Defaults to 0.0.
             public init(_ color: UIColor, _ fuzz: CGFloat = 0.0) {
-                var (red1, green1, blue1, alpha1): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
-                color.getRed(&red1, green: &green1, blue: &blue1, alpha: &alpha1)
-
-                let adjustment = Self.MAX_RANGE.clampedValue(fuzz)
-                red = ColorRange(red1 - adjustment, red1 + adjustment)
-                green = ColorRange(green1 - adjustment, green1 + adjustment)
-                blue = ColorRange(blue1 - adjustment, blue1 + adjustment)
+                self.init(color, color, fuzz)
             }
 
             /// Initializes a `ColorRanges` based on a lower and upper color with a fudging offset.
+            ///
+            /// The colors' red, green, and blue components are converted to the 0–255 scale used by the ranges.
+            /// Each component range spans the smaller to the larger of the two colors' components, so the colors
+            /// don't need to be ordered component by component.
             /// - Parameters:
-            ///   - lower: The lower bound `UIColor`.
-            ///   - upper: The upper bound `UIColor`.
-            ///   - fuzz: The fudging offset to apply to the ranges. Defaults to 0.0.
+            ///   - lower: One bound `UIColor`.
+            ///   - upper: The other bound `UIColor`.
+            ///   - fuzz: The fudging offset, between 0 and 255, to apply to the ranges. Defaults to 0.0.
             public init(_ lower: UIColor, _ upper: UIColor, _ fuzz: CGFloat = 0.0) {
                 var (red1, green1, blue1, alpha1): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
                 lower.getRed(&red1, green: &green1, blue: &blue1, alpha: &alpha1)
@@ -80,9 +80,14 @@
                 upper.getRed(&red2, green: &green2, blue: &blue2, alpha: &alpha2)
 
                 let adjustment = Self.MAX_RANGE.clampedValue(fuzz)
-                red = ColorRange(red1 - adjustment, red2 + adjustment)
-                green = ColorRange(green1 - adjustment, green2 + adjustment)
-                blue = ColorRange(blue1 - adjustment, blue2 + adjustment)
+                red = Self.range(red1, red2, adjustment)
+                green = Self.range(green1, green2, adjustment)
+                blue = Self.range(blue1, blue2, adjustment)
+            }
+
+            /// A 0–255 range spanning two 0–1 color components, widened by `adjustment`.
+            private static func range(_ component1: CGFloat, _ component2: CGFloat, _ adjustment: CGFloat) -> ColorRange {
+                ColorRange(min(component1, component2) * MAX - adjustment, max(component1, component2) * MAX + adjustment)
             }
         }
 
@@ -113,6 +118,9 @@
             }
 
             /// Masks specific colors within an image with a substitute color.
+            ///
+            /// Pixels whose red, green, and blue components, on a 0–255 scale, all fall within `range` are
+            /// replaced with `color`. Other pixels keep their original color.
             /// - Parameters:
             ///   - color: The `UIColor` to use as the substitute for the masked range.
             ///   - range: The `ColorRanges` defining the color components to be masked.
@@ -121,10 +129,9 @@
                 let maskingColors: [CGFloat] = [range.red.lower, range.red.upper, range.green.lower, range.green.upper, range.blue.lower, range.blue.upper]
                 let bounds = CGRect(origin: .zero, size: size)
 
-                // make sure image has no alpha channel
-                if let imageToMask = cgImage, let maskedImage = withNoAlphaChannel()
-                    .cgImage?
-                    .copy(maskingColorComponents: maskingColors) {
+                // Color masking requires 8-bit components and no alpha channel.
+                if let imageToMask = cgImage,
+                   let maskedImage = Self.opaqueRGBImage(imageToMask)?.copy(maskingColorComponents: maskingColors) {
                     let renderer = UIGraphicsImageRenderer(size: size, format: UIGraphicsImageRendererFormat.transparent())
                     return renderer.image { context in
 
@@ -138,6 +145,24 @@
                     }
                 }
                 return nil
+            }
+
+            /// Redraws `image` into an 8-bit sRGB bitmap without an alpha channel, over a black background.
+            private static func opaqueRGBImage(_ image: CGImage) -> CGImage? {
+                guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+                      let context = CGContext(
+                          data: nil,
+                          width: image.width,
+                          height: image.height,
+                          bitsPerComponent: 8,
+                          bytesPerRow: 0,
+                          space: space,
+                          bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+                      ) else {
+                    return nil
+                }
+                context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+                return context.makeImage()
             }
         }
     #endif
