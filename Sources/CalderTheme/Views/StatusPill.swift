@@ -49,19 +49,31 @@
             /// - Parameter theme: The current theme environment.
             /// - Returns: An `AnyShapeStyle` representing the foreground color.
             func foregroundColor(for theme: Theme) -> AnyShapeStyle {
-                let style: any ShapeStyle = switch self {
-                    case let .custom(_, foreground):
-                        foreground
+                if let token = foregroundToken(for: theme) {
+                    return AnyShapeStyle(token)
+                }
+                if case let .custom(_, foreground) = self {
+                    return AnyShapeStyle(foreground)
+                }
+                return AnyShapeStyle(theme.textOverPrimary)
+            }
+
+            /// Provides the theme text colour drawn over the variant's background.
+            /// - Parameter theme: The current theme environment.
+            /// - Returns: The theme colour token, or `nil` for a custom variant.
+            func foregroundToken(for theme: Theme) -> Color? {
+                switch self {
+                    case .custom:
+                        nil
                     case .info:
                         theme.textOverPrimary
                     case .success:
-                        theme.textOverInfo
+                        theme.textOverSuccess
                     case .warn:
                         theme.textOverWarning
                     case .error:
                         theme.textOverError
                 }
-                return AnyShapeStyle(style)
             }
         }
 
