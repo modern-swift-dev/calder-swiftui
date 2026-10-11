@@ -33,7 +33,7 @@
         }
 
         public var body: some View {
-            AdaptativeStack { hclass in
+            AdaptiveStack { hclass in
                 primaryTile(hclass ?? .compact)
                     .modify {
                         if hclass == .regular {

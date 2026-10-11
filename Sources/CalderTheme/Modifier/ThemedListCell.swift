@@ -22,9 +22,9 @@
                 .listRowInsets(
                     .init(
                         top: spacing,
-                        leading: .small,
+                        leading: .spacingSmall,
                         bottom: spacing,
-                        trailing: .small
+                        trailing: .spacingSmall
                     )
                 )
         }

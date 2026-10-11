@@ -140,10 +140,10 @@
                     }
                     .padding(.xxs)
                     .background(Material.thin)
-                    .contentShape(RoundedRectangle(cornerRadius: .small))
-                    .clipShape(RoundedRectangle(cornerRadius: .small))
+                    .contentShape(RoundedRectangle(cornerRadius: .spacingSmall))
+                    .clipShape(RoundedRectangle(cornerRadius: .spacingSmall))
                     .overlay(
-                        RoundedRectangle(cornerRadius: .small)
+                        RoundedRectangle(cornerRadius: .spacingSmall)
                             .stroke(
                                 borderColor,
                                 lineWidth: displayTextViewBorder ? 1 : 0
@@ -152,7 +152,7 @@
                     )
 
                     if let invalidMessage {
-                        HStack(spacing: .small) {
+                        HStack(spacing: .spacingSmall) {
                             Spacer()
 
                             invalidMessage.text

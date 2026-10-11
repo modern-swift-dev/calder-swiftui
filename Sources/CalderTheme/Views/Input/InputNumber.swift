@@ -331,12 +331,12 @@
                 .keyboardType(keyboardType)
                 .textFieldStyle(.plain)
                 .foregroundStyle(decimalIsValid(value.wrappedValue) ? theme.text1 : theme.error)
-                .padding(.small)
+                .padding(.spacingSmall)
                 .background(Material.thick)
-                .contentShape(RoundedRectangle(cornerRadius: .small))
-                .clipShape(RoundedRectangle(cornerRadius: .small))
+                .contentShape(RoundedRectangle(cornerRadius: .spacingSmall))
+                .clipShape(RoundedRectangle(cornerRadius: .spacingSmall))
                 .overlay {
-                    RoundedRectangle(cornerRadius: .small)
+                    RoundedRectangle(cornerRadius: .spacingSmall)
                         .stroke(decimalShowBorder ? theme.text3 : theme.transparent, lineWidth: 1)
                 }
                 .onChange(of: textValue, initial: false) { oldValue, newValue in
@@ -514,7 +514,7 @@
                     @State private var invalidValue = -1.0
 
                     var body: some View {
-                        VStack(spacing: .small) {
+                        VStack(spacing: .spacingSmall) {
                             InputNumber(value: $validValue, placeholder: "Amount", showBorder: true)
                             InputNumber("Positive amount", value: $invalidValue, isValid: { $0 >= 0 })
                             Spacer()

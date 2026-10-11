@@ -144,7 +144,7 @@
         /// The content and behavior of the view.
         public var body: some View {
             VStack(alignment: .leading, spacing: .xxs) {
-                HStack(spacing: .small) {
+                HStack(spacing: .spacingSmall) {
                     if let leftAccessory {
                         leftAccessory
                             .renderingMode(.template).scaledToFit()
@@ -187,7 +187,7 @@
                     })
                     .accessibilityLabel(Text(revealButtonAccessibilityLabel))
                 }
-                .padding(.vertical, .small)
+                .padding(.vertical, .spacingSmall)
                 .padding(.horizontal, .xs)
                 .background(Material.regular)
                 .clipShape(RoundedRectangle(cornerRadius: .xxs))
@@ -201,7 +201,7 @@
                 )
 
                 if let invalidMessageText {
-                    HStack(spacing: .small) {
+                    HStack(spacing: .spacingSmall) {
                         Spacer()
 
                         invalidMessageText.text

@@ -52,7 +52,7 @@
                 .chartLegend(.hidden)
                 .chartScrollableAxes(.horizontal) // Allows horizontal scrolling for long timelines
             }
-            .padding(.large)
+            .padding(.spacingLarge)
         }
     }
 

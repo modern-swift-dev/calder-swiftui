@@ -102,7 +102,7 @@
         private var adaptiveBody: some View {
             Group {
                 if horizontalSizeClass == .regular {
-                    HStack(alignment: .center, spacing: .small) {
+                    HStack(alignment: .center, spacing: .spacingSmall) {
                         if let header = header() {
                             header
                                 .accessibilityIdentifier("list-row-header")
@@ -129,7 +129,7 @@
                         }
                     }
                 } else {
-                    VStack(alignment: .leading, spacing: .small) {
+                    VStack(alignment: .leading, spacing: .spacingSmall) {
                         if compactDetailPositioning == .topLeading, let detail = detail() {
                             detail
                                 .accessibilityIdentifier("list-row-detail-view")
@@ -142,7 +142,7 @@
                             }
                         }
 
-                        HStack(alignment: .center, spacing: .small) {
+                        HStack(alignment: .center, spacing: .spacingSmall) {
                             if let header = header() {
                                 header
                                     .accessibilityIdentifier("list-row-header")
@@ -171,9 +171,9 @@
                     }
                 }
             }
-            .padding(.medium)
+            .padding(.spacingMedium)
             .background(theme.background1)
-            .listRowInsets(.zero)
+            .listRowInsets(EdgeInsets())
         }
 
         private var cardBody: some View {
@@ -203,12 +203,12 @@
                         .foregroundStyle(theme.text3)
                 }
             }
-            .padding(.small)
+            .padding(.spacingSmall)
             .background(cardBackground ?? AnyShapeStyle(Material.thin))
-            .contentShape(RoundedRectangle(cornerRadius: .small))
-            .clipShape(RoundedRectangle(cornerRadius: .small))
+            .contentShape(RoundedRectangle(cornerRadius: .spacingSmall))
+            .clipShape(RoundedRectangle(cornerRadius: .spacingSmall))
             .overlay {
-                RoundedRectangle(cornerRadius: .small)
+                RoundedRectangle(cornerRadius: .spacingSmall)
                     .stroke(theme.border, lineWidth: 1)
                     .shadow(color: theme.shadow, radius: 4, x: 2, y: 2)
             }
@@ -292,7 +292,7 @@
             @Environment(\.theme) private var theme
 
             var body: some View {
-                AdaptativeStack { _ in
+                AdaptiveStack { _ in
                     row
                     row
                 }
@@ -316,7 +316,7 @@
             @Environment(\.theme) private var theme
 
             var body: some View {
-                VStack(spacing: .small) {
+                VStack(spacing: .spacingSmall) {
                     ListRow(
                         icon: .eye,
                         title: "Title",

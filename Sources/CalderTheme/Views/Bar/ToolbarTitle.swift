@@ -39,7 +39,7 @@
                         .foregroundStyle(theme.text1)
                         .font(.headline)
                 }
-                .disableSharedbackground(disable: true)
+                .disableSharedBackground()
             }
         }
 

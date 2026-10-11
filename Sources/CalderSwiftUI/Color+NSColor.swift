@@ -8,8 +8,10 @@
 
         public extension NSColor {
 
-            /// A contrasting UIColor for text layered on top of the current UIColor instance
-            /// note: the possible outcome are charcoal and white
+            /// A contrasting color for text layered on top of this color: black or white.
+            ///
+            /// Deprecated because it shares its name with AppKit's `NSColor.textColor` system color.
+            @available(*, deprecated, renamed: "contrastingTextColor()")
             var textColor: NSColor {
                 contrastingTextColor()
             }
@@ -57,7 +59,7 @@
             /// will calculate the appropriate color that should have the correct
             /// contrasting effect in order to be legible.
             var textColor: Color {
-                NSColor(self).textColor.asSwiftUIColor
+                NSColor(self).contrastingTextColor().asSwiftUIColor
             }
 
             func darken(amount: CGFloat = 0.15) -> Color {

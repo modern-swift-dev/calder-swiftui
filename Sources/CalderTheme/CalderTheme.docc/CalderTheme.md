@@ -75,7 +75,7 @@ when the app becomes active with access granted.
 
 On devices that cannot scan, such as Simulator, the scanner and selector show an unavailable
 message instead of a blank view. Check `BarcodeScannerViewController.isSupported`,
-`BarcodeSelectoViewController.isSupported`, and `BarcodeSelectoViewController.isAvailable` to
+`BarcodeSelectorViewController.isSupported`, and `BarcodeSelectorViewController.isAvailable` to
 hide scanning entry points.
 
 Optional numeric inputs update their displayed text when the bound value changes, including
@@ -130,3 +130,15 @@ Invalid `InputText` and `InputPassword` fields draw their error border even when
 
 `FormSwitch` and `FormDatePicker` use their row name as the control's hidden label, so VoiceOver
 announces the name with the control.
+
+## Migrating to the new names
+
+Misspelled names were corrected. The old names remain as deprecated type aliases, so existing
+code keeps compiling with a deprecation warning and an Xcode fix-it. The deprecated names will be
+removed in the next major version.
+
+| Deprecated name | Replacement |
+| --- | --- |
+| `AdaptativeStack` | `AdaptiveStack` |
+| `BarcodeSelectoViewController` | `BarcodeSelectorViewController` |
+| `BarcodeSelectoViewControllerDelegate` | `BarcodeSelectorViewControllerDelegate` |

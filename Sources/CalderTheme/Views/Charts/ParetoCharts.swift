@@ -177,7 +177,7 @@
 
         /// The content and behavior of the view.
         public var body: some View {
-            VStack(alignment: .leading, spacing: .medium) {
+            VStack(alignment: .leading, spacing: .spacingMedium) {
                 Chart {
                     // Bar Chart for Absolute Values
                     ForEach(dataPoints) { data in
@@ -228,7 +228,7 @@
                         .font(.caption)
                         .foregroundStyle(theme.text3)
                 }
-                .chartXAxisLabel(position: .top, alignment: .center, spacing: .large) {
+                .chartXAxisLabel(position: .top, alignment: .center, spacing: .spacingLarge) {
                     titleText.text
                         .font(.subheadline)
                         .foregroundStyle(theme.text3)
@@ -280,8 +280,8 @@
             }
             .chartYScale(domain: 0 ... max(1, maxValue))
             .chartLegend(.visible)
-            .chartLegend(position: .bottom, alignment: .center, spacing: .small)
-            .padding(.large)
+            .chartLegend(position: .bottom, alignment: .center, spacing: .spacingSmall)
+            .padding(.spacingLarge)
         }
 
         /// Computes evenly spaced Y-axis values for the left axis.

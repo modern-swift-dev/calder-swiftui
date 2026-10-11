@@ -7,15 +7,33 @@
         #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
             import UIKit
 
-            public typealias NSUIColor = UIColor
-            public typealias NSUIFont = UIFont
+            /// The platform color type: `UIColor` on iOS, tvOS, and Mac Catalyst, and `NSColor` on macOS.
+            public typealias CalderPlatformColor = UIColor
+            /// The platform font type: `UIFont` on iOS, tvOS, and Mac Catalyst, and `NSFont` on macOS.
+            public typealias CalderPlatformFont = UIFont
         #endif
 
         #if os(macOS) && !targetEnvironment(macCatalyst)
             import AppKit
 
-            public typealias NSUIColor = NSColor
-            public typealias NSUIFont = NSFont
+            /// The platform color type: `UIColor` on iOS, tvOS, and Mac Catalyst, and `NSColor` on macOS.
+            public typealias CalderPlatformColor = NSColor
+            /// The platform font type: `UIFont` on iOS, tvOS, and Mac Catalyst, and `NSFont` on macOS.
+            public typealias CalderPlatformFont = NSFont
+        #endif
+
+        #if os(iOS) || os(tvOS) || os(macOS)
+            /// The previous name of ``CalderPlatformColor``.
+            ///
+            /// Renamed because other libraries, such as DGCharts, declare a public `NSUIColor` too.
+            @available(*, deprecated, renamed: "CalderPlatformColor")
+            public typealias NSUIColor = CalderPlatformColor
+
+            /// The previous name of ``CalderPlatformFont``.
+            ///
+            /// Renamed because other libraries, such as DGCharts, declare a public `NSUIFont` too.
+            @available(*, deprecated, renamed: "CalderPlatformFont")
+            public typealias NSUIFont = CalderPlatformFont
         #endif
 
         #if os(iOS) || os(tvOS) || os(macOS)
@@ -25,13 +43,13 @@
                 /// - Parameters:
                 ///   - frame: The `CGRect` defining the bounding rectangle for the circle.
                 ///   - strokeWidth: The width of the circle's stroke.
-                ///   - strokeColor: The `NSUIColor` for the circle's stroke.
-                ///   - fillColor: An optional `NSUIColor` to fill the circle with. If `nil`, the circle will not be filled.
+                ///   - strokeColor: The `CalderPlatformColor` for the circle's stroke.
+                ///   - fillColor: An optional `CalderPlatformColor` to fill the circle with. If `nil`, the circle will not be filled.
                 func drawCircle(
                     frame: CGRect,
                     strokeWidth: CGFloat,
-                    strokeColor: NSUIColor,
-                    fillColor: NSUIColor?
+                    strokeColor: CalderPlatformColor,
+                    fillColor: CalderPlatformColor?
                 ) {
                     saveGState()
 
@@ -53,14 +71,14 @@
                 ///   - start: The starting angle in degrees for the arc.
                 ///   - end: The end angle in degrees for the arc.
                 ///   - radius: The radius of the pie slice.
-                ///   - color: The `NSUIColor` to fill the pie slice with.
+                ///   - color: The `CalderPlatformColor` to fill the pie slice with.
                 func drawPie(
                     x: CGFloat,
                     y: CGFloat,
                     start: CGFloat,
                     end: CGFloat,
                     radius: CGFloat,
-                    color: NSUIColor
+                    color: CalderPlatformColor
                 ) {
                     saveGState()
                     setFillColor(color.cgColor)
@@ -84,14 +102,14 @@
                 /// The square is filled first, then stroked, so the full stroke width stays visible over the fill.
                 /// - Parameters:
                 ///   - frame: The `CGRect` defining the bounding rectangle for the square.
-                ///   - fillColor: An optional `NSUIColor` to fill the square with. If `nil`, the square will not be filled.
+                ///   - fillColor: An optional `CalderPlatformColor` to fill the square with. If `nil`, the square will not be filled.
                 ///   - strokeWidth: The width of the square's stroke.
-                ///   - strokeColor: The `NSUIColor` for the square's stroke.
+                ///   - strokeColor: The `CalderPlatformColor` for the square's stroke.
                 func drawSquare(
                     frame: CGRect,
-                    fillColor: NSUIColor?,
+                    fillColor: CalderPlatformColor?,
                     strokeWidth: CGFloat,
-                    strokeColor: NSUIColor
+                    strokeColor: CalderPlatformColor
                 ) {
                     saveGState()
 
@@ -116,13 +134,13 @@
                 /// - Parameters:
                 ///   - text: The `NSString` to draw.
                 ///   - rect: The `CGRect` defining the area where the text will be drawn.
-                ///   - font: The `NSUIFont` to use for drawing the text.
-                ///   - color: The `NSUIColor` for the text.
+                ///   - font: The `CalderPlatformFont` to use for drawing the text.
+                ///   - color: The `CalderPlatformColor` for the text.
                 func drawText(
                     text: NSString,
                     rect: CGRect,
-                    font: NSUIFont,
-                    color: NSUIColor
+                    font: CalderPlatformFont,
+                    color: CalderPlatformColor
                 ) {
                     saveGState()
                     setTextDrawingMode(.fill)
@@ -174,11 +192,11 @@
                 /// is `0`.
                 /// - Parameters:
                 ///   - rect: The `CGRect` defining the bounding box for the star.
-                ///   - color: The `NSUIColor` to fill the star with.
+                ///   - color: The `CalderPlatformColor` to fill the star with.
                 ///   - nbPoint: The number of points the star should have. Defaults to 5.
                 func drawStar(
                     rect: CGRect,
-                    color: NSUIColor,
+                    color: CalderPlatformColor,
                     nbPoint: UInt = 5
                 ) {
                     guard nbPoint > 0 else {

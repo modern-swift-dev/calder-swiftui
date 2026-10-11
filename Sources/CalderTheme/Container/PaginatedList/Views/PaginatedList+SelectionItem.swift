@@ -22,12 +22,12 @@
             }
 
             public var body: some View {
-                HStack(alignment: .center, spacing: .small) {
+                HStack(alignment: .center, spacing: .spacingSmall) {
                     builder()
                     Spacer()
                     SelectionIndicator(selected: selected)
                 }
-                .padding(.trailing, .small)
+                .padding(.trailing, .spacingSmall)
                 .contentShape(RoundedRectangle(cornerRadius: .xxs))
                 .clipShape(RoundedRectangle(cornerRadius: .xxs))
             }

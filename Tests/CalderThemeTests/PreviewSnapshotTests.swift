@@ -7,7 +7,7 @@
     @MainActor struct PreviewSnapshotTests {
         @Test func `adaptative stack previews`() {
             assertSnapshots(
-                of: AdaptativeStackPreviews.self,
+                of: AdaptiveStackPreviews.self,
                 configurations: PreviewSnapshotConfigurations.compact + PreviewSnapshotConfigurations.regular,
                 imageOptions: PreviewSnapshotConfigurations.imageOptions
             )

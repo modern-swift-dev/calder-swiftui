@@ -51,9 +51,18 @@
 
         // MARK: - Debugging
         public extension CGFloat {
-            /// A debug description of the `CGFloat` value.
-            var debugDescription: String {
+            /// A debugging description that names the type and labels its components, such as `CGFloat(25.5)`.
+            var labeledDebugDescription: String {
                 "CGFloat(\(self))"
+            }
+
+            /// The previous name of ``labeledDebugDescription``.
+            ///
+            /// Renamed for consistency with the other Core Graphics types: `debugDescription` is the
+            /// `CustomDebugStringConvertible` requirement name. It will be removed in the next major version.
+            @available(*, deprecated, renamed: "labeledDebugDescription")
+            var debugDescription: String {
+                labeledDebugDescription
             }
         }
     #endif

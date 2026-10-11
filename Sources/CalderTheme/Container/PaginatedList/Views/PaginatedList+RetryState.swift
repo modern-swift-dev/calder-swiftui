@@ -18,7 +18,7 @@
             let retry: @MainActor () -> Void
 
             var body: some View {
-                HStack(spacing: .small) {
+                HStack(spacing: .spacingSmall) {
                     Text(Self.message)
                         .font(.footnote)
                         .foregroundStyle(theme.text2)

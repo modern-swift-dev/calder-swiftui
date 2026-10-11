@@ -50,9 +50,9 @@
                     case .primary,
                          .secondary,
                          .tertiary:
-                        .init(vertical: .small, horizontal: .medium)
+                        .init(vertical: .spacingSmall, horizontal: .spacingMedium)
                     case .pill:
-                        .init(vertical: .xxs, horizontal: .small)
+                        .init(vertical: .xxs, horizontal: .spacingSmall)
                     case .link:
                         .init(vertical: .xxxs, horizontal: 0)
                     case .round:
@@ -94,7 +94,7 @@
                 let shape: any Shape = switch self {
                     case .primary,
                          .secondary:
-                        RoundedRectangle(cornerRadius: .small)
+                        RoundedRectangle(cornerRadius: .spacingSmall)
                     case .tertiary,
                          .link:
                         Rectangle()

@@ -4,7 +4,7 @@
     import SwiftUI
     import Testing
 
-    @MainActor struct AdaptativeStackTests {
+    @MainActor struct AdaptiveStackTests {
         /// Records the state token each child body observes.
         final class Recorder {
             var tokens: [UUID] = []
@@ -23,7 +23,7 @@
 
         private static func content(sizeClass: UserInterfaceSizeClass, recorder: Recorder) -> AnyView {
             AnyView(
-                AdaptativeStack { _ in
+                AdaptiveStack { _ in
                     StatefulChild(recorder: recorder)
                 }
                 .environment(\.horizontalSizeClass, sizeClass)
@@ -40,6 +40,16 @@
 
             #expect(!recorder.tokens.isEmpty)
             #expect(Set(recorder.tokens).count == 1)
+        }
+
+        @available(*, deprecated)
+        @Test func `deprecated AdaptativeStack aliases AdaptiveStack`() {
+            let stack: AdaptiveStack<Text> = AdaptativeStack(verticalSpacing: 4, horizontalSpacing: 6) { _ in
+                Text("Content")
+            }
+
+            #expect(stack.verticalSpacing == 4)
+            #expect(stack.horizontalSpacing == 6)
         }
     }
 #endif

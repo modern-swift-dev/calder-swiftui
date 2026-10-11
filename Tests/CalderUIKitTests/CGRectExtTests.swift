@@ -106,5 +106,12 @@
             #expect(rect.center == .zero)
         }
 
+        // MARK: - Debugging
+
+        @Test func `labeled debug description formats correctly`() {
+            let rect = CGRect(x: 1.0, y: 2.0, width: 3.0, height: 4.0)
+            #expect(rect.labeledDebugDescription == "CGRect(x: 1.0, y: 2.0, w: 3.0, h: 4.0)")
+        }
+
     }
 #endif

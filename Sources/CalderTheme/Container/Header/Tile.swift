@@ -97,8 +97,8 @@
                     action()
                 },
                 label: {
-                    VStack(alignment: .leading, spacing: .medium) {
-                        HStack(alignment: .center, spacing: .small) {
+                    VStack(alignment: .leading, spacing: .spacingMedium) {
+                        HStack(alignment: .center, spacing: .spacingSmall) {
                             icon
                                 .symbolRenderingMode(.monochrome)
                                 .renderingMode(.template)
@@ -118,7 +118,7 @@
                             Spacer()
                         }
 
-                        HStack(alignment: .center, spacing: .small) {
+                        HStack(alignment: .center, spacing: .spacingSmall) {
                             Text(verbatim: variant.text(candidate: text, length: 2))
                                 .font(.headline)
                                 .foregroundStyle(variant.countForeground(theme: theme))
@@ -135,7 +135,7 @@
                         }
 
                     }
-                    .padding(.medium)
+                    .padding(.spacingMedium)
                     .background(variant.backgroundColor(theme: theme))
                     .redacted(reason: variant.redacted)
                     .clipShape(RoundedRectangle(cornerRadius: .xxs))
@@ -326,7 +326,7 @@
             }
 
             PreviewSnapshot("Variants") {
-                VStack(spacing: .small) {
+                VStack(spacing: .spacingSmall) {
                     Tile(icon: Image(systemSymbol: .cloud), label: "Empty", text: "12", variant: .empty, action: {})
                     Tile(icon: Image(systemSymbol: .hourglass), label: "Loading", text: "12", variant: .loading, action: {})
                     Tile(icon: Image(systemSymbol: .checkmarkCircle), label: "Info", text: "12", variant: .info, action: {})

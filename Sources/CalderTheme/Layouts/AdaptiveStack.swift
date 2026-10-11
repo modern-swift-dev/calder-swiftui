@@ -12,7 +12,7 @@
     ///
     /// The stack switches layouts through `AnyLayout`, so its children keep their identity, state,
     /// focus, and scroll position when the size class changes.
-    public struct AdaptativeStack<Content: View>: View {
+    public struct AdaptiveStack<Content: View>: View {
 
         /// The horizontal alignment for the `VStack` when in a compact size class.
         public let verticalAlignment: HorizontalAlignment
@@ -28,7 +28,7 @@
 
         @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
-        /// Initializes a new `AdaptativeStack`.
+        /// Initializes a new `AdaptiveStack`.
         ///
         /// - Parameters:
         ///   - verticalAlignment: The horizontal alignment for the `VStack`. Defaults to `.leading`.
@@ -62,22 +62,26 @@
         }
     }
 
+    /// The previous, misspelled name of ``AdaptiveStack``.
+    @available(*, deprecated, renamed: "AdaptiveStack")
+    public typealias AdaptativeStack<Content: View> = AdaptiveStack<Content>
+
 #endif
 
 #if DEBUG
     import SnapshotPreviews
 
-    @MainActor enum AdaptativeStackPreviews: PreviewProvider, SnapshotProvider {
+    @MainActor enum AdaptiveStackPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 
         static var snapshots: [PreviewSnapshot] {
             PreviewSnapshot("default") {
-                AdaptativeStack(verticalSpacing: 0, horizontalSpacing: 0) { _ in
+                AdaptiveStack(verticalSpacing: 0, horizontalSpacing: 0) { _ in
                     Image(systemSymbol: .stopwatch)
                     Image(systemSymbol: .clock)
                     Image(systemSymbol: .ant)
                 }
-                .padding(.small)
+                .padding(.spacingSmall)
             }
         }
     }

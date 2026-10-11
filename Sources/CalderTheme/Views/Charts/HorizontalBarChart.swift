@@ -90,7 +90,7 @@
 
         /// The content and behavior of the view.
         public var body: some View {
-            VStack(alignment: .leading, spacing: .medium) {
+            VStack(alignment: .leading, spacing: .spacingMedium) {
                 Chart {
                     // Bar Chart for Absolute Values
                     ForEach(dataPoints, id: \.name) { data in
@@ -109,7 +109,7 @@
                 .chartLegend(.hidden)
 
             }
-            .padding(.large)
+            .padding(.spacingLarge)
         }
     }
 

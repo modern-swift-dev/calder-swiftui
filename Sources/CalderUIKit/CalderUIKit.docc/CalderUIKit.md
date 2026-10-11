@@ -59,3 +59,21 @@ The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangl
 `CIImage.writePNG(uiImage:)` and `CIImage.writeJpeg(uiImage:compression:)` now throw `CIImage.WriteError.encodingFailed` when the image cannot be encoded, instead of returning a URL to a file that was never written.
 
 `UIView.setViewGradient(startLocation:startPoint:startColor:endLocation:endPoint:endColor:type:)` now hosts its gradient in a single non-interactive subview at index 0 that resizes with the view. Repeated calls reconfigure that gradient instead of stacking layers. The method no longer sets `masksToBounds` on the view, so shadows are no longer clipped; the gradient clips itself using the view's corner radius at the time of the call.
+
+## Migrating to the new names
+
+Names that collide with Apple APIs or other libraries were replaced. The old names remain
+deprecated, so existing code keeps compiling with a deprecation warning and an Xcode fix-it.
+The deprecated names will be removed in the next major version.
+
+| Deprecated name | Replacement | Reason |
+| --- | --- | --- |
+| `UINavigationController.topViewController()` | `lastViewController()` | Easy to confuse with UIKit's `topViewController` property. |
+| `CGFloat.small`, `.medium`, `.large` | `.spacingSmall`, `.spacingMedium`, `.spacingLarge` | Generic names that other APIs also use. The values are unchanged: 12, 16, and 24. |
+| `NSUIColor`, `NSUIFont` | `CalderPlatformColor`, `CalderPlatformFont` | Other libraries, such as DGCharts, declare the same public type aliases. |
+| `debugDescription` on `CGFloat`, `CGPoint`, `CGSize`, and `CGRect` | `labeledDebugDescription` | Collides with the `CustomDebugStringConvertible` requirement, which Core Graphics already implements for `CGPoint`, `CGSize`, and `CGRect`. |
+
+`CGPoint`, `CGSize`, and `CGRect` already have a `debugDescription` from Core Graphics. While the
+deprecated members exist, a direct `debugDescription` call on these types is ambiguous in code that
+also imports Core Graphics, so use `labeledDebugDescription` for the labeled format.
+`labeledDebugDescription` now ends with a closing parenthesis, such as `CGPoint(x: 1.0, y: 2.0)`.

@@ -8,7 +8,7 @@
     @MainActor struct ThemedButtonStyleTests {
 
         @Test func `standard variants use roomy padding`() {
-            let expected = EdgeInsets(vertical: .small, horizontal: .medium)
+            let expected = EdgeInsets(vertical: .spacingSmall, horizontal: .spacingMedium)
 
             #expect(ThemedButtonStyle.Variant.primary().padding == expected)
             #expect(ThemedButtonStyle.Variant.secondary().padding == expected)
@@ -18,7 +18,7 @@
         @Test func `pill variant uses compact padding`() {
             let variant = ThemedButtonStyle.Variant.pill(bg: Color.blue, fg: Color.white)
 
-            #expect(variant.padding == EdgeInsets(vertical: .xxs, horizontal: .small))
+            #expect(variant.padding == EdgeInsets(vertical: .xxs, horizontal: .spacingSmall))
         }
 
         @Test func `themed style applies to navigation links`() throws {

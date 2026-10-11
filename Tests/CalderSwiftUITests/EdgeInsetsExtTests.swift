@@ -9,12 +9,9 @@
 
             // MARK: - Zero
 
-            @Test func `zero edge insets`() {
-                let insets = EdgeInsets.zero
-                #expect(insets.top == 0)
-                #expect(insets.leading == 0)
-                #expect(insets.bottom == 0)
-                #expect(insets.trailing == 0)
+            @available(*, deprecated)
+            @Test func `deprecated zero edge insets match EdgeInsets()`() {
+                #expect(EdgeInsets.zero == EdgeInsets())
             }
 
             // MARK: - Init with vertical

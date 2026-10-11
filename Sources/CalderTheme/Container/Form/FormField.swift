@@ -84,7 +84,7 @@
 
                 content()
             }
-            .padding(.small)
+            .padding(.spacingSmall)
             .frame(minHeight: 52)
             .background(Material.regular)
             .applyThemedCell()

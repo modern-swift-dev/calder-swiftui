@@ -65,7 +65,7 @@
                     case .primary,
                          .secondary,
                          .destructive:
-                        .init(vertical: .small, horizontal: .medium)
+                        .init(vertical: .spacingSmall, horizontal: .spacingMedium)
                 }
             }
 

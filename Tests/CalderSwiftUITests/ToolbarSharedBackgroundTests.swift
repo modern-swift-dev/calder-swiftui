@@ -17,18 +17,42 @@
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Action") {}
                         }
-                        .disableSharedbackground(disable: disable)
+                        .disableSharedBackground(disable)
                     }
             }
+
+            let item = try await #require(Self.hostedTrailingBarButtonItem(for: root))
+
+            #expect(item.hidesSharedBackground == disable)
+        }
+
+        @available(iOS 26, *)
+        @available(*, deprecated)
+        @Test func `deprecated disableSharedbackground forwards to disableSharedBackground`() async throws {
+            let root = NavigationStack {
+                Text("Content")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Action") {}
+                        }
+                        .disableSharedbackground(disable: true)
+                    }
+            }
+
+            let item = try await #require(Self.hostedTrailingBarButtonItem(for: root))
+
+            #expect(item.hidesSharedBackground)
+        }
+
+        /// Hosts `root` in a key window and returns its trailing bar button item.
+        private static func hostedTrailingBarButtonItem(for root: some View) async -> UIBarButtonItem? {
             let controller = UIHostingController(rootView: root)
             let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
             window.rootViewController = controller
             window.makeKeyAndVisible()
             defer { window.isHidden = true }
 
-            let item = try await #require(Self.trailingBarButtonItem(in: controller))
-
-            #expect(item.hidesSharedBackground == disable)
+            return await trailingBarButtonItem(in: controller)
         }
 
         /// Waits for SwiftUI to install the toolbar item in the hosted navigation bar.

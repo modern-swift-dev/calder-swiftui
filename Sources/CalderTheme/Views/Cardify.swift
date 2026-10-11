@@ -19,9 +19,9 @@
 
         /// Initializes a new instance of `Cardify`.
         public init(
-            horizontalPadding: CGFloat = .medium,
-            verticalPadding: CGFloat = .medium,
-            radius: CGFloat = .small,
+            horizontalPadding: CGFloat = .spacingMedium,
+            verticalPadding: CGFloat = .spacingMedium,
+            radius: CGFloat = .spacingSmall,
             thick: Bool = false
         ) {
             self.horizontalPadding = horizontalPadding
@@ -57,9 +57,9 @@
         /// background, rounded corners, and a subtle shadow, as defined by `Cardify`.
         /// - Returns: A view with the card-like style applied.
         func cardify(
-            horizontalPadding: CGFloat = .medium,
-            verticalPadding: CGFloat = .medium,
-            radius: CGFloat = .small,
+            horizontalPadding: CGFloat = .spacingMedium,
+            verticalPadding: CGFloat = .spacingMedium,
+            radius: CGFloat = .spacingSmall,
             thick: Bool = false
         ) -> some View {
             modifier(
@@ -74,7 +74,7 @@
 
         func cardify(
             padding: CGFloat,
-            radius: CGFloat = .small,
+            radius: CGFloat = .spacingSmall,
             thick: Bool = false
         ) -> some View {
             modifier(
@@ -108,13 +108,13 @@
                         Text("This is a sample card.")
                             .font(.subheadline)
                     }
-                    .padding(.medium)
+                    .padding(.spacingMedium)
                     .cardify()
                 }
 
                 PreviewSnapshot("custom") {
                     Text("Custom card")
-                        .cardify(horizontalPadding: .large, verticalPadding: .xxs, radius: .large, thick: true)
+                        .cardify(horizontalPadding: .spacingLarge, verticalPadding: .xxs, radius: .spacingLarge, thick: true)
                 }
             }
         }

@@ -173,7 +173,7 @@
 
                 Spacer()
             }
-            .padding(.medium)
+            .padding(.spacingMedium)
             .background(variant.backgroundColor(theme: theme))
             .contentShape(RoundedRectangle(cornerRadius: .xxs))
             .clipShape(RoundedRectangle(cornerRadius: .xxs))

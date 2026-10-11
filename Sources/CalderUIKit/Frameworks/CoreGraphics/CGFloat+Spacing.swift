@@ -19,18 +19,42 @@
         }
 
         /// A spacing value of 12 pixels.
-        @inlinable static var small: CGFloat {
+        @inlinable static var spacingSmall: CGFloat {
             12.0
         }
 
+        /// The previous name of ``spacingSmall``.
+        ///
+        /// Renamed because `.small` is a common member name that's easy to confuse with other APIs.
+        @available(*, deprecated, renamed: "spacingSmall")
+        @inlinable static var small: CGFloat {
+            spacingSmall
+        }
+
         /// A spacing value of 16 pixels.
-        @inlinable static var medium: CGFloat {
+        @inlinable static var spacingMedium: CGFloat {
             16.0
         }
 
+        /// The previous name of ``spacingMedium``.
+        ///
+        /// Renamed because `.medium` is a common member name that's easy to confuse with other APIs.
+        @available(*, deprecated, renamed: "spacingMedium")
+        @inlinable static var medium: CGFloat {
+            spacingMedium
+        }
+
         /// A spacing value of 24 pixels.
-        @inlinable static var large: CGFloat {
+        @inlinable static var spacingLarge: CGFloat {
             24.0
+        }
+
+        /// The previous name of ``spacingLarge``.
+        ///
+        /// Renamed because `.large` is a common member name that's easy to confuse with other APIs.
+        @available(*, deprecated, renamed: "spacingLarge")
+        @inlinable static var large: CGFloat {
+            spacingLarge
         }
 
         /// A spacing value of 32 pixels.

@@ -6,7 +6,7 @@
         import Vision
         import VisionKit
 
-        /// A SwiftUI view that wraps `BarcodeSelectoViewController` to provide barcode scanning functionality using VisionKit's `DataScannerViewController`.
+        /// A SwiftUI view that wraps `BarcodeSelectorViewController` to provide barcode scanning functionality using VisionKit's `DataScannerViewController`.
         /// This view allows users to scan various barcode symbologies and receive the scanned value and its type.
         ///
         /// > Important: The host app must declare `NSCameraUsageDescription` in its `Info.plist`, with a message that
@@ -44,11 +44,11 @@
                 self._scannedCode = scannedCode
             }
 
-            /// Creates the `BarcodeSelectoViewController` instance.
+            /// Creates the `BarcodeSelectorViewController` instance.
             /// - Parameter context: The context for creating the view controller.
-            /// - Returns: An initialized `BarcodeSelectoViewController`.
-            public func makeUIViewController(context: Context) -> BarcodeSelectoViewController {
-                let vc = BarcodeSelectoViewController()
+            /// - Returns: An initialized `BarcodeSelectorViewController`.
+            public func makeUIViewController(context: Context) -> BarcodeSelectorViewController {
+                let vc = BarcodeSelectorViewController()
                 vc.recognizedTypes = recognizedTypes
                 vc.highlightColor = UIColor(highlightColor)
                 vc.themeDefinition = context.environment.themeDefinition
@@ -56,11 +56,11 @@
                 return vc
             }
 
-            /// Updates the `BarcodeSelectoViewController` when the SwiftUI view's configuration changes.
+            /// Updates the `BarcodeSelectorViewController` when the SwiftUI view's configuration changes.
             /// - Parameters:
-            ///   - vc: The `BarcodeSelectoViewController` to update.
+            ///   - vc: The `BarcodeSelectorViewController` to update.
             ///   - context: The context for updating the view controller.
-            public func updateUIViewController(_ vc: BarcodeSelectoViewController, context: Context) {
+            public func updateUIViewController(_ vc: BarcodeSelectorViewController, context: Context) {
                 vc.highlightColor = UIColor(highlightColor)
                 vc.themeDefinition = context.environment.themeDefinition
                 vc.scanDelegate = context.coordinator
@@ -74,11 +74,11 @@
                 }
             }
 
-            /// Dismantles the `BarcodeSelectoViewController` when the SwiftUI view is removed.
+            /// Dismantles the `BarcodeSelectorViewController` when the SwiftUI view is removed.
             /// - Parameters:
             ///   - vc: The view controller to dismantle.
             ///   - coordinator: The coordinator associated with the view controller.
-            public static func dismantleUIViewController(_ vc: BarcodeSelectoViewController, coordinator: Coordinator) {
+            public static func dismantleUIViewController(_ vc: BarcodeSelectorViewController, coordinator: Coordinator) {
                 vc.stop()
             }
 
@@ -88,9 +88,9 @@
                 Coordinator(scannedCode: $scannedCode)
             }
 
-            /// The coordinator class that conforms to `BarcodeSelectoViewControllerDelegate`
-            /// to receive and handle barcode recognition events from the `BarcodeSelectoViewController`.
-            public class Coordinator: NSObject, BarcodeSelectoViewControllerDelegate {
+            /// The coordinator class that conforms to `BarcodeSelectorViewControllerDelegate`
+            /// to receive and handle barcode recognition events from the `BarcodeSelectorViewController`.
+            public class Coordinator: NSObject, BarcodeSelectorViewControllerDelegate {
 
                 /// A binding to the scanned barcode string and its symbology.
                 @Binding var scannedCode: (String, VNBarcodeSymbology?)?
@@ -103,9 +103,9 @@
 
                 /// Called when a barcode is recognized by the `DataScannerViewController`.
                 /// - Parameters:
-                ///   - dataScanner: The `BarcodeSelectoViewController` that recognized the barcode.
+                ///   - dataScanner: The `BarcodeSelectorViewController` that recognized the barcode.
                 ///   - result: A tuple containing the recognized barcode string and its symbology.
-                public func onBarcodeRecognized(_ dataScanner: BarcodeSelectoViewController, result: (String, VNBarcodeSymbology?)) {
+                public func onBarcodeRecognized(_ dataScanner: BarcodeSelectorViewController, result: (String, VNBarcodeSymbology?)) {
                     self.scannedCode = result
                     dataScanner.stop()
                 }

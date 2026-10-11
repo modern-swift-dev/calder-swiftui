@@ -23,7 +23,7 @@
             var openSettings: () -> Void = {}
 
             var body: some View {
-                VStack(spacing: .medium) {
+                VStack(spacing: .spacingMedium) {
                     switch reason {
                         case .permissionDenied:
                             MessageBox(
@@ -45,7 +45,7 @@
                             )
                     }
                 }
-                .padding(.medium)
+                .padding(.spacingMedium)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(theme.background1)
             }

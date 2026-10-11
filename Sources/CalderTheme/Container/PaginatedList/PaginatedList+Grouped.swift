@@ -49,7 +49,7 @@
                         Section(content: {
                             ForEach(section.values) { item in
                                 viewFactory(item)
-                                    .listRowInsets(.zero)
+                                    .listRowInsets(EdgeInsets())
                                 #if !os(macOS) && !os(watchOS) && !os(tvOS)
                                     .listRowSpacing(0)
                                 #endif
@@ -78,7 +78,7 @@
                     }
 
                     Color.clear.frame(height: .xxxl)
-                        .listRowInsets(.zero)
+                        .listRowInsets(EdgeInsets())
                     #if !os(macOS)
                         #if !os(watchOS) && !os(tvOS)
                             .listRowSpacing(0)

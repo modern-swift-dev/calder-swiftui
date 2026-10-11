@@ -15,3 +15,17 @@ On platforms that support keyboard observation, `KeyboardObserver` and the `keyb
 `KeyboardObserver` no longer debounces keyboard notifications by 150 milliseconds. It applies show, frame-change, and hide notifications on the main actor one at a time, in the order they are posted.
 
 `KeyboardObserver` ignores frame-change notifications from non-local keyboards and frame changes received while the keyboard is hidden, so `keyboardSize` stays zero while `visible` is false.
+
+## Migrating to the new names
+
+Misspelled names, and names that collide with Apple APIs, were replaced. The old names remain
+deprecated, so existing code keeps compiling with a deprecation warning. Renamed declarations
+also offer an Xcode fix-it. The deprecated names will be removed in the next major version.
+
+| Deprecated name | Replacement |
+| --- | --- |
+| `AdaptativeValue` | `AdaptiveValue` |
+| `UserInterfaceSizeClass?.adaptativeValue(compact:regular:)` | `adaptiveValue(compact:regular:)` |
+| `ToolbarContent.disableSharedbackground(disable:)` | `disableSharedBackground(_:)`, whose argument defaults to `true` |
+| `EdgeInsets.zero` | SwiftUI's `EdgeInsets()`, which also creates zero insets. There's no fix-it; replace `.zero` with `EdgeInsets()` where the type is `EdgeInsets`. |
+| `NSColor.textColor` (instance property) | `contrastingTextColor()`. The instance property shared its name with AppKit's `NSColor.textColor` system color. |

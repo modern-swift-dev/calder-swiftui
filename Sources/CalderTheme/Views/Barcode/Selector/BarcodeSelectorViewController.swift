@@ -7,32 +7,40 @@
         import Vision
         import VisionKit
 
-        /// A protocol that defines the delegate methods for `BarcodeSelectoViewController`.
-        @MainActor public protocol BarcodeSelectoViewControllerDelegate: AnyObject {
+        /// A protocol that defines the delegate methods for `BarcodeSelectorViewController`.
+        @MainActor public protocol BarcodeSelectorViewControllerDelegate: AnyObject {
             /// Called when a barcode is successfully recognized by the scanner.
             /// - Parameters:
-            ///   - dataScanner: The `BarcodeSelectoViewController` instance that recognized the barcode.
+            ///   - dataScanner: The `BarcodeSelectorViewController` instance that recognized the barcode.
             ///   - result: A tuple containing the recognized barcode string and its symbology.
-            func onBarcodeRecognized(_ dataScanner: BarcodeSelectoViewController, result: (String, VNBarcodeSymbology?))
+            func onBarcodeRecognized(_ dataScanner: BarcodeSelectorViewController, result: (String, VNBarcodeSymbology?))
         }
+
+        /// The previous, misspelled name of ``BarcodeSelectorViewControllerDelegate``.
+        @available(*, deprecated, renamed: "BarcodeSelectorViewControllerDelegate")
+        public typealias BarcodeSelectoViewControllerDelegate = BarcodeSelectorViewControllerDelegate
+
+        /// The previous, misspelled name of ``BarcodeSelectorViewController``.
+        @available(*, deprecated, renamed: "BarcodeSelectorViewController")
+        public typealias BarcodeSelectoViewController = BarcodeSelectorViewController
 
         /// A `UIViewController` that integrates `DataScannerViewController` from VisionKit to provide barcode scanning functionality.
         /// It allows for customization of recognized data types and visual highlighting of detected items.
-        public class BarcodeSelectoViewController: UIViewController {
+        public class BarcodeSelectorViewController: UIViewController {
 
             /// The color used to highlight detected barcodes. Defaults to `.systemBlue`.
             public var highlightColor: UIColor = .systemBlue
 
             /// The delegate that receives barcode recognition events.
-            public weak var scanDelegate: (any BarcodeSelectoViewControllerDelegate)?
+            public weak var scanDelegate: (any BarcodeSelectorViewControllerDelegate)?
 
-            /// Initializes a new `BarcodeSelectoViewController` instance.
+            /// Initializes a new `BarcodeSelectorViewController` instance.
             public init() {
                 super.init(nibName: nil, bundle: nil)
                 modalPresentationStyle = .fullScreen
             }
 
-            /// Initializes a new `BarcodeSelectoViewController` instance from a coder (unavailable).
+            /// Initializes a new `BarcodeSelectorViewController` instance from a coder (unavailable).
             required init?(coder: NSCoder) {
                 nil
             }
@@ -59,7 +67,7 @@
             }
 
             /// Whether the device supports the data scanner. Read once, when the view loads.
-            var isScannerSupported = BarcodeSelectoViewController.isSupported
+            var isScannerSupported = BarcodeSelectorViewController.isSupported
 
             /// Why the selector shows a message instead of the scanner, if it does.
             private(set) var unavailableReason: BarcodeScannerUnavailableView.Reason?
@@ -155,7 +163,7 @@
         }
 
         // MARK: - DataScannerViewControllerDelegate
-        extension BarcodeSelectoViewController: DataScannerViewControllerDelegate {
+        extension BarcodeSelectorViewController: DataScannerViewControllerDelegate {
             /// Called when the user taps on a recognized item in the scanner's overlay.
             /// If the tapped item is a barcode, its value is passed to the delegate.
             /// - Parameters:
@@ -215,14 +223,14 @@
             /// - Parameter item: The `RecognizedItem` for which to create or update the highlight.
             private func createOrUpdateHighlightView(for item: RecognizedItem) {
                 if let view = highlightViewByUuid[item.id] {
-                    view.frame = item.bounds.cgRect(padding: .small)
+                    view.frame = item.bounds.cgRect(padding: .spacingSmall)
                     highlightViewByUuid[item.id] = view
                 } else {
                     let highlightView = UIView()
                     highlightView.layer.borderColor = highlightColor.cgColor
                     highlightView.layer.borderWidth = 2.0
                     highlightView.backgroundColor = highlightColor.withAlphaComponent(0.15)
-                    highlightView.frame = item.bounds.cgRect(padding: .small)
+                    highlightView.frame = item.bounds.cgRect(padding: .spacingSmall)
                     scanner.overlayContainerView.addSubview(highlightView)
                     highlightViewByUuid[item.id] = highlightView
                 }

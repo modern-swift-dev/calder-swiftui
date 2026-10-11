@@ -256,7 +256,7 @@
 
         private var validatedBody: some View {
             VStack(alignment: .leading, spacing: .xxs) {
-                HStack(spacing: .small) {
+                HStack(spacing: .spacingSmall) {
                     if let leftAccessory {
                         leftAccessory
                             .renderingMode(.template).scaledToFit()
@@ -274,7 +274,7 @@
                     .textFieldStyle(.plain)
                     .accessibilityHint(invalidMessageText?.text ?? Text(verbatim: ""))
                 }
-                .padding(.vertical, .small)
+                .padding(.vertical, .spacingSmall)
                 .padding(.horizontal, .xs)
                 .foregroundStyle(theme.text1)
                 .background(Material.regular)
@@ -289,7 +289,7 @@
                 )
 
                 if let invalidMessageText {
-                    HStack(spacing: .small) {
+                    HStack(spacing: .spacingSmall) {
                         Spacer()
 
                         invalidMessageText.text
@@ -319,12 +319,12 @@
             }
             .textFieldStyle(.plain)
             .foregroundStyle(isEnabled ? theme.text1 : theme.text2)
-            .padding(.small)
+            .padding(.spacingSmall)
             .background(background)
-            .contentShape(RoundedRectangle(cornerRadius: .small))
-            .clipShape(RoundedRectangle(cornerRadius: .small))
+            .contentShape(RoundedRectangle(cornerRadius: .spacingSmall))
+            .clipShape(RoundedRectangle(cornerRadius: .spacingSmall))
             .overlay {
-                RoundedRectangle(cornerRadius: .small)
+                RoundedRectangle(cornerRadius: .spacingSmall)
                     .stroke(showBorder ? theme.text3 : theme.transparent, lineWidth: 1)
             }
         }
@@ -458,7 +458,7 @@
                 @State private var disabledValue = "Disabled value"
 
                 var body: some View {
-                    VStack(spacing: .small) {
+                    VStack(spacing: .spacingSmall) {
                         InputText(
                             text: $enabledValue,
                             placeholder: "Standard input",

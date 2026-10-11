@@ -27,9 +27,9 @@
                     case .primary,
                          .secondary,
                          .tertiary:
-                        .init(vertical: .small, horizontal: .medium)
+                        .init(vertical: .spacingSmall, horizontal: .spacingMedium)
                     case .pill:
-                        .init(vertical: .xs, horizontal: .medium)
+                        .init(vertical: .xs, horizontal: .spacingMedium)
                     case .link:
                         .init(vertical: .xxxs, horizontal: 0)
                     case .round:

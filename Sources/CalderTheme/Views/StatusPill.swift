@@ -136,7 +136,7 @@
         /// The content and behavior of the `StatusPill`.
         public var body: some View {
             label.text
-                .padding(EdgeInsets(vertical: .xxs, horizontal: .small))
+                .padding(EdgeInsets(vertical: .xxs, horizontal: .spacingSmall))
                 .font(.caption)
                 .foregroundStyle(variant.foregroundColor(for: theme))
                 .background(variant.backgroundColor(for: theme))

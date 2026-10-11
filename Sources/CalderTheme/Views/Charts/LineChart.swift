@@ -150,7 +150,7 @@
 
         /// The content and behavior of the view.
         public var body: some View {
-            VStack(alignment: .leading, spacing: .medium) {
+            VStack(alignment: .leading, spacing: .spacingMedium) {
                 Chart {
 
                     // Line Chart for Cumulative Percentage
@@ -183,7 +183,7 @@
                         .font(.caption)
                         .foregroundStyle(theme.text3)
                 }
-                .chartXAxisLabel(position: .top, alignment: .center, spacing: .large) {
+                .chartXAxisLabel(position: .top, alignment: .center, spacing: .spacingLarge) {
                     titleText.text
                         .font(.subheadline)
                         .foregroundStyle(theme.text3)
@@ -209,7 +209,7 @@
                     }
                 }
             }
-            .padding(.large)
+            .padding(.spacingLarge)
         }
 
     }

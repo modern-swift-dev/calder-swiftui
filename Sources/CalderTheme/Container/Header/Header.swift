@@ -57,7 +57,7 @@
 
         public var body: some View {
             content()
-                .padding(.medium)
+                .padding(.spacingMedium)
                 .listRowInsets(mode.rowInsets)
             #if !os(watchOS) && !os(tvOS)
                 .listRowSeparator(.hidden)

@@ -21,7 +21,14 @@
                 modifier(self)
             }
 
-            func disableSharedbackground(disable: Bool) -> some ToolbarContent {
+            /// Hides the shared glass background that the system draws behind toolbar items.
+            ///
+            /// The background is hidden only on iOS 26, macOS 26, and later. On earlier versions, and on
+            /// tvOS, watchOS, and visionOS, the content is returned unchanged.
+            ///
+            /// - Parameter disable: Whether to hide the shared background. Defaults to `true`.
+            /// - Returns: The toolbar content, with the shared background hidden when `disable` is `true`.
+            func disableSharedBackground(_ disable: Bool = true) -> some ToolbarContent {
                 #if !os(tvOS) && !os(watchOS) && !os(visionOS)
                     modify {
                         if disable, #available(iOS 26, macOS 26, *) {
@@ -33,6 +40,12 @@
                 #else
                     self
                 #endif
+            }
+
+            /// The previous, misspelled name of ``disableSharedBackground(_:)``.
+            @available(*, deprecated, renamed: "disableSharedBackground(_:)")
+            func disableSharedbackground(disable: Bool) -> some ToolbarContent {
+                disableSharedBackground(disable)
             }
         }
 

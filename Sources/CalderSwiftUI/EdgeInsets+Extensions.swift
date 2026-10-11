@@ -5,6 +5,11 @@
 
     public extension EdgeInsets {
 
+        /// Edge insets of zero on every edge.
+        ///
+        /// Deprecated because `zero` is a common static member name that's likely to collide with a
+        /// future SwiftUI or third-party declaration. SwiftUI's `EdgeInsets()` already creates zero insets.
+        @available(*, deprecated, message: "Use EdgeInsets() instead.")
         static let zero = EdgeInsets(all: 0)
 
         init(vertical: CGFloat) {

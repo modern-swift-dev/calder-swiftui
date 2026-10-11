@@ -45,7 +45,7 @@
                     })
                     .disabled(!enabled)
                 }
-                .disableSharedbackground(disable: variant.sharedBackgroundDisabled)
+                .disableSharedBackground(variant.sharedBackgroundDisabled)
             }
 
             /// The menu's label styled like a toolbar button. `BarButtonStyle` applies the disabled dimming.

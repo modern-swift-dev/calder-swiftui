@@ -55,9 +55,19 @@
         // MARK: - Debugging
         public extension CGSize {
 
-            /// A debug description of the `CGSize` value.
+            /// A debugging description that names the type and labels its components, such as `CGSize(w: 3.0, h: 4.0)`.
+            var labeledDebugDescription: String {
+                "CGSize(w: \(width), h: \(height))"
+            }
+
+            /// The previous name of ``labeledDebugDescription``.
+            ///
+            /// Renamed because it collides with Apple's `debugDescription`: while this deprecated member exists,
+            /// direct `debugDescription` calls are ambiguous in code that also imports Core Graphics. It will be
+            /// removed in the next major version.
+            @available(*, deprecated, renamed: "labeledDebugDescription")
             var debugDescription: String {
-                "CGSize(w: \(width), h: \(height)"
+                labeledDebugDescription
             }
         }
     #endif

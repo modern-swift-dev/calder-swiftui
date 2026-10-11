@@ -30,7 +30,7 @@
 
             @Test func `ns color text color for white`() {
                 let color = NSColor(Self.testWhite)
-                let textColor = color.textColor
+                let textColor = color.contrastingTextColor()
                 let srgb = textColor.usingColorSpace(.sRGB) ?? textColor
                 var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
                 srgb.getRed(&r, green: &g, blue: &b, alpha: &a)
@@ -42,7 +42,7 @@
 
             @Test func `ns color text color for black`() {
                 let color = NSColor(Self.testBlack)
-                let textColor = color.textColor
+                let textColor = color.contrastingTextColor()
                 let srgb = textColor.usingColorSpace(.sRGB) ?? textColor
                 var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
                 srgb.getRed(&r, green: &g, blue: &b, alpha: &a)
@@ -50,6 +50,12 @@
                 #expect(r == 1)
                 #expect(g == 1)
                 #expect(b == 1)
+            }
+
+            @available(*, deprecated)
+            @Test func `deprecated ns color textColor forwards to contrastingTextColor`() {
+                let color = NSColor(Self.testBlack)
+                #expect(color.textColor == color.contrastingTextColor())
             }
 
             @Test func `ns color contrasting text color custom colors`() {

@@ -44,7 +44,7 @@
                     .disabled(!enabled)
                     .fixedSize(horizontal: true, vertical: true)
             }
-            .disableSharedbackground(disable: variant.sharedBackgroundDisabled)
+            .disableSharedBackground(variant.sharedBackgroundDisabled)
         }
     }
 

@@ -54,7 +54,7 @@
         public var body: some View {
             switch state {
                 case let .pristine(msg, icon):
-                    VStack(spacing: .small) {
+                    VStack(spacing: .spacingSmall) {
                         Spacer()
 
                         icon
@@ -70,7 +70,7 @@
                         Spacer()
                     }
                 case let .empty(msg, icon):
-                    VStack(spacing: .small) {
+                    VStack(spacing: .spacingSmall) {
                         Spacer()
 
                         icon
@@ -88,7 +88,7 @@
                 case .displaying:
                     displayingBuilder()
                 case let .error(msg, icon):
-                    VStack(spacing: .small) {
+                    VStack(spacing: .spacingSmall) {
                         Spacer()
 
                         icon
@@ -104,7 +104,7 @@
                         Spacer()
                     }
                 case .loading:
-                    VStack(spacing: .small) {
+                    VStack(spacing: .spacingSmall) {
                         Spacer()
                         ProgressView().progressViewStyle(.circular)
                         Spacer()

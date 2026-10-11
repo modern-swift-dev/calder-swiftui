@@ -53,9 +53,15 @@
                 #expect(result.size.height == 100.0)
             }
 
-            @Test func `debug description formats correctly`() {
+            @Test func `labeled debug description formats correctly`() {
                 let value: CGFloat = 25.5
-                #expect(value.debugDescription == "CGFloat(25.5)")
+                #expect(value.labeledDebugDescription == "CGFloat(25.5)")
+            }
+
+            @available(*, deprecated)
+            @Test func `deprecated debugDescription forwards to labeledDebugDescription`() {
+                let value: CGFloat = 25.5
+                #expect(value.debugDescription == value.labeledDebugDescription)
             }
 
             #if canImport(UIKit) && !os(watchOS)
@@ -104,15 +110,15 @@
             }
 
             @Test func `spacing small`() {
-                #expect(CGFloat.small == 12.0)
+                #expect(CGFloat.spacingSmall == 12.0)
             }
 
             @Test func `spacing medium`() {
-                #expect(CGFloat.medium == 16.0)
+                #expect(CGFloat.spacingMedium == 16.0)
             }
 
             @Test func `spacing large`() {
-                #expect(CGFloat.large == 24.0)
+                #expect(CGFloat.spacingLarge == 24.0)
             }
 
             @Test func `spacing xl`() {
@@ -125,6 +131,13 @@
 
             @Test func `spacing xxxl`() {
                 #expect(CGFloat.xxxl == 60.0)
+            }
+
+            @available(*, deprecated)
+            @Test func `deprecated small medium large forward to the spacing names`() {
+                #expect(CGFloat.small == CGFloat.spacingSmall)
+                #expect(CGFloat.medium == CGFloat.spacingMedium)
+                #expect(CGFloat.large == CGFloat.spacingLarge)
             }
         }
     #endif

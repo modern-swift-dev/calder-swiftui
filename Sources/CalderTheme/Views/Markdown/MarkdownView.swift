@@ -94,17 +94,17 @@
                 })
                 .markdownBlockStyle(\.list, body: { configuration in
                     configuration.label
-                        .markdownMargin(top: .xxs, bottom: .small)
+                        .markdownMargin(top: .xxs, bottom: .spacingSmall)
                 })
                 .markdownBlockStyle(\.codeBlock) { configuration in
                     configuration.label
-                        .padding(.small)
+                        .padding(.spacingSmall)
                         .markdownTextStyle {
                             FontFamilyVariant(.monospaced)
                             FontSize(14)
                         }
                         .background(theme.text1.opacity(0.1))
-                        .markdownMargin(top: .xs, bottom: .small)
+                        .markdownMargin(top: .xs, bottom: .spacingSmall)
                         .clipShape(RoundedRectangle(cornerRadius: .xxs))
                 }
                 .markdownBlockStyle(\.blockquote) { configuration in
@@ -116,14 +116,14 @@
                             ForegroundColor(theme.text1)
                             BackgroundColor(Color.clear)
                         }
-                        .padding(.small)
+                        .padding(.spacingSmall)
                         .overlay(alignment: .leading) {
                             Rectangle()
                                 .fill(theme.primary)
                                 .frame(width: 4)
                         }
                         .background(theme.primary.opacity(0.15))
-                        .markdownMargin(top: .xs, bottom: .small)
+                        .markdownMargin(top: .xs, bottom: .spacingSmall)
                         .clipShape(RoundedRectangle(cornerRadius: .xxs))
                 }
                 .markdownSoftBreakMode(.lineBreak)
@@ -318,7 +318,7 @@
                 var body: some View {
                     ScrollView {
                         MarkdownView(text: text)
-                            .padding(.medium)
+                            .padding(.spacingMedium)
                             .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                     }
                     .background(theme.backgroundGradient)

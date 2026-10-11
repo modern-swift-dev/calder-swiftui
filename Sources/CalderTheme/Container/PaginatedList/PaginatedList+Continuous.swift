@@ -98,7 +98,7 @@
             public var body: some View {
                 List {
                     tableHeader()
-                        .listRowInsets(.zero)
+                        .listRowInsets(EdgeInsets())
                     #if !os(macOS)
 
                         #if !os(watchOS) && !os(tvOS)
@@ -116,7 +116,7 @@
                     Section {
                         ForEach($dataSource.items) { item in
                             viewFactory(item)
-                                .listRowInsets(.zero)
+                                .listRowInsets(EdgeInsets())
                             #if !os(macOS) && !os(watchOS) && !os(tvOS)
                                 .listRowSpacing(0)
                             #endif
@@ -134,7 +134,7 @@
                                             }
                                     }
                                 }
-                                .listRowInsets(.zero)
+                                .listRowInsets(EdgeInsets())
                                 #if !os(macOS) && !os(watchOS) && !os(tvOS)
                                     .listRowSpacing(0)
                                 #endif
@@ -146,7 +146,7 @@
                     }
 
                     tableFooter()
-                        .listRowInsets(.zero)
+                        .listRowInsets(EdgeInsets())
                     #if !os(macOS) && !os(watchOS) && !os(tvOS)
                         .listRowSpacing(0)
                     #endif
@@ -156,7 +156,7 @@
                     .listRowBackground(Color.clear)
 
                     Color.clear.frame(height: .xxxl)
-                        .listRowInsets(.zero)
+                        .listRowInsets(EdgeInsets())
 
                     #if !os(macOS)
                         #if !os(watchOS) && !os(tvOS)

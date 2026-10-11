@@ -94,9 +94,19 @@
         // MARK: - debugging
         public extension CGRect {
 
-            /// A debug description of the `CGRect` value.
+            /// A debugging description that names the type and labels its components, such as `CGRect(x: 1.0, y: 2.0, w: 3.0, h: 4.0)`.
+            var labeledDebugDescription: String {
+                "CGRect(x: \(origin.x), y: \(origin.y), w: \(size.width), h: \(size.height))"
+            }
+
+            /// The previous name of ``labeledDebugDescription``.
+            ///
+            /// Renamed because it collides with Apple's `debugDescription`: while this deprecated member exists,
+            /// direct `debugDescription` calls are ambiguous in code that also imports Core Graphics. It will be
+            /// removed in the next major version.
+            @available(*, deprecated, renamed: "labeledDebugDescription")
             var debugDescription: String {
-                "CGRect(x: \(origin.x), y: \(origin.y), w: \(size.width), h: \(size.height)"
+                labeledDebugDescription
             }
         }
     #endif

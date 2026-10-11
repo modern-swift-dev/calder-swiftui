@@ -32,40 +32,50 @@
                 #expect(root === firstVC)
             }
 
-            // MARK: - topViewController Tests
+            // MARK: - lastViewController Tests
 
-            @Test func `top view controller empty`() {
+            @Test func `last view controller empty`() {
                 let navController = UINavigationController()
-                let top = navController.topViewController()
+                let top = navController.lastViewController()
                 #expect(top == nil)
             }
 
-            @Test func `top view controller single view controller`() {
+            @Test func `last view controller single view controller`() {
                 let viewController = UIViewController()
                 let navController = UINavigationController(rootViewController: viewController)
-                let top = navController.topViewController()
+                let top = navController.lastViewController()
                 #expect(top === viewController)
             }
 
-            @Test func `top view controller multiple view controllers`() {
+            @Test func `last view controller multiple view controllers`() {
                 let firstVC = UIViewController()
                 let secondVC = UIViewController()
                 let navController = UINavigationController(rootViewController: firstVC)
                 navController.pushViewController(secondVC, animated: false)
 
-                let top = navController.topViewController()
+                let top = navController.lastViewController()
                 #expect(top === secondVC)
             }
 
-            @Test func `top view controller after pop`() {
+            @Test func `last view controller after pop`() {
                 let firstVC = UIViewController()
                 let secondVC = UIViewController()
                 let navController = UINavigationController(rootViewController: firstVC)
                 navController.pushViewController(secondVC, animated: false)
                 navController.popViewController(animated: false)
 
-                let top = navController.topViewController()
+                let top = navController.lastViewController()
                 #expect(top === firstVC)
+            }
+
+            @available(*, deprecated)
+            @Test func `deprecated topViewController forwards to lastViewController`() {
+                let firstVC = UIViewController()
+                let secondVC = UIViewController()
+                let navController = UINavigationController(rootViewController: firstVC)
+                navController.pushViewController(secondVC, animated: false)
+
+                #expect(navController.topViewController() === secondVC)
             }
         }
     #endif

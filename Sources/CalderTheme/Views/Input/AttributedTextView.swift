@@ -140,7 +140,7 @@
                     )
 
                     if let invalidMessage {
-                        HStack(spacing: .small) {
+                        HStack(spacing: .spacingSmall) {
                             Spacer()
 
                             invalidMessage.text

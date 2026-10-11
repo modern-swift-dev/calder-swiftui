@@ -97,5 +97,12 @@
             #expect(rect == CGRect.zero)
         }
 
+        // MARK: - Debugging
+
+        @Test func `labeled debug description formats correctly`() {
+            let size = CGSize(width: 3.0, height: 4.0)
+            #expect(size.labeledDebugDescription == "CGSize(w: 3.0, h: 4.0)")
+        }
+
     }
 #endif

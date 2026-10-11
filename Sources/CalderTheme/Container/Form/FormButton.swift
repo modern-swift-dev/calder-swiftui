@@ -67,11 +67,11 @@
                     label.text
                     Spacer()
                 }
-                .padding(.vertical, .medium)
+                .padding(.vertical, .spacingMedium)
             })
             .applyThemedStyle(variant: .tertiary(destructive: destructive, custom: nil))
             #if !os(macOS) && !os(watchOS)
-                .listRowInsets(.zero)
+                .listRowInsets(EdgeInsets())
                 #if !os(tvOS)
                     .listRowSpacing(0)
                 #endif

@@ -106,7 +106,7 @@
                         .init(id: 2, text: "Choice 2"),
                         .init(id: 3, text: "Choice 3")
                     ], selection: $value)
-                        .padding(.small)
+                        .padding(.spacingSmall)
                 }
             }
         }

@@ -91,7 +91,7 @@
                     if let image = model.image {
                         image
                     } else if model.generationFailed {
-                        VStack(spacing: .small) {
+                        VStack(spacing: .spacingSmall) {
                             Image(systemSymbol: .exclamationmarkTriangle)
                                 .foregroundStyle(theme.error)
                                 .font(.title)

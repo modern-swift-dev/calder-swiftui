@@ -105,5 +105,12 @@
             #expect(point1.isNear(other: point2) == true)
         }
 
+        // MARK: - Debugging
+
+        @Test func `labeled debug description formats correctly`() {
+            let point = CGPoint(x: 1.0, y: 2.0)
+            #expect(point.labeledDebugDescription == "CGPoint(x: 1.0, y: 2.0)")
+        }
+
     }
 #endif
