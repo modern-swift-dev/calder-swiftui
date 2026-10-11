@@ -42,20 +42,24 @@
         @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
         /// Initializes an `InputPassword` view.
+        ///
+        /// The field hides its text by default. Pass `false` for `isSecuredEntry` to start with the
+        /// text revealed. Users can toggle visibility with the reveal button either way.
         /// - Parameters:
         ///   - text: A binding to the `String` value of the password.
         ///   - placeholder: The placeholder text. Defaults to an empty string.
         ///   - leftAccessory: An optional leading image. Defaults to `nil`.
         ///   - invalid: A boolean indicating if the input is invalid. Defaults to `false`.
         ///   - invalidMessage: An optional error message. Defaults to `nil`.
-        ///   - isSecuredEntry: The initial state of the secure entry. Defaults to `false`.
+        ///   - isSecuredEntry: Whether the field initially hides its text. Defaults to `true`.
+        ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text field. Defaults to `true`.
         public init(
             text: Binding<String>,
             placeholder: String = "",
             leftAccessory: Image? = nil,
             invalid: Bool = false,
             invalidMessage: String? = nil,
-            isSecuredEntry: Bool = false,
+            isSecuredEntry: Bool = true,
             displayTextViewBorder: Bool = true
         ) {
             _text = text

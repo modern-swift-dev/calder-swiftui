@@ -64,3 +64,6 @@ exponent notation.
 Out-of-range configurations are clamped instead of trapping: `InputNumber` limits integer digits
 to `1...18` so accepted numbers always fit in `Int64`, `InputDecimal` treats a negative fraction
 digit limit as `0`, and `FormDatePicker` allows only its minimum date when the maximum is earlier.
+
+`InputPassword` hides its text by default. Pass `isSecuredEntry: false` to start with the
+password revealed.
