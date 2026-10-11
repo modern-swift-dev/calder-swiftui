@@ -38,7 +38,8 @@ conformances on `AVCaptureSession` or `AVCaptureVideoPreviewLayer`.
 
 `BarcodeScanner` applies changes to its `state` after creation: `.suspended` pauses detection,
 `.scanning` resumes it (restarting the camera after `.finished`), and `.finished` stops the
-camera.
+camera. The scanner pauses after it writes a result; set the `result` binding back to `nil` to
+scan the next code without recreating the view.
 
 Optional numeric inputs update their displayed text when the bound value changes, including
 clearing it when the value becomes `nil`. Display formatting does not round or truncate the

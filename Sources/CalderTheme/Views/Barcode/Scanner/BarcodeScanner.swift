@@ -8,7 +8,7 @@
         /// This view wraps `BarcodeScannerViewController` using `UIViewControllerRepresentable`.
         public struct BarcodeScanner: UIViewControllerRepresentable {
 
-            public struct ScanResult: Equatable, Hashable {
+            public struct ScanResult: Equatable, Hashable, Sendable {
                 public let payload: String
                 public let type: AVMetadataObject.ObjectType
 
@@ -35,6 +35,8 @@
             public typealias UIViewControllerType = BarcodeScannerViewController
 
             /// A binding to the scan result containing the scanned string and its metadata object type.
+            ///
+            /// The scanner pauses after it writes a result. Set the binding back to `nil` to scan the next code.
             @Binding public var result: ScanResult?
             /// The current state of the scanner.
             public var state: State
@@ -68,12 +70,16 @@
             /// Updates the underlying `BarcodeScannerViewController` when the SwiftUI view's state changes.
             ///
             /// A changed ``state`` takes effect immediately: `.scanning` resumes detection, `.suspended` pauses it,
-            /// and `.finished` stops the camera.
+            /// and `.finished` stops the camera. Resetting ``result`` to `nil` after a scan resumes detection
+            /// unless the state is `.suspended` or `.finished`.
             /// - Parameters:
             ///   - uiViewController: The `BarcodeScannerViewController` to update.
             ///   - context: The representable context.
             public func updateUIViewController(_ uiViewController: BarcodeScannerViewController, context: Context) {
                 uiViewController.apply(state)
+                if result == nil {
+                    uiViewController.resultDidReset()
+                }
             }
 
             /// Creates the coordinator that acts as the bridge between SwiftUI and UIKit.

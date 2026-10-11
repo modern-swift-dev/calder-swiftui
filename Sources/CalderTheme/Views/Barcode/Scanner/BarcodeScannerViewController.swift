@@ -40,6 +40,9 @@
             /// The scanner state most recently applied with ``apply(_:)``.
             private(set) var state: BarcodeScanner.State = .pristine
 
+            /// Whether a delivered code is waiting for ``resultDidReset()`` before detection resumes.
+            private var isAwaitingResultReset = false
+
             /// Called just before the view appears.
             /// Resets the scanner and starts/resumes the scanning process, unless the applied state is
             /// `.suspended` (the camera starts but detection stays paused) or `.finished` (nothing starts).
@@ -105,16 +108,27 @@
 
             /// Handles the scanned value from the barcode scanner.
             /// - Parameter value: A tuple containing the scanned code string and its object type.
-            private func handle(_ value: (String, AVMetadataObject.ObjectType)?) {
-                guard let value else {
-                    barcodeScanner.resetLastScan()
-                    barcodeScanner.resume()
-                    return
-                }
-
+            private func handle(_ value: (String, AVMetadataObject.ObjectType)) {
+                isAwaitingResultReset = true
                 callback(value.0, value.1)
             }
 
+            /// Resumes detection after the caller clears a delivered result.
+            ///
+            /// Does nothing unless a code was delivered since the last reset, or when the applied state is
+            /// `.suspended` or `.finished`. The same code can be scanned again after a reset.
+            func resultDidReset() {
+                guard isAwaitingResultReset else {
+                    return
+                }
+                isAwaitingResultReset = false
+
+                guard state == .pristine || state == .scanning else {
+                    return
+                }
+                barcodeScanner.resetLastScan()
+                barcodeScanner.resume()
+            }
         }
 
         // MARK: BarcodeScannerViewDelegate
