@@ -11,14 +11,19 @@
         import UIKit
         import Vision
 
-        /// The Delegate for the scanner view
-        public protocol BarcodeScannerViewDelegate: AnyObject {
+        /// The Delegate for the scanner view.
+        ///
+        /// The delegate is main-actor isolated, except for ``supportedObjectTypes(_:)``, which the scanner
+        /// calls on its capture-session queue while it configures the session.
+        @MainActor public protocol BarcodeScannerViewDelegate: AnyObject, Sendable {
             /// Return the list of supported object type for scanning (defaults to all)
+            ///
+            /// The scanner calls this method on its capture-session queue, after it adds `output` to the session.
             /// - Parameter output: The `AVCaptureMetadataOutput` instance.
             /// - Returns: An array of `AVMetadataObject.ObjectType` that the delegate wants to scan.
-            func supportedObjectTypes(_ output: AVCaptureMetadataOutput) -> [AVMetadataObject.ObjectType]
+            nonisolated func supportedObjectTypes(_ output: AVCaptureMetadataOutput) -> [AVMetadataObject.ObjectType]
 
-            /// Called when a new code has been scanned by the view.
+            /// Called on the main actor when a new code has been scanned by the view.
             /// - Parameters:
             ///   - code: The string value of the scanned code.
             ///   - type: The `AVMetadataObject.ObjectType` of the scanned code.
@@ -126,16 +131,14 @@
             /// The Model of this view containing configuration options.
             private var model: Model
 
-            /// The `AVCaptureSession` managing the video capture.
-            private var avSession: AVCaptureSession?
+            /// The serial queue that runs every configuration, start, and stop step of this view's capture sessions.
+            private let sessionQueue = DispatchQueue(label: "dev.modern-swift.calder.barcode-scanner.session")
+            /// The controller that owns the running `AVCaptureSession`, or `nil` when the scanner is stopped.
+            private var sessionController: BarcodeScannerSessionController<AVCaptureSession>?
             /// The `AVCaptureDevice` representing the camera.
             private var avDevice: AVCaptureDevice?
             /// The `AVCaptureVideoPreviewLayer` displaying the camera feed.
             private var avVideoPreviewLayer: AVCaptureVideoPreviewLayer?
-            /// The `AVCaptureDeviceInput` for the camera device.
-            private var avInput: AVCaptureDeviceInput?
-            /// The `AVCaptureMetadataOutput` for detecting metadata objects (barcodes/QR codes).
-            private var avOutput: AVCaptureMetadataOutput?
 
             /// The `UIImageView` displaying the crosshair image for the scan region.
             public private(set) lazy var scanRegionImageView: UIImageView = {
@@ -192,13 +195,19 @@
             }
 
             /// Updates the `rectOfInterest` for the `AVCaptureMetadataOutput` based on the scan region.
+            ///
+            /// The rectangle is converted on the main actor, where the preview layer lives, and applied on the session queue.
             private func updateRectOfInterest() {
-                guard let avOutput, let avVideoPreviewLayer else {
+                guard let sessionController, let avVideoPreviewLayer else {
                     return
                 }
 
-                let rectOfInterest = calculateNonConvertedRectOfInterest()
-                avOutput.rectOfInterest = avVideoPreviewLayer.metadataOutputRectConverted(fromLayerRect: rectOfInterest)
+                let rectOfInterest = avVideoPreviewLayer.metadataOutputRectConverted(fromLayerRect: calculateNonConvertedRectOfInterest())
+                sessionController.perform { session in
+                    for case let output as AVCaptureMetadataOutput in session.outputs {
+                        output.rectOfInterest = rectOfInterest
+                    }
+                }
             }
         }
 
@@ -278,8 +287,11 @@
         public extension BarcodeScannerView {
             /// Initializes and starts the barcode scanning session.
             /// This method should be called when the view is ready to capture video.
+            ///
+            /// The session is configured and started on the view's serial session queue, so this method returns
+            /// without waiting for the camera.
             func start() {
-                guard avSession == nil else {
+                guard sessionController == nil else {
                     return
                 }
 
@@ -287,19 +299,9 @@
                     return
                 }
 
-                do {
-                    try device.lockForConfiguration()
-                    device.videoZoomFactor = device.minAvailableVideoZoomFactor
-                    if device.isLowLightBoostEnabled {
-                        device.automaticallyEnablesLowLightBoostWhenAvailable = true
-                    }
-                    device.unlockForConfiguration()
-                } catch {
-                    os_log("%{public}@", log: .default, type: .error, String(describing: error))
-                }
-
                 let session = AVCaptureSession()
-                avSession = session
+                let controller = BarcodeScannerSessionController(session: session, queue: sessionQueue)
+                sessionController = controller
 
                 let layer = AVCaptureVideoPreviewLayer(session: session)
                 layer.bounds = bounds
@@ -310,31 +312,19 @@
                 avVideoPreviewLayer = layer
                 avDevice = device
 
-                do {
-                    session.beginConfiguration()
-                    let input = try AVCaptureDeviceInput(device: device)
-                    session.addInput(input)
-                    avInput = input
-
-                    let output = AVCaptureMetadataOutput()
-                    output.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-                    session.addOutput(output)
-                    output.metadataObjectTypes = delegate?.supportedObjectTypes(output) ?? output.availableMetadataObjectTypes
-                    avOutput = output
-
-                    session.commitConfiguration()
-                } catch {
-                    os_log("%{public}@", log: .default, type: .error, String(describing: error))
-                    session.commitConfiguration()
+                let deviceID = device.uniqueID
+                let typesProvider = delegate
+                controller.perform { [weak self] session in
+                    guard let self else {
+                        return
+                    }
+                    Self.configure(session, deviceID: deviceID, metadataObjectsDelegate: self, typesProvider: typesProvider)
                 }
 
                 self.layer.insertSublayer(layer, at: 0)
                 self.updateRectOfInterest()
 
-                DispatchQueue.global(qos: .background).async { [session] in
-                    session.startRunning()
-                }
-
+                controller.startRunning()
             }
 
             /// Suspends the barcode scanning process. When suspended, the delegate will not receive new scanned codes.
@@ -349,14 +339,64 @@
 
             /// Stops the video capture session and tears down related AVFoundation objects.
             /// This makes the view completely unusable until `start()` is called again.
+            ///
+            /// The session stops on the view's serial session queue after any pending configuration or start,
+            /// so this method never blocks the main thread.
             func stop() {
                 avVideoPreviewLayer?.removeFromSuperlayer()
                 avVideoPreviewLayer = nil
-                avSession?.stopRunning()
-                avSession = nil
+                sessionController?.stopRunning()
+                sessionController = nil
                 avDevice = nil
-                avInput = nil
-                avOutput = nil
+            }
+        }
+
+        // MARK: - Session Configuration
+
+        extension BarcodeScannerView {
+            /// Configures the camera device, input, and metadata output of `session`. Runs on the session queue.
+            /// - Parameters:
+            ///   - session: The session to configure.
+            ///   - deviceID: The unique identifier of the camera to capture from.
+            ///   - metadataObjectsDelegate: The object that receives detected metadata objects.
+            ///   - typesProvider: The delegate that selects the metadata object types to detect, if any.
+            private nonisolated static func configure(
+                _ session: AVCaptureSession,
+                deviceID: String,
+                metadataObjectsDelegate: any AVCaptureMetadataOutputObjectsDelegate,
+                typesProvider: (any BarcodeScannerViewDelegate)?
+            ) {
+                guard let device = AVCaptureDevice(uniqueID: deviceID) else {
+                    return
+                }
+
+                do {
+                    try device.lockForConfiguration()
+                    device.videoZoomFactor = device.minAvailableVideoZoomFactor
+                    if device.isLowLightBoostEnabled {
+                        device.automaticallyEnablesLowLightBoostWhenAvailable = true
+                    }
+                    device.unlockForConfiguration()
+                } catch {
+                    os_log("%{public}@", log: .default, type: .error, String(describing: error))
+                }
+
+                session.beginConfiguration()
+                defer {
+                    session.commitConfiguration()
+                }
+
+                do {
+                    let input = try AVCaptureDeviceInput(device: device)
+                    session.addInput(input)
+
+                    let output = AVCaptureMetadataOutput()
+                    output.setMetadataObjectsDelegate(metadataObjectsDelegate, queue: DispatchQueue.main)
+                    session.addOutput(output)
+                    output.metadataObjectTypes = typesProvider?.supportedObjectTypes(output) ?? output.availableMetadataObjectTypes
+                } catch {
+                    os_log("%{public}@", log: .default, type: .error, String(describing: error))
+                }
             }
         }
 
@@ -478,7 +518,6 @@
                 fillLayer.opacity = Float(model.backdropOpacity)
                 layer.insertSublayer(fillLayer, above: videoLayer)
                 scanRegionImageShape = fillLayer
-                avOutput?.rectOfInterest = videoLayer.metadataOutputRectConverted(fromLayerRect: rectOfInterest)
             }
         }
 

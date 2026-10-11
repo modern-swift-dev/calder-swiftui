@@ -25,6 +25,12 @@ updates; it regenerates only when the code or barcode type changes. `BarcodeGene
 is main-actor isolated. When the payload cannot be encoded, the view shows an error instead of a
 progress indicator.
 
+`BarcodeScannerView` configures, starts, and stops its capture session on one serial session
+queue, so `start()` and `stop()` return without blocking the main thread and a stop always runs
+after an earlier start. `BarcodeScannerViewDelegate` is main-actor isolated and `Sendable`; its
+`supportedObjectTypes(_:)` requirement is `nonisolated` because the scanner calls it on the
+session queue while configuring the session.
+
 Optional numeric inputs update their displayed text when the bound value changes, including
 clearing it when the value becomes `nil`. Display formatting does not round or truncate the
 source binding.

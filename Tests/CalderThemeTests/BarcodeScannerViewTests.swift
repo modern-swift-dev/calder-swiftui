@@ -159,10 +159,10 @@
             }
         }
 
-        private final class BarcodeScannerViewTestDelegate: BarcodeScannerViewDelegate {
+        @MainActor private final class BarcodeScannerViewTestDelegate: BarcodeScannerViewDelegate {
             var scannedCodes: [String] = []
 
-            func supportedObjectTypes(_: AVCaptureMetadataOutput) -> [AVMetadataObject.ObjectType] {
+            nonisolated func supportedObjectTypes(_: AVCaptureMetadataOutput) -> [AVMetadataObject.ObjectType] {
                 [.qr]
             }
 
