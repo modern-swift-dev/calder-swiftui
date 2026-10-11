@@ -13,10 +13,10 @@ let swiftSettings: [SwiftSetting] = testSwiftSettings + [
 
 let packageDependencies: [Package.Dependency] = [
     .package(url: "https://github.com/apple/swift-collections.git", .upToNextMajor(from: "1.1.4")),
-    .package(url: "https://github.com/swiftlang/swift-docc-plugin", exact: "1.5.0"),
-    .package(url: "https://github.com/modern-swift-dev/swift-snapshot-testing", exact: "2.2.1"),
+    .package(url: "https://github.com/swiftlang/swift-docc-plugin", .upToNextMajor(from: "1.5.0")),
+    .package(url: "https://github.com/modern-swift-dev/swift-snapshot-testing", .upToNextMajor(from: "2.2.1")),
     .package(url: "https://github.com/SFSafeSymbols/SFSafeSymbols.git", .upToNextMajor(from: "7.0.0")),
-    .package(url: "https://github.com/modern-swift-dev/swift-markdown-ui.git", exact: "3.0.0")
+    .package(url: "https://github.com/modern-swift-dev/swift-markdown-ui.git", .upToNextMajor(from: "3.0.0"))
 ]
 
 let markdownUIDependency: [Target.Dependency] = [
