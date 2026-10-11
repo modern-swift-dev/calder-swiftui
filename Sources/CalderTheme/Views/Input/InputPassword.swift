@@ -27,6 +27,8 @@
         public var invalid: Bool
 
         /// An optional message to display when the input is invalid.
+        ///
+        /// VoiceOver reads the message as the text field's hint.
         public var invalidMessage: String?
 
         /// A boolean indicating whether to display a border around the text view.
@@ -49,8 +51,9 @@
         ///   - text: A binding to the `String` value of the password.
         ///   - placeholder: The placeholder text. Defaults to an empty string.
         ///   - leftAccessory: An optional leading image. Defaults to `nil`.
-        ///   - invalid: A boolean indicating if the input is invalid. Defaults to `false`.
-        ///   - invalidMessage: An optional error message. Defaults to `nil`.
+        ///   - invalid: A boolean indicating if the input is invalid. Defaults to `false`. An invalid input draws
+        ///     an error border even when `displayTextViewBorder` is `false`.
+        ///   - invalidMessage: An optional error message, also read by VoiceOver as the field's hint. Defaults to `nil`.
         ///   - isSecuredEntry: Whether the field initially hides its text. Defaults to `true`.
         ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text field. Defaults to `true`.
         public init(
@@ -106,6 +109,7 @@
                     .foregroundStyle(fgColor)
                     .textFieldStyle(.plain)
                     .focused($focused)
+                    .accessibilityHint(invalidMessage ?? "")
 
                     Button(action: {
                         isSecuredEntry.toggle()
@@ -127,7 +131,7 @@
                     RoundedRectangle(cornerRadius: .xxs)
                         .stroke(
                             borderColor,
-                            lineWidth: displayTextViewBorder ? 2 : 0
+                            lineWidth: borderLineWidth
                         )
                 )
 
@@ -140,6 +144,8 @@
                             .foregroundStyle(fgColor)
                             .lineLimit(3)
                             .padding(.horizontal, .xxs)
+                            // VoiceOver reads the message as the field's hint.
+                            .accessibilityHidden(true)
                     }
                 }
             }
@@ -148,6 +154,11 @@
         /// The VoiceOver label of the reveal button, describing the action it performs.
         var revealButtonAccessibilityLabel: String {
             isSecuredEntry ? "Show password" : "Hide password"
+        }
+
+        /// The border width, drawn whenever the border is displayed or the input is invalid.
+        var borderLineWidth: CGFloat {
+            displayTextViewBorder || invalid ? 2 : 0
         }
 
         /// The foreground color of the text input.

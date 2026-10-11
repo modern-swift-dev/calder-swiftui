@@ -67,3 +67,6 @@ digit limit as `0`, and `FormDatePicker` allows only its minimum date when the m
 
 `InputPassword` hides its text by default. Pass `isSecuredEntry: false` to start with the
 password revealed.
+
+Invalid `InputText` and `InputPassword` fields draw their error border even when
+`displayTextViewBorder` is `false`, and VoiceOver reads the invalid message as the field's hint.

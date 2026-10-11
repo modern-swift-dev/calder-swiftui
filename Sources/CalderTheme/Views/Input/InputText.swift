@@ -29,6 +29,8 @@
         public var invalid: Bool
 
         /// An optional message to display when the input is invalid.
+        ///
+        /// VoiceOver reads the message as the text field's hint.
         public var invalidMessage: String?
 
         /// Focus state for the text field, allowing programmatic control of focus.
@@ -54,8 +56,9 @@
         ///   - placeholder: The placeholder text. Defaults to an empty string.
         ///   - leftAccessory: An optional leading image. Defaults to `nil`.
         ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text field. Defaults to `true`.
-        ///   - invalid: A boolean indicating if the input is invalid. Defaults to `false`.
-        ///   - invalidMessage: An optional error message. Defaults to `nil`.
+        ///   - invalid: A boolean indicating if the input is invalid. Defaults to `false`. An invalid input draws
+        ///     an error border even when `displayTextViewBorder` is `false`.
+        ///   - invalidMessage: An optional error message, also read by VoiceOver as the field's hint. Defaults to `nil`.
         public init(
             text: Binding<String>,
             placeholder: String = "",
@@ -161,6 +164,7 @@
                     .font(.body)
                     .foregroundStyle(fgColor)
                     .textFieldStyle(.plain)
+                    .accessibilityHint(invalidMessage ?? "")
                 }
                 .padding(.vertical, .small)
                 .padding(.horizontal, .xs)
@@ -172,7 +176,7 @@
                     RoundedRectangle(cornerRadius: .xxs)
                         .stroke(
                             borderColor,
-                            lineWidth: displayTextViewBorder ? 1 : 0
+                            lineWidth: borderLineWidth
                         )
                 )
 
@@ -185,6 +189,8 @@
                             .foregroundStyle(fgColor)
                             .lineLimit(3)
                             .padding(.horizontal, .xxs)
+                            // VoiceOver reads the message as the field's hint.
+                            .accessibilityHidden(true)
                     }
                 }
 
@@ -211,6 +217,11 @@
                 RoundedRectangle(cornerRadius: .small)
                     .stroke(showBorder ? theme.text3 : theme.transparent, lineWidth: 1)
             }
+        }
+
+        /// The border width, drawn whenever the border is displayed or the input is invalid.
+        var borderLineWidth: CGFloat {
+            displayTextViewBorder || invalid ? 1 : 0
         }
 
         /// The foreground color of the text input.

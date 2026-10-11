@@ -11,5 +11,13 @@
 
             #expect(input.revealButtonAccessibilityLabel == label)
         }
+
+        @Test(arguments: [(true, false, 2.0), (false, false, 0.0), (true, true, 2.0), (false, true, 2.0)])
+        func `invalid input draws its border even when the border is hidden`(displayTextViewBorder: Bool, invalid: Bool, expectedWidth: CGFloat) {
+            let input = InputPassword(text: .constant(""), invalid: invalid, invalidMessage: "Required", displayTextViewBorder: displayTextViewBorder)
+
+            #expect(input.borderLineWidth == expectedWidth)
+            _ = input.body
+        }
     }
 #endif
