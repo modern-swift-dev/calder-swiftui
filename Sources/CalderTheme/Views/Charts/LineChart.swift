@@ -28,7 +28,8 @@
             }
         }
 
-        /// The number of marks on the Y-axis.
+        /// The desired number of marks on the Y-axis. Swift Charts picks evenly spaced, rounded
+        /// values close to this count. Values below one request a single mark.
         public var nbMarks: Int
 
         /// The title of the chart.
@@ -43,13 +44,33 @@
         /// The data points to be displayed in the chart.
         private var dataPoints: [DataPoint]
 
+        /// A data point paired with its position, so points sharing a date keep distinct identities.
+        struct PlottedPoint: Identifiable {
+            /// The position of the point in the input data.
+            let id: Int
+            /// The date for the data point (X-axis).
+            let date: Date
+            /// The value associated with the date (Y-axis).
+            let value: Int
+        }
+
+        /// The data points in input order, identified by position rather than by date.
+        var plottedPoints: [PlottedPoint] {
+            dataPoints.enumerated().map { PlottedPoint(id: $0.offset, date: $0.element.date, value: $0.element.value) }
+        }
+
+        /// The desired Y-axis mark count derived from `nbMarks`, never less than one.
+        var yAxisMarkCount: Int {
+            max(1, nbMarks)
+        }
+
         /// Initializes the line chart with given data points.
         /// - Parameters:
         ///   - title: The title of the chart.
-        ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
+        ///   - nbMarks: The desired number of marks on the Y-axis. Defaults to 5.
         ///   - xAxisLabel: The label for the X-axis.
         ///   - leftYAxisTitle: The label for the Y-axis.
-        ///   - points: An array of `DataPoint` to display.
+        ///   - points: An array of `DataPoint` to display. Several points may share a date.
         public init(
             title: String,
             nbMarks: Int = 5,
@@ -70,7 +91,7 @@
                 Chart {
 
                     // Line Chart for Cumulative Percentage
-                    ForEach(dataPoints, id: \.date) { data in
+                    ForEach(plottedPoints) { data in
                         LineMark(
                             x: .value(xAxisLabel, data.date),
                             y: .value(yAxisTitle, data.value)
@@ -81,7 +102,7 @@
                     }
 
                     // Circle Markers on Line Chart
-                    ForEach(dataPoints, id: \.date) { data in
+                    ForEach(plottedPoints) { data in
                         PointMark(
                             x: .value(xAxisLabel, data.date),
                             y: .value(yAxisTitle, data.value)
@@ -113,7 +134,7 @@
                 .chartYAxis {
                     AxisMarks(
                         position: .leading,
-                        values: .automatic
+                        values: .automatic(desiredCount: yAxisMarkCount)
                     ) {
                         AxisValueLabel()
                             .font(.caption)
