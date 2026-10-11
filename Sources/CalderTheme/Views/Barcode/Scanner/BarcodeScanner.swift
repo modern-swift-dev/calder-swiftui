@@ -63,6 +63,7 @@
             /// - Returns: A configured `BarcodeScannerViewController` instance.
             public func makeUIViewController(context: Context) -> BarcodeScannerViewController {
                 let viewController = BarcodeScannerViewController(supportedTypes: supportedTypes)
+                viewController.themeDefinition = context.environment.themeDefinition
                 viewController.callback = context.coordinator.handleScanResult
                 return viewController
             }
@@ -76,6 +77,7 @@
             ///   - uiViewController: The `BarcodeScannerViewController` to update.
             ///   - context: The representable context.
             public func updateUIViewController(_ uiViewController: BarcodeScannerViewController, context: Context) {
+                uiViewController.themeDefinition = context.environment.themeDefinition
                 uiViewController.apply(state)
                 if result == nil {
                     uiViewController.resultDidReset()

@@ -10,9 +10,39 @@
             public let supportedTypes: [AVMetadataObject.ObjectType]?
             public var callback: (String, AVMetadataObject.ObjectType) -> Void = { _, _ in }
 
+            /// The theme used by the message shown when the scanner cannot use the camera.
+            public var themeDefinition = ThemeDefinition() {
+                didSet {
+                    updateUnavailableMessage()
+                }
+            }
+
+            /// The camera-permission checks performed before the camera starts.
+            var cameraAccess = BarcodeScannerCameraAccess.live
+
+            /// Why the scanner currently shows a message instead of the camera feed, if it does.
+            private(set) var unavailableReason: BarcodeScannerUnavailableView.Reason?
+
+            /// The hosting controller that displays the message for ``unavailableReason``.
+            private var unavailableHost: UIHostingController<AnyView>?
+
+            /// The pending camera-permission prompt, if any.
+            private var accessRequest: Task<Void, Never>?
+
+            /// Creates a scanner view controller.
+            ///
+            /// The scanner asks for camera access when it first appears. When access is denied or restricted, it shows a
+            /// message with a button that opens Settings, and starts scanning when the app becomes active with access granted.
+            /// - Parameter supportedTypes: The metadata object types to detect, or `nil` for every available type.
             public init(supportedTypes: [AVMetadataObject.ObjectType]? = nil) {
                 self.supportedTypes = supportedTypes
                 super.init(nibName: nil, bundle: nil)
+                NotificationCenter.default.addObserver(
+                    self,
+                    selector: #selector(applicationDidBecomeActive),
+                    name: UIApplication.didBecomeActiveNotification,
+                    object: nil
+                )
             }
 
             public required init?(coder: NSCoder) {
@@ -53,7 +83,7 @@
                          .scanning:
                         start()
                     case .suspended:
-                        barcodeScanner.start()
+                        startCameraIfPermitted()
                     case .finished:
                         break
                 }
@@ -67,9 +97,11 @@
             }
 
             /// Start scanning
+            ///
+            /// The camera starts once camera access is granted; the user is prompted when access is undetermined.
             public func start() {
                 barcodeScanner.resetLastScan()
-                barcodeScanner.start()
+                startCameraIfPermitted()
                 barcodeScanner.resume()
             }
 
@@ -100,6 +132,113 @@
                         barcodeScanner.suspend()
                         stop()
                 }
+            }
+        }
+
+        // MARK: Camera Access
+
+        extension BarcodeScannerViewController {
+            /// Starts the camera when access is granted, prompts when it is undetermined, and otherwise shows the
+            /// permission-denied message.
+            private func startCameraIfPermitted() {
+                switch cameraAccess.authorizationStatus() {
+                    case .authorized:
+                        showUnavailableMessage(nil)
+                        barcodeScanner.start()
+                    case .notDetermined:
+                        requestCameraAccess()
+                    case .denied,
+                         .restricted:
+                        showUnavailableMessage(.permissionDenied)
+                    @unknown default:
+                        showUnavailableMessage(.permissionDenied)
+                }
+            }
+
+            /// Prompts for camera access once, then starts the camera if the view is still on screen, or shows the
+            /// permission-denied message.
+            private func requestCameraAccess() {
+                guard accessRequest == nil else {
+                    return
+                }
+                let requestAccess = cameraAccess.requestAccess
+                accessRequest = Task { [weak self] in
+                    let isGranted = await requestAccess()
+                    guard let self else {
+                        return
+                    }
+                    accessRequest = nil
+                    guard state != .finished else {
+                        return
+                    }
+                    if isGranted {
+                        showUnavailableMessage(nil)
+                        // If the view left the screen during the prompt, the camera starts when it next appears.
+                        if viewIfLoaded?.window != nil {
+                            barcodeScanner.start()
+                        }
+                    } else {
+                        showUnavailableMessage(.permissionDenied)
+                    }
+                }
+            }
+
+            /// Retries the camera when the app becomes active while the permission-denied message is visible,
+            /// so access granted in Settings resumes scanning.
+            @objc private func applicationDidBecomeActive() {
+                guard unavailableReason == .permissionDenied, viewIfLoaded?.window != nil, state != .finished else {
+                    return
+                }
+                startCameraIfPermitted()
+            }
+
+            /// Shows the message for `reason` over the camera feed, or removes it when `reason` is `nil`.
+            /// - Parameter reason: Why the scanner cannot scan, or `nil` when it can.
+            private func showUnavailableMessage(_ reason: BarcodeScannerUnavailableView.Reason?) {
+                guard reason != unavailableReason else {
+                    return
+                }
+                unavailableReason = reason
+                if reason != nil {
+                    barcodeScanner.stop()
+                }
+                updateUnavailableMessage()
+            }
+
+            /// Adds, updates, or removes the hosted message so it matches ``unavailableReason`` and ``themeDefinition``.
+            private func updateUnavailableMessage() {
+                guard let unavailableReason else {
+                    unavailableHost?.removeViewAndControllerFromParentViewController()
+                    unavailableHost = nil
+                    return
+                }
+
+                let message = AnyView(
+                    BarcodeScannerUnavailableView(reason: unavailableReason) { [weak self] in
+                        self?.openSettings()
+                    }
+                    .environment(\.themeDefinition, themeDefinition)
+                )
+                if let unavailableHost {
+                    unavailableHost.rootView = message
+                    return
+                }
+
+                let host = UIHostingController(rootView: message)
+                addChildViewController(host, toContainerView: view)
+                host.view.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate {
+                    host.view.pinned(to: view)
+                }
+                unavailableHost = host
+            }
+
+            /// Opens the app's page in the Settings app.
+            private func openSettings() {
+                guard let url = URL(string: UIApplication.openSettingsURLString) else {
+                    return
+                }
+                view.window?.windowScene?.open(url, options: nil)
             }
         }
 

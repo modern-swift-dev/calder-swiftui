@@ -46,6 +46,11 @@ suspends detection before reporting the code, so only one code is delivered per 
 several are in frame. The scan region shows its active tint while codes are detected and
 returns to its inactive tint shortly after detection stops.
 
+`BarcodeScanner` and `BarcodeScannerViewController` ask for camera access when it is
+undetermined. When access is denied or restricted, they show a message, themed with the
+environment's `themeDefinition`, with a button that opens Settings, and they start scanning
+when the app becomes active with access granted.
+
 Optional numeric inputs update their displayed text when the bound value changes, including
 clearing it when the value becomes `nil`. Display formatting does not round or truncate the
 source binding.
