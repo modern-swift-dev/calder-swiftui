@@ -201,17 +201,18 @@
 
             /// Callback for when the MapView's region changes.
             /// This method triggers re-clustering if the longitude delta difference exceeds the tolerance factor.
-            /// - Parameter completion: An optional closure to be called after the clustering process is complete.
+            /// - Parameter completion: An optional closure called exactly once, on the main actor, after the
+            ///   clustering process completes or, when no re-clustering is needed, after all previously submitted
+            ///   requests complete.
             public func mapViewRegionDidChange(completion: (() -> Void)?) {
-                guard let map else {
+                // Prevent re-clustering on a simple map view pan
+                guard let map, fabs(lastLongitudeDeltaUsedForClustering - map.region.span.longitudeDelta) > longitudeDeltaDiffToleranceFactor else {
+                    serialQ.enqueue {
+                        completion?()
+                    }
                     return
                 }
-
-                // Prevent re-clustering on a simple map view pan
-                let diff = fabs(lastLongitudeDeltaUsedForClustering - map.region.span.longitudeDelta)
-                if diff > longitudeDeltaDiffToleranceFactor {
-                    clusterize(completion: completion)
-                }
+                clusterize(completion: completion)
             }
 
             /// Performs the clustering logic on the map.
@@ -220,7 +221,9 @@
             ///   - newAnnotations: An array of new `MapClusterable` annotations to add to the map. Defaults to an empty array.
             ///   - removedAnnotations: An array of `MapClusterable` annotations to remove from the map. Defaults to an empty array.
             ///   - clusterOnlyIfMoreThan: The minimum number of clusterable annotations required to initiate clustering. Defaults to 20.
-            ///   - completion: An optional closure to be called after the clustering process is complete.
+            ///   - completion: An optional closure called exactly once, on the main actor, after the clustering process
+            ///     completes. It is also called when the request has nothing to do, such as when the map has been
+            ///     released or removed from its superview, or when there are no annotations to cluster.
             public func clusterize(
                 newAnnotations: [any MapClusterable] = [any MapClusterable](),
                 removedAnnotations: [any MapClusterable] = [any MapClusterable](),
@@ -229,6 +232,9 @@
             ) {
 
                 serialQ.enqueue { [weak self] in
+                    defer {
+                        completion?()
+                    }
 
                     // Generic Validation, check if the map is still displayed
                     guard let self, let map = self.map, map.superview != nil else {
@@ -282,8 +288,16 @@
                     map.addAnnotations(Array(allClusterables.values))
                     map.addAnnotations(Array(newClusters))
                     self.lastLongitudeDeltaUsedForClustering = longitudeDelta
-                    completion?()
                 }
+            }
+
+            /// Orders coordinates by latitude, then by longitude, as a strict weak ordering.
+            /// - Parameters:
+            ///   - lhs: The first coordinate.
+            ///   - rhs: The second coordinate.
+            /// - Returns: `true` if `lhs` sorts before `rhs`; `false` for equal coordinates.
+            static func isOrderedBefore(_ lhs: CLLocationCoordinate2D, _ rhs: CLLocationCoordinate2D) -> Bool {
+                (lhs.latitude, lhs.longitude) < (rhs.latitude, rhs.longitude)
             }
 
             /// Resolves and creates new clusters from a given set of clusterable annotations.
@@ -315,23 +329,7 @@
                 // Step 2: Build the full clusterable arrays, and sort according to lat/lon
                 var allClusterables = [any MapClusterable]()
                 allClusterables.append(contentsOf: clusterables.values)
-                allClusterables.sort { first, second -> Bool in
-                    let loc1 = first.coordinate
-                    let loc2 = second.coordinate
-                    if loc1.latitude < loc2.latitude {
-                        return true
-                    }
-                    if loc1.latitude > loc2.latitude {
-                        return false
-                    }
-                    if loc1.longitude < loc2.longitude {
-                        return true
-                    }
-                    if loc1.longitude > loc2.longitude {
-                        return false
-                    }
-                    return true
-                }
+                allClusterables.sort { Self.isOrderedBefore($0.coordinate, $1.coordinate) }
 
                 // Step 3: Compute all the candidate  clusters.
                 var candidateClusters = [any MapCluster]()

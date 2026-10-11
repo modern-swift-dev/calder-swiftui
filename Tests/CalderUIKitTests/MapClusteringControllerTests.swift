@@ -13,7 +13,7 @@
                 center: CLLocationCoordinate2D(latitude: 45, longitude: -73),
                 span: MKCoordinateSpan(latitudeDelta: 1, longitudeDelta: 1)
             )
-            let superview: UIView? = UIView()
+            var superview: UIView? = UIView()
 
             func addAnnotations(_ annotations: [any MKAnnotation]) {
                 for annotation in annotations where !self.annotations.contains(where: { $0 === annotation }) {
@@ -76,6 +76,11 @@
             }
         }
 
+        private func controllerWithReleasedMap() -> MapClusteringController {
+            let map = TestMap()
+            return MapClusteringController(map: map, clusterSize: 0.1, minLongitudeDeltaToCluster: 0)
+        }
+
         @Test func `queued removal is visible to the following clustering request`() async {
             let map = TestMap()
             let removed = Annotation(id: "removed")
@@ -108,6 +113,90 @@
 
             #expect(controller.clusters().count == 1)
             #expect(Set(controller.clusterables(mode: .both).map(\.id)) == ["first", "second"])
+        }
+
+        @Test func `clustering a detached map calls completion once`() async {
+            let map = TestMap()
+            map.annotations = [Annotation(id: "first")]
+            map.superview = nil
+            let controller = MapClusteringController(map: map, clusterSize: 0.1, minLongitudeDeltaToCluster: 0)
+            var calls = 0
+
+            await withCheckedContinuation { continuation in
+                controller.clusterize { calls += 1 }
+                controller.clusterize { continuation.resume() }
+            }
+
+            #expect(calls == 1)
+        }
+
+        @Test func `clustering with nothing to cluster calls completion once`() async {
+            let map = TestMap()
+            let controller = MapClusteringController(map: map, clusterSize: 0.1, minLongitudeDeltaToCluster: 0)
+            var calls = 0
+
+            await withCheckedContinuation { continuation in
+                controller.clusterize { calls += 1 }
+                controller.clusterize { continuation.resume() }
+            }
+
+            #expect(calls == 1)
+        }
+
+        @Test func `clustering a released map calls completion once`() async {
+            let controller = controllerWithReleasedMap()
+            var calls = 0
+
+            await withCheckedContinuation { continuation in
+                controller.clusterize { calls += 1 }
+                controller.clusterize { continuation.resume() }
+            }
+
+            #expect(calls == 1)
+        }
+
+        @Test func `region change without a significant zoom calls completion once`() async {
+            let map = TestMap()
+            map.annotations = [Annotation(id: "first")]
+            let controller = MapClusteringController(map: map, clusterSize: 0.1, minLongitudeDeltaToCluster: 0)
+            await withCheckedContinuation { continuation in
+                controller.clusterize { continuation.resume() }
+            }
+            var calls = 0
+
+            // The span is unchanged since the last clustering, so the change does not re-cluster.
+            await withCheckedContinuation { continuation in
+                controller.mapViewRegionDidChange { calls += 1 }
+                controller.clusterize { continuation.resume() }
+            }
+
+            #expect(calls == 1)
+        }
+
+        @Test func `region change on a released map calls completion once`() async {
+            let controller = controllerWithReleasedMap()
+            var calls = 0
+
+            await withCheckedContinuation { continuation in
+                controller.mapViewRegionDidChange { calls += 1 }
+                controller.clusterize { continuation.resume() }
+            }
+
+            #expect(calls == 1)
+        }
+
+        @Test func `coordinate ordering is a strict weak ordering`() {
+            let coordinate = CLLocationCoordinate2D(latitude: 45, longitude: -73)
+            let sameCoordinate = CLLocationCoordinate2D(latitude: 45, longitude: -73)
+            let east = CLLocationCoordinate2D(latitude: 45, longitude: -72)
+            let north = CLLocationCoordinate2D(latitude: 46, longitude: -74)
+
+            #expect(!MapClusteringController.isOrderedBefore(coordinate, sameCoordinate))
+            #expect(!MapClusteringController.isOrderedBefore(sameCoordinate, coordinate))
+            #expect(MapClusteringController.isOrderedBefore(coordinate, east))
+            #expect(!MapClusteringController.isOrderedBefore(east, coordinate))
+            #expect(MapClusteringController.isOrderedBefore(east, north))
+            #expect(!MapClusteringController.isOrderedBefore(north, east))
         }
 
         @Test func `public initializer honors the supplied minimum longitude delta`() {
