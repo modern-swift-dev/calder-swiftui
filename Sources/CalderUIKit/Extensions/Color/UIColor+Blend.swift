@@ -50,6 +50,8 @@
             }
 
             /// Returns a brighter version of the original color by increasing its brightness component.
+            ///
+            /// The alpha component is preserved.
             /// - Parameter amount: The amount by which to increase the brightness, typically a value between 0.0 and 1.0.
             /// - Returns: The newly brightened color.
             func brighten(_ amount: CGFloat) -> UIColor {
@@ -60,11 +62,13 @@
                     hue: r1,
                     saturation: g1,
                     brightness: b1 * (1.0 + amount),
-                    alpha: 1
+                    alpha: a1
                 )
             }
 
             /// Returns a dimmer version of the original color by decreasing its brightness component.
+            ///
+            /// The alpha component is preserved.
             /// - Parameter amount: The amount by which to decrease the brightness, typically a value between 0.0 and 1.0.
             /// - Returns: The newly dimmed color.
             func dim(_ amount: CGFloat) -> UIColor {
@@ -75,7 +79,7 @@
                     hue: r1,
                     saturation: g1,
                     brightness: b1 * (1.0 - amount),
-                    alpha: 1
+                    alpha: a1
                 )
             }
 

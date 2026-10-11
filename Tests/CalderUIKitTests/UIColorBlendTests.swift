@@ -183,6 +183,11 @@
                 #expect(isApproximatelyEqual(resultBrightness, originalBrightness))
             }
 
+            @Test func `brighten preserves alpha`() {
+                let color = UIColor(hue: 0.5, saturation: 0.5, brightness: 0.5, alpha: 0.4)
+                #expect(isApproximatelyEqual(getComponents(color.brighten(0.2)).a, 0.4))
+            }
+
             // MARK: - dim Tests
 
             @Test func `dim decreases brightness`() {
@@ -203,6 +208,11 @@
                 color.getHue(nil, saturation: nil, brightness: &originalBrightness, alpha: nil)
                 dimmed.getHue(nil, saturation: nil, brightness: &resultBrightness, alpha: nil)
                 #expect(isApproximatelyEqual(resultBrightness, originalBrightness))
+            }
+
+            @Test func `dim preserves alpha`() {
+                let color = UIColor(hue: 0.5, saturation: 0.5, brightness: 0.5, alpha: 0.4)
+                #expect(isApproximatelyEqual(getComponents(color.dim(0.2)).a, 0.4))
             }
 
             @Test func `dim full amount returns black`() {
