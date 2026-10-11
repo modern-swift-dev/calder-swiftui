@@ -382,28 +382,47 @@
             }
 
             /// A secondary gray color that adapts to the current appearance.
+            ///
+            /// AppKit has no `systemGray2`, so this uses UIKit's light (`#AEAEB2`) and dark (`#636366`) values.
             static var systemGray2: Color {
-                Color(nsColor: .systemGray)
+                adaptiveGray(light: (0xAE, 0xAE, 0xB2), dark: (0x63, 0x63, 0x66))
             }
 
             /// A tertiary gray color that adapts to the current appearance.
+            ///
+            /// AppKit has no `systemGray3`, so this uses UIKit's light (`#C7C7CC`) and dark (`#48484A`) values.
             static var systemGray3: Color {
-                Color(nsColor: .systemGray)
+                adaptiveGray(light: (0xC7, 0xC7, 0xCC), dark: (0x48, 0x48, 0x4A))
             }
 
             /// A quaternary gray color that adapts to the current appearance.
+            ///
+            /// AppKit has no `systemGray4`, so this uses UIKit's light (`#D1D1D6`) and dark (`#3A3A3C`) values.
             static var systemGray4: Color {
-                Color(nsColor: .systemGray)
+                adaptiveGray(light: (0xD1, 0xD1, 0xD6), dark: (0x3A, 0x3A, 0x3C))
             }
 
             /// A quinary gray color that adapts to the current appearance.
+            ///
+            /// AppKit has no `systemGray5`, so this uses UIKit's light (`#E5E5EA`) and dark (`#2C2C2E`) values.
             static var systemGray5: Color {
-                Color(nsColor: .systemGray)
+                adaptiveGray(light: (0xE5, 0xE5, 0xEA), dark: (0x2C, 0x2C, 0x2E))
             }
 
             /// A senary gray color that adapts to the current appearance.
+            ///
+            /// AppKit has no `systemGray6`, so this uses UIKit's light (`#F2F2F7`) and dark (`#1C1C1E`) values.
             static var systemGray6: Color {
-                Color(nsColor: .systemGray)
+                adaptiveGray(light: (0xF2, 0xF2, 0xF7), dark: (0x1C, 0x1C, 0x1E))
+            }
+
+            /// Returns a color that uses `dark` under a dark appearance and `light` otherwise.
+            private static func adaptiveGray(light: (Int, Int, Int), dark: (Int, Int, Int)) -> Color {
+                Color(nsColor: NSColor(name: nil) { appearance in
+                    let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+                    let (red, green, blue) = isDark ? dark : light
+                    return NSColor(srgbRed: CGFloat(red) / 255, green: CGFloat(green) / 255, blue: CGFloat(blue) / 255, alpha: 1)
+                })
             }
         }
 

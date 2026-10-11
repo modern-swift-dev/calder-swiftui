@@ -38,6 +38,30 @@
             #expect(type(of: color) == Color.self)
         }
 
+        #if os(macOS) || os(iOS)
+            @MainActor
+            @Test(arguments: [ColorScheme.light, .dark])
+            func `system gray levels are distinct`(_ scheme: ColorScheme) {
+                let grays: [Color] = [.systemGray, .systemGray2, .systemGray3, .systemGray4, .systemGray5, .systemGray6]
+                let resolved = grays.map { resolve($0, in: scheme) }
+                #expect(Set(resolved).count == grays.count)
+            }
+
+            @MainActor
+            @Test(arguments: [Color.systemGray2, .systemGray3, .systemGray4, .systemGray5, .systemGray6])
+            func `system gray levels follow the appearance`(_ gray: Color) {
+                #expect(resolve(gray, in: .light) != resolve(gray, in: .dark))
+            }
+
+            /// Resolves on the main actor because AppKit-backed colors resolve against `NSAppearance`.
+            @MainActor
+            private func resolve(_ color: Color, in scheme: ColorScheme) -> Color.Resolved {
+                var environment = EnvironmentValues()
+                environment.colorScheme = scheme
+                return color.resolve(in: environment)
+            }
+        #endif
+
         // MARK: - Label Colors
 
         @Test func `label color exists`() {
