@@ -5,7 +5,6 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized)
         @MainActor struct UIViewControllerChildTests {
             /// Records containment callbacks and whether its view was in a hierarchy at each callback.
             private final class ContainmentRecorder: UIViewController {

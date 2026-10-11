@@ -25,11 +25,12 @@
             }
 
             func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-                collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
+                cell.accessibilityLabel = sections[indexPath.section][indexPath.item]
+                return cell
             }
         }
 
-        @Suite(.serialized)
         @MainActor struct UICollectionViewExtTests {
 
             private func createCollectionView() -> UICollectionView {
@@ -202,90 +203,85 @@
 
             // MARK: - safeScrollToItem Tests
 
-            @Test func `safe scroll to item invalid section does not crash`() {
-                let collectionView = createCollectionView()
-                let dataSource = SimpleCollectionDataSource(sections: [["A"]])
-                collectionView.dataSource = dataSource
-                collectionView.reloadData()
+            @Test func `safe scroll to item valid index path scrolls`() {
+                let (collectionView, dataSource) = makeScrollableCollectionView()
 
-                collectionView.safeScrollToItem(at: IndexPath(item: 0, section: 5), at: .top, animated: false)
-                #expect(true)
+                collectionView.safeScrollToItem(at: IndexPath(item: 99, section: 0), at: .bottom, animated: false)
+
+                #expect(collectionView.contentOffset.y > 0)
+                withExtendedLifetime(dataSource) {}
             }
 
-            @Test func `safe scroll to item invalid item does not crash`() {
-                let collectionView = createCollectionView()
-                let dataSource = SimpleCollectionDataSource(sections: [["A"]])
-                collectionView.dataSource = dataSource
-                collectionView.reloadData()
+            @Test(arguments: [
+                IndexPath(item: 0, section: 5),
+                IndexPath(item: 100, section: 0),
+                IndexPath(item: -1, section: 0),
+                IndexPath(item: 0, section: -1)
+            ])
+            func `safe scroll to item invalid index path is ignored`(indexPath: IndexPath) {
+                let (collectionView, dataSource) = makeScrollableCollectionView()
 
-                collectionView.safeScrollToItem(at: IndexPath(item: 10, section: 0), at: .top, animated: false)
-                #expect(true)
-            }
+                collectionView.safeScrollToItem(at: indexPath, at: .top, animated: false)
 
-            @Test func `safe scroll to item negative item does not crash`() {
-                let collectionView = createCollectionView()
-                let dataSource = SimpleCollectionDataSource(sections: [["A"]])
-                collectionView.dataSource = dataSource
-                collectionView.reloadData()
-
-                collectionView.safeScrollToItem(at: IndexPath(item: -1, section: 0), at: .top, animated: false)
-                #expect(true)
-            }
-
-            @Test func `safe scroll to item negative section does not crash`() {
-                let collectionView = createCollectionView()
-                let dataSource = SimpleCollectionDataSource(sections: [["A"]])
-                collectionView.dataSource = dataSource
-                collectionView.reloadData()
-
-                collectionView.safeScrollToItem(at: IndexPath(item: 0, section: -1), at: .top, animated: false)
-                #expect(true)
+                #expect(collectionView.contentOffset == .zero)
+                withExtendedLifetime(dataSource) {}
             }
 
             // MARK: - scrollToCell Tests
 
             @Test func `scroll to cell valid index path returns true`() {
-                let collectionView = createCollectionView()
-                let dataSource = SimpleCollectionDataSource(sections: [["A", "B", "C"]])
-                collectionView.dataSource = dataSource
-                collectionView.reloadData()
-                collectionView.layoutIfNeeded()
+                let (collectionView, dataSource) = makeScrollableCollectionView()
 
-                let result = collectionView.scrollToCell(at: IndexPath(item: 0, section: 0), animated: false)
+                let result = collectionView.scrollToCell(at: IndexPath(item: 99, section: 0), animated: false)
+
                 #expect(result == true)
+                #expect(collectionView.contentOffset.y > 0)
+                withExtendedLifetime(dataSource) {}
             }
 
             @Test func `scroll to cell with translation`() {
-                let collectionView = createCollectionView()
-                let dataSource = SimpleCollectionDataSource(sections: [["A", "B"]])
-                collectionView.dataSource = dataSource
-                collectionView.reloadData()
-                collectionView.layoutIfNeeded()
+                let (collectionView, dataSource) = makeScrollableCollectionView()
+                let target = IndexPath(item: 99, section: 0)
+                let frame = collectionView.layoutAttributesForItem(at: target)?.frame ?? .null
 
-                let result = collectionView.scrollToCell(at: IndexPath(item: 0, section: 0), translateX: 10, translateY: 20, animated: false)
+                let result = collectionView.scrollToCell(at: target, translateX: 0, translateY: -60, animated: false)
+
+                // The shifted rect ends 60 points above the item, so the item's bottom stays hidden.
                 #expect(result == true)
+                #expect(collectionView.bounds.maxY == frame.maxY - 60)
+                withExtendedLifetime(dataSource) {}
+            }
+
+            @Test func `scroll to cell missing index path returns false`() {
+                let (collectionView, dataSource) = makeScrollableCollectionView()
+
+                let result = collectionView.scrollToCell(at: IndexPath(item: 0, section: 3), animated: false)
+
+                #expect(result == false)
+                #expect(collectionView.contentOffset == .zero)
+                withExtendedLifetime(dataSource) {}
             }
 
             // MARK: - safeScrollToBottom Tests
 
-            @Test func `safe scroll to bottom empty collection does not crash`() {
-                let collectionView = createCollectionView()
-                let dataSource = SimpleCollectionDataSource(sections: [])
-                collectionView.dataSource = dataSource
-                collectionView.reloadData()
+            @Test func `safe scroll to bottom with an empty last section does not scroll`() {
+                let (collectionView, dataSource) = makeScrollableCollectionView(trailingEmptySection: true)
 
                 collectionView.safeScrollToBottom()
-                #expect(true)
+
+                #expect(collectionView.contentOffset == .zero)
+                withExtendedLifetime(dataSource) {}
             }
 
-            @Test func `safe scroll to bottom with data does not crash`() {
-                let collectionView = createCollectionView()
-                let dataSource = SimpleCollectionDataSource(sections: [["A", "B", "C"]])
-                collectionView.dataSource = dataSource
-                collectionView.reloadData()
+            @Test func `safe scroll to bottom reveals the last item`() throws {
+                let (collectionView, dataSource) = makeScrollableCollectionView()
 
                 collectionView.safeScrollToBottom(animated: false)
-                #expect(true)
+
+                let lastItem = try #require(collectionView.layoutAttributesForItem(at: IndexPath(item: 99, section: 0)))
+                #expect(collectionView.contentOffset.y > 0)
+                #expect(collectionView.bounds.contains(lastItem.frame))
+                withExtendedLifetime(dataSource) {}
             }
 
             // MARK: - reload Tests
@@ -302,16 +298,31 @@
                 #expect(collectionView.numberOfItems(inSection: 0) == 2)
             }
 
-            @Test func `reload specific index paths not animated`() {
+            @Test func `reload specific index paths not animated reloads only those items`() {
                 let collectionView = createCollectionView()
                 let dataSource = SimpleCollectionDataSource(sections: [["A", "B"]])
                 collectionView.dataSource = dataSource
                 collectionView.reloadData()
+                collectionView.layoutIfNeeded()
 
+                dataSource.sections = [["Y", "Z"]]
                 collectionView.reload(at: [IndexPath(item: 0, section: 0)], animated: false)
-                #expect(true)
+                collectionView.layoutIfNeeded()
+
+                #expect(collectionView.cellForItem(at: IndexPath(item: 0, section: 0))?.accessibilityLabel == "Y")
+                #expect(collectionView.cellForItem(at: IndexPath(item: 1, section: 0))?.accessibilityLabel == "B")
             }
 
+            /// A laid-out collection with 100 items, taller than its 480 point frame.
+            private func makeScrollableCollectionView(trailingEmptySection: Bool = false) -> (UICollectionView, SimpleCollectionDataSource) {
+                let collectionView = createCollectionView()
+                let items = (0 ..< 100).map { "Item \($0)" }
+                let dataSource = SimpleCollectionDataSource(sections: trailingEmptySection ? [items, []] : [items])
+                collectionView.dataSource = dataSource
+                collectionView.reloadData()
+                collectionView.layoutIfNeeded()
+                return (collectionView, dataSource)
+            }
         }
     #endif
 

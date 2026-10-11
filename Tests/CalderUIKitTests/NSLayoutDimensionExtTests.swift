@@ -5,7 +5,6 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized)
         @MainActor struct NSLayoutDimensionExtTests {
 
             // MARK: - eq (constant) Tests

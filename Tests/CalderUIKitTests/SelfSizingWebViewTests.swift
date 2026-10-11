@@ -6,7 +6,6 @@
         import UIKit
         import WebKit
 
-        @Suite(.serialized)
         @MainActor struct SelfSizingWebViewTests {
 
             // MARK: - Initialization Tests
@@ -27,12 +26,10 @@
 
             // MARK: - lastContentSize Tests
 
-            @Test func `last content size initially zero`() {
+            @Test func `last content size initially matches the scroll view`() {
                 let config = WKWebViewConfiguration()
                 let webView = SelfSizingWebView(frame: .zero, configuration: config)
-                // Initially should be zero or scrollView content size
-                #expect(webView.lastContentSize.width >= 0)
-                #expect(webView.lastContentSize.height >= 0)
+                #expect(webView.lastContentSize == webView.scrollView.contentSize)
             }
 
             // MARK: - intrinsicContentSize Tests
@@ -44,14 +41,6 @@
             }
 
             // MARK: - contentSizeChanged Tests
-
-            @Test func `content size changed default callback`() {
-                let config = WKWebViewConfiguration()
-                let webView = SelfSizingWebView(frame: .zero, configuration: config)
-                // Default callback does nothing, just verify it exists
-                webView.contentSizeChanged(CGSize(width: 100, height: 100))
-                #expect(true)
-            }
 
             @Test func `content size changed custom callback`() {
                 let config = WKWebViewConfiguration()

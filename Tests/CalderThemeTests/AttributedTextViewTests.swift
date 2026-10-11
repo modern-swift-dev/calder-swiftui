@@ -4,7 +4,6 @@
         import SwiftUI
         import Testing
 
-        @Suite(.serialized)
         @MainActor struct AttributedTextViewTests {
 
             @available(iOS 26, macOS 26, *)

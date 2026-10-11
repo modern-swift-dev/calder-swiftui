@@ -5,7 +5,7 @@
         import SwiftUI
         import Testing
 
-        @Suite(.serialized) struct EdgeInsetsExtTests {
+        struct EdgeInsetsExtTests {
 
             // MARK: - Zero
 

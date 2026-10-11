@@ -4,7 +4,7 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized) struct ThemeColorTests {
+    struct ThemeColorTests {
         /// A colour with room to move in both directions so lightening and darkening are observable.
         private static let midTone = Color(red: 0.4, green: 0.4, blue: 0.8)
 

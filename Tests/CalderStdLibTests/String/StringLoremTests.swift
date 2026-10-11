@@ -2,7 +2,7 @@
 import Foundation
 import Testing
 
-@Suite(.serialized) struct StringLoremTests {
+struct StringLoremTests {
     // MARK: - Lorem Ipsum Constant
 
     @Test func `lorem ipsum exists`() {

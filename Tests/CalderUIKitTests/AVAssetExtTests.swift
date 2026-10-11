@@ -4,7 +4,7 @@
     import Foundation
     import Testing
 
-    @Suite(.serialized) struct AVAssetExtTests {
+    struct AVAssetExtTests {
 
         @Test func `thumbnail with missing file throws`() async {
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("missing-video-\(UUID()).mov")

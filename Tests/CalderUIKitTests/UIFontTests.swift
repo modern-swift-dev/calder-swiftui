@@ -5,7 +5,7 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized) struct UIFontTests {
+        struct UIFontTests {
             @Test func xxxl() {
                 let baseFont = UIFont.systemFont(ofSize: 10, weight: .regular)
                 let scaledFont = UIFont.scaledFont(base: baseFont, compatibleWith: UITraitCollection(preferredContentSizeCategory: .extraExtraExtraLarge))

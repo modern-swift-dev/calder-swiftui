@@ -4,188 +4,137 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized) struct LinearGradientExtTests {
+    @MainActor struct LinearGradientExtTests {
+
+        private typealias Pixel = RenderedBitmap.Pixel
 
         // Use explicit RGB colors to avoid macOS catalog color issues
         private static let testRed = Color(red: 1, green: 0, blue: 0)
-        private static let testBlue = Color(red: 0, green: 0, blue: 1)
         private static let testGreen = Color(red: 0, green: 1, blue: 0)
         private static let testWhite = Color(red: 1, green: 1, blue: 1)
         private static let testBlack = Color(red: 0, green: 0, blue: 0)
-        private static let testPurple = Color(red: 0.5, green: 0, blue: 0.5)
+        private static let testPurple = Color(red: 0.4, green: 0, blue: 0.4)
 
-        // MARK: - init(darken:) with defaults
+        // MARK: - init(darken:)
 
-        @Test func `init darken with default values`() {
-            let gradient = LinearGradient(darken: Self.testRed)
-            #expect(type(of: gradient) == LinearGradient.self)
+        @Test func `darken runs from the color to an eighth darker by default`() throws {
+            let bitmap = try Self.render(LinearGradient(darken: Self.testRed))
+
+            Self.expect(bitmap.top, near: Self.rgb(255, 0, 0))
+            Self.expect(bitmap.bottom, near: Self.rgb(223, 0, 0))
         }
 
-        @Test func `init darken with blue`() {
-            let gradient = LinearGradient(darken: Self.testBlue)
-            #expect(type(of: gradient) == LinearGradient.self)
+        @Test(arguments: [(CGFloat(0), UInt8(255)), (0.3, 179), (1, 0)])
+        func `darken blends the end color toward black by the amount`(amount: CGFloat, endRed: UInt8) throws {
+            let bitmap = try Self.render(LinearGradient(darken: Self.testRed, amount: amount))
+
+            Self.expect(bitmap.top, near: Self.rgb(255, 0, 0))
+            Self.expect(bitmap.bottom, near: Self.rgb(endRed, 0, 0))
         }
 
-        @Test func `init darken with white`() {
-            let gradient = LinearGradient(darken: Self.testWhite)
-            #expect(type(of: gradient) == LinearGradient.self)
+        @Test func `darken white ends in a light gray`() throws {
+            let bitmap = try Self.render(LinearGradient(darken: Self.testWhite))
+
+            Self.expect(bitmap.top, near: Self.rgb(255, 255, 255))
+            Self.expect(bitmap.bottom, near: Self.rgb(223, 223, 223))
         }
 
-        // MARK: - init(darken:) with custom amount
+        @Test func `darken follows custom start and end points`() throws {
+            let bitmap = try Self.render(LinearGradient(darken: Self.testGreen, start: .leading, end: .trailing))
 
-        @Test func `init darken with custom amount`() {
-            let gradient = LinearGradient(darken: Self.testRed, amount: 0.3)
-            #expect(type(of: gradient) == LinearGradient.self)
+            Self.expect(bitmap.leading, near: Self.rgb(0, 255, 0))
+            Self.expect(bitmap.trailing, near: Self.rgb(0, 223, 0))
+            Self.expect(bitmap.top, near: bitmap.bottom)
         }
 
-        @Test func `init darken with zero amount`() {
-            let gradient = LinearGradient(darken: Self.testRed, amount: 0)
-            #expect(type(of: gradient) == LinearGradient.self)
+        @Test func `darken with all parameters runs diagonally`() throws {
+            let gradient = LinearGradient(darken: Self.testPurple, amount: 0.5, start: .topLeading, end: .bottomTrailing)
+            let bitmap = try Self.render(gradient)
+
+            Self.expect(bitmap.topLeading, near: Self.rgb(102, 0, 102))
+            Self.expect(bitmap.bottomTrailing, near: Self.rgb(51, 0, 51))
         }
 
-        @Test func `init darken with max amount`() {
-            let gradient = LinearGradient(darken: Self.testRed, amount: 1.0)
-            #expect(type(of: gradient) == LinearGradient.self)
+        // MARK: - init(lighten:)
+
+        @Test func `lighten runs from the color to an eighth lighter by default`() throws {
+            let bitmap = try Self.render(LinearGradient(lighten: Self.testRed))
+
+            Self.expect(bitmap.top, near: Self.rgb(255, 0, 0))
+            Self.expect(bitmap.bottom, near: Self.rgb(255, 32, 32))
         }
 
-        // MARK: - init(darken:) with custom start/end
+        @Test(arguments: [(CGFloat(0), UInt8(0)), (0.3, 77), (1, 255)])
+        func `lighten blends the end color toward white by the amount`(amount: CGFloat, endGreenAndBlue: UInt8) throws {
+            let bitmap = try Self.render(LinearGradient(lighten: Self.testRed, amount: amount))
 
-        @Test func `init darken with custom start end`() {
-            let gradient = LinearGradient(darken: Self.testGreen, start: .leading, end: .trailing)
-            #expect(type(of: gradient) == LinearGradient.self)
+            Self.expect(bitmap.top, near: Self.rgb(255, 0, 0))
+            Self.expect(bitmap.bottom, near: Self.rgb(255, endGreenAndBlue, endGreenAndBlue))
         }
 
-        @Test func `init darken with top leading to bottom trailing`() {
-            let gradient = LinearGradient(darken: Self.testGreen, start: .topLeading, end: .bottomTrailing)
-            #expect(type(of: gradient) == LinearGradient.self)
+        @Test func `lighten black ends in a dark gray`() throws {
+            let bitmap = try Self.render(LinearGradient(lighten: Self.testBlack))
+
+            Self.expect(bitmap.top, near: Self.rgb(0, 0, 0))
+            Self.expect(bitmap.bottom, near: Self.rgb(32, 32, 32))
         }
 
-        @Test func `init darken with bottom to top`() {
-            let gradient = LinearGradient(darken: Self.testGreen, start: .bottom, end: .top)
-            #expect(type(of: gradient) == LinearGradient.self)
+        @Test func `lighten follows custom start and end points`() throws {
+            let bitmap = try Self.render(LinearGradient(lighten: Self.testGreen, start: .bottom, end: .top))
+
+            Self.expect(bitmap.bottom, near: Self.rgb(0, 255, 0))
+            Self.expect(bitmap.top, near: Self.rgb(32, 255, 32))
+            Self.expect(bitmap.leading, near: bitmap.trailing)
         }
 
-        // MARK: - init(darken:) with all custom parameters
+        @Test func `lighten with all parameters runs diagonally`() throws {
+            let gradient = LinearGradient(lighten: Self.testPurple, amount: 0.5, start: .topLeading, end: .bottomTrailing)
+            let bitmap = try Self.render(gradient)
 
-        @Test func `init darken with all parameters`() {
-            let gradient = LinearGradient(
-                darken: Self.testPurple,
-                amount: 0.2,
-                start: .topLeading,
-                end: .bottomTrailing
-            )
-            #expect(type(of: gradient) == LinearGradient.self)
+            Self.expect(bitmap.topLeading, near: Self.rgb(102, 0, 102))
+            Self.expect(bitmap.bottomTrailing, near: Self.rgb(179, 128, 179))
         }
 
-        // MARK: - init(lighten:) with defaults
+        // MARK: - Helpers
 
-        @Test func `init lighten with default values`() {
-            let gradient = LinearGradient(lighten: Self.testRed)
-            #expect(type(of: gradient) == LinearGradient.self)
+        private static func rgb(_ red: UInt8, _ green: UInt8, _ blue: UInt8) -> Pixel {
+            Pixel(red: red, green: green, blue: blue, alpha: 255)
         }
 
-        @Test func `init lighten with blue`() {
-            let gradient = LinearGradient(lighten: Self.testBlue)
-            #expect(type(of: gradient) == LinearGradient.self)
+        /// Renders the gradient large enough that edge pixels sit within 0.05% of the gradient's end points.
+        private static func render(_ gradient: LinearGradient) throws -> RenderedBitmap {
+            try #require(RenderedBitmap(rendering: Rectangle().fill(gradient).frame(width: 1000, height: 1000)))
         }
 
-        @Test func `init lighten with black`() {
-            let gradient = LinearGradient(lighten: Self.testBlack)
-            #expect(type(of: gradient) == LinearGradient.self)
+        /// Allows for the rounding of saturated colors through the renderer's working color space.
+        private static func expect(_ pixel: Pixel, near expected: Pixel, sourceLocation: SourceLocation = #_sourceLocation) {
+            #expect(pixel.isClose(to: expected, tolerance: 6), "\(pixel) is not close to \(expected)", sourceLocation: sourceLocation)
+        }
+    }
+
+    private extension RenderedBitmap {
+        var top: Pixel {
+            pixel(x: width / 2, y: 0)
         }
 
-        // MARK: - init(lighten:) with custom amount
-
-        @Test func `init lighten with custom amount`() {
-            let gradient = LinearGradient(lighten: Self.testRed, amount: 0.3)
-            #expect(type(of: gradient) == LinearGradient.self)
+        var bottom: Pixel {
+            pixel(x: width / 2, y: height - 1)
         }
 
-        @Test func `init lighten with zero amount`() {
-            let gradient = LinearGradient(lighten: Self.testRed, amount: 0)
-            #expect(type(of: gradient) == LinearGradient.self)
+        var leading: Pixel {
+            pixel(x: 0, y: height / 2)
         }
 
-        @Test func `init lighten with max amount`() {
-            let gradient = LinearGradient(lighten: Self.testRed, amount: 1.0)
-            #expect(type(of: gradient) == LinearGradient.self)
+        var trailing: Pixel {
+            pixel(x: width - 1, y: height / 2)
         }
 
-        // MARK: - init(lighten:) with custom start/end
-
-        @Test func `init lighten with custom start end`() {
-            let gradient = LinearGradient(lighten: Self.testGreen, start: .leading, end: .trailing)
-            #expect(type(of: gradient) == LinearGradient.self)
+        var topLeading: Pixel {
+            pixel(x: 0, y: 0)
         }
 
-        @Test func `init lighten with top leading to bottom trailing`() {
-            let gradient = LinearGradient(lighten: Self.testGreen, start: .topLeading, end: .bottomTrailing)
-            #expect(type(of: gradient) == LinearGradient.self)
-        }
-
-        @Test func `init lighten with bottom to top`() {
-            let gradient = LinearGradient(lighten: Self.testGreen, start: .bottom, end: .top)
-            #expect(type(of: gradient) == LinearGradient.self)
-        }
-
-        // MARK: - init(lighten:) with all custom parameters
-
-        @Test func `init lighten with all parameters`() {
-            let gradient = LinearGradient(
-                lighten: Self.testPurple,
-                amount: 0.2,
-                start: .topLeading,
-                end: .bottomTrailing
-            )
-            #expect(type(of: gradient) == LinearGradient.self)
-        }
-
-        // MARK: - Usage in Views
-
-        @Test func `darken gradient can be used as background`() {
-            _ = Rectangle()
-                .fill(LinearGradient(darken: Self.testBlue))
-        }
-
-        @Test func `lighten gradient can be used as background`() {
-            _ = Rectangle()
-                .fill(LinearGradient(lighten: Self.testBlue))
-        }
-
-        @Test func `gradient can be used with text`() {
-            _ = Text("Hello")
-                .foregroundStyle(LinearGradient(darken: Self.testRed))
-        }
-
-        @Test func `gradient can be used with shape`() {
-            _ = Circle()
-                .fill(LinearGradient(lighten: Self.testGreen, amount: 0.2))
-        }
-
-        // MARK: - Custom Colors
-
-        @Test func `init darken with custom color`() {
-            let customColor = Color(red: 0.5, green: 0.3, blue: 0.7)
-            let gradient = LinearGradient(darken: customColor)
-            #expect(type(of: gradient) == LinearGradient.self)
-        }
-
-        @Test func `init lighten with custom color`() {
-            let customColor = Color(red: 0.2, green: 0.8, blue: 0.4)
-            let gradient = LinearGradient(lighten: customColor)
-            #expect(type(of: gradient) == LinearGradient.self)
-        }
-
-        @Test func `init darken with hex color`() throws {
-            let hexColor = try #require(Color(rgb: "#FF5500"))
-            let gradient = LinearGradient(darken: hexColor)
-            #expect(type(of: gradient) == LinearGradient.self)
-        }
-
-        @Test func `init lighten with hex color`() throws {
-            let hexColor = try #require(Color(rgb: "#0055FF"))
-            let gradient = LinearGradient(lighten: hexColor)
-            #expect(type(of: gradient) == LinearGradient.self)
+        var bottomTrailing: Pixel {
+            pixel(x: width - 1, y: height - 1)
         }
     }
 

@@ -3,7 +3,6 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct PaginatedListSelectionTests {
         private struct Item: Identifiable, Codable, Sendable {
             let id: Int

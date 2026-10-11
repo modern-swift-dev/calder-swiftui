@@ -23,9 +23,10 @@
 
             // MARK: - buildNumber Tests
 
-            @Test func `build number is non negative`() {
-                let buildNumber = UIApplication.shared.buildNumber
-                #expect(buildNumber >= 0)
+            @Test func `build number reads the main bundle`() {
+                let version = Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String) as? String
+                let expected = version.flatMap(Int64.init) ?? 0
+                #expect(UIApplication.shared.buildNumber == expected)
             }
 
             // MARK: - version Tests

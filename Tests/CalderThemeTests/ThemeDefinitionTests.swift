@@ -1,61 +1,109 @@
 #if canImport(SwiftUI) || canImport(UIKit) || canImport(AppKit)
+    import CalderSwiftUI
     @testable import CalderTheme
     import Foundation
     import SwiftUI
     import Testing
 
-    @Suite(.serialized) struct ThemeDefinitionTests {
+    struct ThemeDefinitionTests {
 
-        // MARK: - Initialization
+        // MARK: - Default Colors
 
-        @Test func `initialize with default values`() {
-            let definition = ThemeDefinition()
-
-            // Verify definition was created successfully
-            #expect(type(of: definition.primary) == ThemeColor.self)
-            #expect(type(of: definition.secondary) == ThemeColor.self)
+        /// A default color derived from a hex value, whose dark variant blends toward white or black.
+        private struct DerivedDefault {
+            let name: String
+            let color: ThemeColor
+            let red: Int
+            let green: Int
+            let blue: Int
+            let darkVariant: DarkVariant
+            let ratio: Float
         }
 
-        @Test func `default initializer creates valid colors`() {
-            let definition = ThemeDefinition()
+        /// Whether a default's dark variant blends toward white or black.
+        private enum DarkVariant {
+            case lighter
+            case darker
 
-            // Verify all color properties exist and can be accessed
-            _ = definition.primary
-            _ = definition.textOverPrimary
-            _ = definition.secondary
-            _ = definition.textOverSecondary
-            _ = definition.background1
-            _ = definition.background2
-            _ = definition.background3
-            _ = definition.text1
-            _ = definition.text2
-            _ = definition.text3
-            _ = definition.textField
-            _ = definition.textFieldEdit
-            _ = definition.textFieldPlaceholder
-            _ = definition.success
-            _ = definition.textOverSuccess
-            _ = definition.inProgress
-            _ = definition.textOverInProgress
-            _ = definition.warning
-            _ = definition.textOverWarning
-            _ = definition.error
-            _ = definition.textOverError
-            _ = definition.info
-            _ = definition.textOverInfo
-            _ = definition.inactive
-            _ = definition.textOverInactive
+            var target: Float {
+                switch self {
+                    case .lighter:
+                        1
+                    case .darker:
+                        0
+                }
+            }
+        }
+
+        @MainActor
+        @Test func `default brand and status colors use the documented hex values`() {
+            let definition = ThemeDefinition()
+            let defaults = [
+                DerivedDefault(name: "primary", color: definition.primary, red: 0x06, green: 0x6C, blue: 0xDB, darkVariant: .lighter, ratio: 0.1),
+                DerivedDefault(name: "secondary", color: definition.secondary, red: 0x61, green: 0x5A, blue: 0xE4, darkVariant: .lighter, ratio: 0.1),
+                DerivedDefault(name: "success", color: definition.success, red: 0x4E, green: 0x9A, blue: 0x53, darkVariant: .lighter, ratio: 0.1),
+                DerivedDefault(name: "inProgress", color: definition.inProgress, red: 0xF2, green: 0x99, blue: 0x4A, darkVariant: .lighter, ratio: 0.1),
+                DerivedDefault(name: "warning", color: definition.warning, red: 0xF2, green: 0xC9, blue: 0x4C, darkVariant: .lighter, ratio: 0.1),
+                DerivedDefault(name: "error", color: definition.error, red: 0xEB, green: 0x57, blue: 0x57, darkVariant: .darker, ratio: 0.1),
+                DerivedDefault(name: "info", color: definition.info, red: 0x06, green: 0x6C, blue: 0xDB, darkVariant: .lighter, ratio: 0.15)
+            ]
+
+            for entry in defaults {
+                let light = Self.resolve(entry.color.getColor(scheme: .light))
+                let dark = Self.resolve(entry.color.getColor(scheme: .dark))
+                let expectedLight = [entry.red, entry.green, entry.blue].map { Float($0) / 255 }
+                let expectedDark = expectedLight.map { $0 + (entry.darkVariant.target - $0) * entry.ratio }
+
+                #expect(Self.isClose([light.red, light.green, light.blue], to: expectedLight), "\(entry.name) light is \(light)")
+                #expect(Self.isClose([dark.red, dark.green, dark.blue], to: expectedDark), "\(entry.name) dark is \(dark)")
+            }
+        }
+
+        @Test func `default text over colors contrast with their backgrounds`() {
+            let definition = ThemeDefinition()
+            let defaults: [(name: String, color: ThemeColor, expected: Color)] = [
+                ("textOverPrimary", definition.textOverPrimary, .white),
+                ("textOverSecondary", definition.textOverSecondary, .white),
+                ("textOverSuccess", definition.textOverSuccess, .white),
+                ("textOverInProgress", definition.textOverInProgress, .black),
+                ("textOverWarning", definition.textOverWarning, .black),
+                ("textOverError", definition.textOverError, .white),
+                ("textOverInfo", definition.textOverInfo, .white)
+            ]
+
+            for (name, color, expected) in defaults {
+                #expect(color.getColor(scheme: .light) == expected, "\(name) light")
+                #expect(color.getColor(scheme: .dark) == expected, "\(name) dark")
+            }
+        }
+
+        @MainActor @Test func `default surface and text colors use system colors`() {
+            let definition = ThemeDefinition()
+            let defaults: [(name: String, color: ThemeColor, expected: Color)] = [
+                ("background1", definition.background1, .systemBackground),
+                ("background2", definition.background2, .secondarySystemBackground),
+                ("background3", definition.background3, .tertiarySystemBackground),
+                ("text1", definition.text1, .label),
+                ("text2", definition.text2, .secondaryLabel),
+                ("text3", definition.text3, .tertiaryLabel),
+                ("textField", definition.textField, .tertiarySystemBackground),
+                ("textFieldEdit", definition.textFieldEdit, .primary),
+                ("textFieldPlaceholder", definition.textFieldPlaceholder, .placeholderText),
+                ("inactive", definition.inactive, .systemGroupedBackground),
+                ("textOverInactive", definition.textOverInactive, .secondaryLabel)
+            ]
+
+            // Compare resolved values: adaptive system colors can be distinct instances that render identically.
+            for (name, color, expected) in defaults {
+                for scheme in [ColorScheme.light, .dark] {
+                    var environment = EnvironmentValues()
+                    environment.colorScheme = scheme
+                    #expect(color.getColor(scheme: scheme).resolve(in: environment) == expected.resolve(in: environment), "\(name) \(scheme)")
+                }
+            }
         }
 
         // MARK: - Primary Colors
-
-        @Test func `primary color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.primary.getColor(scheme: .light, contrast: nil)
-
-            // Verify primary color can be retrieved
-            #expect(type(of: color) == Color.self)
-        }
 
         @Test func `primary color can be customized`() {
             var definition = ThemeDefinition()
@@ -67,14 +115,6 @@
 
             #expect(lightColor == .red)
             #expect(darkColor == .blue)
-        }
-
-        @Test func `text over primary color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textOverPrimary.getColor(scheme: .light, contrast: nil)
-
-            // Verify textOverPrimary color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text over primary color can be customized`() {
@@ -91,14 +131,6 @@
 
         // MARK: - Secondary Colors
 
-        @Test func `secondary color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.secondary.getColor(scheme: .light, contrast: nil)
-
-            // Verify secondary color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `secondary color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .green, dark: .orange)
@@ -109,14 +141,6 @@
 
             #expect(lightColor == .green)
             #expect(darkColor == .orange)
-        }
-
-        @Test func `text over secondary color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textOverSecondary.getColor(scheme: .light, contrast: nil)
-
-            // Verify textOverSecondary color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text over secondary color can be customized`() {
@@ -133,14 +157,6 @@
 
         // MARK: - Background Colors
 
-        @Test func `background 1 color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.background1.getColor(scheme: .light, contrast: nil)
-
-            // Verify background1 color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `background 1 color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .white, dark: .black)
@@ -153,14 +169,6 @@
             #expect(darkColor == .black)
         }
 
-        @Test func `background 2 color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.background2.getColor(scheme: .light, contrast: nil)
-
-            // Verify background2 color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `background 2 color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .gray, dark: .gray)
@@ -168,14 +176,6 @@
 
             let color = definition.background2.getColor(scheme: .light, contrast: nil)
             #expect(color == .gray)
-        }
-
-        @Test func `background 3 color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.background3.getColor(scheme: .light, contrast: nil)
-
-            // Verify background3 color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `background 3 color can be customized`() {
@@ -192,14 +192,6 @@
 
         // MARK: - Text Colors
 
-        @Test func `text 1 color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.text1.getColor(scheme: .light, contrast: nil)
-
-            // Verify text1 color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `text 1 color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .black, dark: .white)
@@ -212,14 +204,6 @@
             #expect(darkColor == .white)
         }
 
-        @Test func `text 2 color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.text2.getColor(scheme: .light, contrast: nil)
-
-            // Verify text2 color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `text 2 color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .gray, dark: .gray)
@@ -227,14 +211,6 @@
 
             let color = definition.text2.getColor(scheme: .light, contrast: nil)
             #expect(color == .gray)
-        }
-
-        @Test func `text 3 color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.text3.getColor(scheme: .light, contrast: nil)
-
-            // Verify text3 color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text 3 color can be customized`() {
@@ -251,14 +227,6 @@
 
         // MARK: - TextField Colors
 
-        @Test func `text field color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textField.getColor(scheme: .light, contrast: nil)
-
-            // Verify textField color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `text field color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .white, dark: .black)
@@ -269,14 +237,6 @@
 
             #expect(lightColor == .white)
             #expect(darkColor == .black)
-        }
-
-        @Test func `text field edit color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textFieldEdit.getColor(scheme: .light, contrast: nil)
-
-            // Verify textFieldEdit color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text field edit color can be customized`() {
@@ -291,14 +251,6 @@
             #expect(darkColor == .orange)
         }
 
-        @Test func `text field placeholder color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textFieldPlaceholder.getColor(scheme: .light, contrast: nil)
-
-            // Verify textFieldPlaceholder color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `text field placeholder color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .gray, dark: .gray)
@@ -310,14 +262,6 @@
 
         // MARK: - Status Colors: Success
 
-        @Test func `success color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.success.getColor(scheme: .light, contrast: nil)
-
-            // Verify success color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `success color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .green, dark: .mint)
@@ -328,14 +272,6 @@
 
             #expect(lightColor == .green)
             #expect(darkColor == .mint)
-        }
-
-        @Test func `text over success color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textOverSuccess.getColor(scheme: .light, contrast: nil)
-
-            // Verify textOverSuccess color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text over success color can be customized`() {
@@ -352,14 +288,6 @@
 
         // MARK: - Status Colors: InProgress
 
-        @Test func `in progress color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.inProgress.getColor(scheme: .light, contrast: nil)
-
-            // Verify inProgress color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `in progress color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .orange, dark: .yellow)
@@ -370,14 +298,6 @@
 
             #expect(lightColor == .orange)
             #expect(darkColor == .yellow)
-        }
-
-        @Test func `text over in progress color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textOverInProgress.getColor(scheme: .light, contrast: nil)
-
-            // Verify textOverInProgress color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text over in progress color can be customized`() {
@@ -394,14 +314,6 @@
 
         // MARK: - Status Colors: Warning
 
-        @Test func `warning color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.warning.getColor(scheme: .light, contrast: nil)
-
-            // Verify warning color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `warning color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .yellow, dark: .orange)
@@ -412,14 +324,6 @@
 
             #expect(lightColor == .yellow)
             #expect(darkColor == .orange)
-        }
-
-        @Test func `text over warning color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textOverWarning.getColor(scheme: .light, contrast: nil)
-
-            // Verify textOverWarning color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text over warning color can be customized`() {
@@ -433,14 +337,6 @@
 
         // MARK: - Status Colors: Error
 
-        @Test func `error color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.error.getColor(scheme: .light, contrast: nil)
-
-            // Verify error color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `error color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .red, dark: .pink)
@@ -451,14 +347,6 @@
 
             #expect(lightColor == .red)
             #expect(darkColor == .pink)
-        }
-
-        @Test func `text over error color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textOverError.getColor(scheme: .light, contrast: nil)
-
-            // Verify textOverError color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text over error color can be customized`() {
@@ -475,14 +363,6 @@
 
         // MARK: - Status Colors: Info
 
-        @Test func `info color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.info.getColor(scheme: .light, contrast: nil)
-
-            // Verify info color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `info color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .blue, dark: .cyan)
@@ -493,14 +373,6 @@
 
             #expect(lightColor == .blue)
             #expect(darkColor == .cyan)
-        }
-
-        @Test func `text over info color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textOverInfo.getColor(scheme: .light, contrast: nil)
-
-            // Verify textOverInfo color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text over info color can be customized`() {
@@ -517,14 +389,6 @@
 
         // MARK: - Status Colors: Inactive
 
-        @Test func `inactive color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.inactive.getColor(scheme: .light, contrast: nil)
-
-            // Verify inactive color is not nil
-            #expect(type(of: color) == Color.self)
-        }
-
         @Test func `inactive color can be customized`() {
             var definition = ThemeDefinition()
             let customColor = ThemeColor(light: .gray, dark: .gray)
@@ -532,14 +396,6 @@
 
             let color = definition.inactive.getColor(scheme: .light, contrast: nil)
             #expect(color == .gray)
-        }
-
-        @Test func `text over inactive color has default value`() {
-            let definition = ThemeDefinition()
-            let color = definition.textOverInactive.getColor(scheme: .light, contrast: nil)
-
-            // Verify textOverInactive color is not nil
-            #expect(type(of: color) == Color.self)
         }
 
         @Test func `text over inactive color can be customized`() {
@@ -662,6 +518,17 @@
             let expectedColor = defaultDefinition.primary.getColor(scheme: .light, contrast: nil)
 
             #expect(actualColor == expectedColor)
+        }
+
+        // MARK: - Helpers
+
+        @MainActor
+        private static func resolve(_ color: Color) -> Color.Resolved {
+            color.resolve(in: EnvironmentValues())
+        }
+
+        private static func isClose(_ components: [Float], to expected: [Float]) -> Bool {
+            zip(components, expected).allSatisfy { abs($0 - $1) < 0.005 }
         }
     }
 

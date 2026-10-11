@@ -267,11 +267,11 @@
 
             // MARK: - Center and Zoom Tests
 
-            @Test func `center and zoom on locations empty`() {
+            @Test func `center and zoom on locations empty leaves the region unchanged`() {
                 let mapView = createMapView()
+                let initial = mapView.region
                 mapView.centerAndZoomOnLocations(coordinates: [], padding: 1000, animated: false)
-                // Should not crash
-                #expect(true)
+                expectRegion(mapView.region, equals: initial)
             }
 
             @Test func `center and zoom on locations with coordinates`() {
@@ -281,13 +281,14 @@
                     CLLocationCoordinate2D(41, -99)
                 ]
                 mapView.centerAndZoomOnLocations(coordinates: coords, padding: 1000, animated: false)
-                #expect(true)
+                expectRegion(mapView.region, contains: coords)
             }
 
-            @Test func `center and zoom on annotations empty`() {
+            @Test func `center and zoom on annotations empty leaves the region unchanged`() {
                 let mapView = createMapView()
+                let initial = mapView.region
                 mapView.centerAndZoomOnAnnotations(annotations: [], padding: 1000, animated: false)
-                #expect(true)
+                expectRegion(mapView.region, equals: initial)
             }
 
             @Test func `center and zoom on annotations with annotations`() {
@@ -299,7 +300,7 @@
                 mapView.addAnnotation(ann1)
                 mapView.addAnnotation(ann2)
                 mapView.centerAndZoomOnAnnotations(annotations: [ann1, ann2], padding: 1000, animated: false)
-                #expect(true)
+                expectRegion(mapView.region, contains: [ann1.coordinate, ann2.coordinate])
                 cleanupMapView(mapView)
             }
 
@@ -309,50 +310,96 @@
                 ann.coordinate = CLLocationCoordinate2D(40, -100)
                 mapView.addAnnotation(ann)
                 mapView.centerAndZoomOnAnnotationType(type: MKPointAnnotation.self, padding: 1000, animated: false)
-                #expect(true)
+                expectRegion(mapView.region, contains: [ann.coordinate])
+                #expect(abs(mapView.region.center.latitude - 40) < 0.01)
+                #expect(abs(mapView.region.center.longitude + 100) < 0.01)
                 cleanupMapView(mapView)
             }
 
             // MARK: - Center on Overlays Tests
 
-            @Test func `center on overlays nil`() {
+            @Test func `center on overlays nil leaves the visible rect unchanged`() async throws {
                 let mapView = createMapView()
+                let initial = mapView.visibleMapRect
                 mapView.center(on: nil)
-                #expect(true)
+                // Centering animates, so give a change the time to land before checking.
+                try await Task.sleep(for: .milliseconds(300))
+                #expect(MKMapRectEqualToRect(mapView.visibleMapRect, initial))
             }
 
-            @Test func `center on overlays empty`() {
+            @Test func `center on overlays empty leaves the visible rect unchanged`() async throws {
                 let mapView = createMapView()
+                let initial = mapView.visibleMapRect
                 mapView.center(on: [])
-                #expect(true)
+                // Centering animates, so give a change the time to land before checking.
+                try await Task.sleep(for: .milliseconds(300))
+                #expect(MKMapRectEqualToRect(mapView.visibleMapRect, initial))
             }
 
-            @Test func `center on overlays with overlay`() {
+            @Test func `center on overlays with overlay`() async throws {
                 let mapView = createMapView()
                 let circle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
                 mapView.center(on: [circle])
-                #expect(true)
+                try await waitUntil { Self.fits(circle.boundingMapRect, in: mapView.visibleMapRect) }
                 cleanupMapView(mapView)
             }
 
-            @Test func `center on overlays with edges nil`() {
+            @Test func `center on overlays with edges nil leaves the visible rect unchanged`() async throws {
                 let mapView = createMapView()
+                let initial = mapView.visibleMapRect
                 mapView.center(on: nil, edges: .zero)
-                #expect(true)
+                // Centering animates, so give a change the time to land before checking.
+                try await Task.sleep(for: .milliseconds(300))
+                #expect(MKMapRectEqualToRect(mapView.visibleMapRect, initial))
             }
 
-            @Test func `center on overlays with edges empty`() {
+            @Test func `center on overlays with edges empty leaves the visible rect unchanged`() async throws {
                 let mapView = createMapView()
+                let initial = mapView.visibleMapRect
                 mapView.center(on: [], edges: UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10))
-                #expect(true)
+                // Centering animates, so give a change the time to land before checking.
+                try await Task.sleep(for: .milliseconds(300))
+                #expect(MKMapRectEqualToRect(mapView.visibleMapRect, initial))
             }
 
-            @Test func `center on overlays with edges with overlay`() {
+            @Test func `center on overlays with edges with overlay`() async throws {
                 let mapView = createMapView()
                 let circle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
                 mapView.center(on: [circle], edges: UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20))
-                #expect(true)
+                try await waitUntil { Self.fits(circle.boundingMapRect, in: mapView.visibleMapRect) }
                 cleanupMapView(mapView)
+            }
+
+            // MARK: - Helpers
+
+            /// Whether `rect` lies inside `visible` and fills a meaningful part of it, so the map is zoomed on it.
+            private static func fits(_ rect: MKMapRect, in visible: MKMapRect) -> Bool {
+                visible.contains(rect) && rect.size.width > visible.size.width / 4
+            }
+
+            private func expectRegion(_ region: MKCoordinateRegion, equals expected: MKCoordinateRegion, sourceLocation: SourceLocation = #_sourceLocation) {
+                #expect(abs(region.center.latitude - expected.center.latitude) < 1e-6, sourceLocation: sourceLocation)
+                #expect(abs(region.center.longitude - expected.center.longitude) < 1e-6, sourceLocation: sourceLocation)
+                #expect(abs(region.span.latitudeDelta - expected.span.latitudeDelta) < 1e-6, sourceLocation: sourceLocation)
+                #expect(abs(region.span.longitudeDelta - expected.span.longitudeDelta) < 1e-6, sourceLocation: sourceLocation)
+            }
+
+            private func expectRegion(_ region: MKCoordinateRegion, contains coordinates: [CLLocationCoordinate2D], sourceLocation: SourceLocation = #_sourceLocation) {
+                for coordinate in coordinates {
+                    #expect(abs(coordinate.latitude - region.center.latitude) <= region.span.latitudeDelta / 2, sourceLocation: sourceLocation)
+                    #expect(abs(coordinate.longitude - region.center.longitude) <= region.span.longitudeDelta / 2, sourceLocation: sourceLocation)
+                }
+                // Padding is in meters, so the region stays close to the coordinates rather than zooming out.
+                #expect(region.span.latitudeDelta < 5, sourceLocation: sourceLocation)
+                #expect(region.span.longitudeDelta < 5, sourceLocation: sourceLocation)
+            }
+
+            private func waitUntil(_ condition: () -> Bool, sourceLocation: SourceLocation = #_sourceLocation) async throws {
+                let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+                while !condition(), ContinuousClock.now < deadline {
+                    try await Task.sleep(for: .milliseconds(10))
+                }
+                #expect(condition(), sourceLocation: sourceLocation)
             }
         }
     #endif

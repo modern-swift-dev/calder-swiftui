@@ -4,7 +4,6 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct ThemeTests {
 
         // MARK: - Initialization
@@ -22,8 +21,9 @@
                 dynamicTypeSize: dynamicTypeSize
             )
 
-            // Verify theme was created by checking we can access primary color
-            #expect(type(of: theme.primary) == Color.self)
+            #expect(theme.scheme == .light)
+            #expect(theme.contrast == .standard)
+            #expect(theme.primary == definition.primary.getColor(scheme: .light, contrast: .standard))
         }
 
         @Test func `initialize theme with dark scheme`() {
@@ -35,12 +35,14 @@
                 dynamicTypeSize: .medium
             )
 
-            // Verify theme respects dark scheme
-            #expect(type(of: theme.primary) == Color.self)
+            #expect(theme.scheme == .dark)
+            #expect(theme.primary == definition.primary.getColor(scheme: .dark))
+            #expect(theme.primary != definition.primary.getColor(scheme: .light))
         }
 
         @Test func `initialize theme with increased contrast`() {
-            let definition = ThemeDefinition()
+            var definition = ThemeDefinition()
+            definition.primary = ThemeColor(light: .red, dark: .blue, lightContrast: .orange)
             let theme = Theme(
                 definition: definition,
                 scheme: .light,
@@ -48,8 +50,8 @@
                 dynamicTypeSize: .medium
             )
 
-            // Verify theme respects increased contrast
-            #expect(type(of: theme.primary) == Color.self)
+            #expect(theme.contrast == .increased)
+            #expect(theme.primary == .orange)
         }
 
         @Test func `initialize theme with different dynamic type sizes`() {
@@ -69,9 +71,9 @@
                 dynamicTypeSize: .xxxLarge
             )
 
-            // Verify themes can be created with different sizes
-            #expect(type(of: smallTheme.primary) == Color.self)
-            #expect(type(of: largeTheme.primary) == Color.self)
+            // Dynamic type sizes scale fonts, not colors.
+            #expect(smallTheme.primary == largeTheme.primary)
+            #expect(smallTheme.text1 == largeTheme.text1)
         }
 
         // MARK: - Primary Colors
@@ -515,99 +517,47 @@
 
         // MARK: - Gradients: BackgroundGradient
 
-        @Test func `background gradient lightens in light mode`() {
-            let definition = ThemeDefinition()
-            let theme = Theme(
-                definition: definition,
-                scheme: .light,
-                contrast: .standard,
-                dynamicTypeSize: .medium
-            )
+        // The default primary is #066CDB (6, 108, 219) in light mode and that color lightened by 10%,
+        // (31, 123, 223), in dark mode. The default secondary is #615AE4 (97, 90, 228) and (113, 107, 231).
 
-            let gradient = theme.backgroundGradient
+        @Test func `background gradient lightens primary in light mode`() throws {
+            let theme = Theme(definition: ThemeDefinition(), scheme: .light, contrast: .standard, dynamicTypeSize: .medium)
 
-            // Verify it returns a LinearGradient
-            #expect(type(of: gradient) == LinearGradient.self)
+            let bitmap = try Self.render(theme.backgroundGradient)
+
+            // Primary lightened by 65% and 90%.
+            Self.expect(bitmap.pixel(x: 0, y: 0), near: Self.rgb(168, 204, 242))
+            Self.expect(bitmap.pixel(x: bitmap.width - 1, y: bitmap.height - 1), near: Self.rgb(230, 240, 251))
         }
 
-        @Test func `background gradient darkens in dark mode`() {
-            let definition = ThemeDefinition()
-            let theme = Theme(
-                definition: definition,
-                scheme: .dark,
-                contrast: .standard,
-                dynamicTypeSize: .medium
-            )
+        @Test func `background gradient darkens primary in dark mode`() throws {
+            let theme = Theme(definition: ThemeDefinition(), scheme: .dark, contrast: .standard, dynamicTypeSize: .medium)
 
-            let gradient = theme.backgroundGradient
+            let bitmap = try Self.render(theme.backgroundGradient)
 
-            // Verify it returns a LinearGradient
-            #expect(type(of: gradient) == LinearGradient.self)
-        }
-
-        @Test func `background gradient differs between light and dark`() {
-            let definition = ThemeDefinition()
-            let lightTheme = Theme(
-                definition: definition,
-                scheme: .light,
-                contrast: .standard,
-                dynamicTypeSize: .medium
-            )
-
-            let darkTheme = Theme(
-                definition: definition,
-                scheme: .dark,
-                contrast: .standard,
-                dynamicTypeSize: .medium
-            )
-
-            let lightGradient = lightTheme.backgroundGradient
-            let darkGradient = darkTheme.backgroundGradient
-
-            // Both should return LinearGradient type
-            #expect(type(of: lightGradient) == LinearGradient.self)
-            #expect(type(of: darkGradient) == LinearGradient.self)
+            // Dark primary darkened by 65% and 90%.
+            Self.expect(bitmap.pixel(x: 0, y: 0), near: Self.rgb(11, 43, 78))
+            Self.expect(bitmap.pixel(x: bitmap.width - 1, y: bitmap.height - 1), near: Self.rgb(3, 12, 22))
         }
 
         // MARK: - Gradients: TitleGradient
 
-        @Test func `title gradient from primary to secondary`() {
-            let definition = ThemeDefinition()
-            let theme = Theme(
-                definition: definition,
-                scheme: .light,
-                contrast: .standard,
-                dynamicTypeSize: .medium
-            )
+        @Test func `title gradient from primary to secondary`() throws {
+            let theme = Theme(definition: ThemeDefinition(), scheme: .light, contrast: .standard, dynamicTypeSize: .medium)
 
-            let gradient = theme.titleGradient
+            let bitmap = try Self.render(theme.titleGradient)
 
-            // Verify it returns a LinearGradient
-            #expect(type(of: gradient) == LinearGradient.self)
+            Self.expect(bitmap.pixel(x: 0, y: 0), near: Self.rgb(6, 108, 219))
+            Self.expect(bitmap.pixel(x: bitmap.width - 1, y: bitmap.height - 1), near: Self.rgb(97, 90, 228))
         }
 
-        @Test func `title gradient independent of scheme`() {
-            let definition = ThemeDefinition()
-            let lightTheme = Theme(
-                definition: definition,
-                scheme: .light,
-                contrast: .standard,
-                dynamicTypeSize: .medium
-            )
+        @Test func `title gradient uses the scheme's primary and secondary`() throws {
+            let theme = Theme(definition: ThemeDefinition(), scheme: .dark, contrast: .standard, dynamicTypeSize: .medium)
 
-            let darkTheme = Theme(
-                definition: definition,
-                scheme: .dark,
-                contrast: .standard,
-                dynamicTypeSize: .medium
-            )
+            let bitmap = try Self.render(theme.titleGradient)
 
-            let lightGradient = lightTheme.titleGradient
-            let darkGradient = darkTheme.titleGradient
-
-            // Both should return LinearGradient type
-            #expect(type(of: lightGradient) == LinearGradient.self)
-            #expect(type(of: darkGradient) == LinearGradient.self)
+            Self.expect(bitmap.pixel(x: 0, y: 0), near: Self.rgb(31, 123, 223))
+            Self.expect(bitmap.pixel(x: bitmap.width - 1, y: bitmap.height - 1), near: Self.rgb(113, 107, 231))
         }
 
         // MARK: - Color Scheme Variations
@@ -687,6 +637,22 @@
 
             let primary = theme.primary
             #expect(primary == .blue)
+        }
+
+        // MARK: - Helpers
+
+        private static func rgb(_ red: UInt8, _ green: UInt8, _ blue: UInt8) -> RenderedBitmap.Pixel {
+            RenderedBitmap.Pixel(red: red, green: green, blue: blue, alpha: 255)
+        }
+
+        /// Renders the gradient large enough that corner pixels sit within 0.05% of the gradient's end points.
+        private static func render(_ gradient: LinearGradient) throws -> RenderedBitmap {
+            try #require(RenderedBitmap(rendering: Rectangle().fill(gradient).frame(width: 1000, height: 1000)))
+        }
+
+        /// Allows for the rounding of saturated colors through the renderer's working color space.
+        private static func expect(_ pixel: RenderedBitmap.Pixel, near expected: RenderedBitmap.Pixel, sourceLocation: SourceLocation = #_sourceLocation) {
+            #expect(pixel.isClose(to: expected, tolerance: 6), "\(pixel) is not close to \(expected)", sourceLocation: sourceLocation)
         }
     }
 

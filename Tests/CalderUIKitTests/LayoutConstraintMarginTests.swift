@@ -4,7 +4,7 @@
     import Foundation
     import Testing
 
-    @Suite(.serialized) struct LayoutConstraintMarginTests {
+    struct LayoutConstraintMarginTests {
 
         // MARK: - Static Properties
 

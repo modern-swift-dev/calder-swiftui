@@ -5,7 +5,7 @@
     import Testing
     import UIKit
 
-    @Suite(.serialized, .timeLimit(.minutes(1)))
+    @Suite(.timeLimit(.minutes(1)))
     @MainActor struct MapClusteringControllerTests {
         private final class TestMap: MapClusteringMap {
             var annotations: [any MKAnnotation] = []

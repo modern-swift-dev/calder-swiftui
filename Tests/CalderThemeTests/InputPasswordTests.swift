@@ -3,7 +3,6 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct InputPasswordTests {
         @Test(arguments: [(true, "Show password"), (false, "Hide password")])
         func `reveal button describes its action to VoiceOver`(isSecuredEntry: Bool, label: String) {

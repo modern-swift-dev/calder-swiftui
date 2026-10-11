@@ -4,39 +4,9 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized) struct ColorSystemTests {
+    struct ColorSystemTests {
 
         // MARK: - System Gray Colors
-
-        @Test func `system gray exists`() {
-            let color = Color.systemGray
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `system gray 2 exists`() {
-            let color = Color.systemGray2
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `system gray 3 exists`() {
-            let color = Color.systemGray3
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `system gray 4 exists`() {
-            let color = Color.systemGray4
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `system gray 5 exists`() {
-            let color = Color.systemGray5
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `system gray 6 exists`() {
-            let color = Color.systemGray6
-            #expect(type(of: color) == Color.self)
-        }
 
         #if os(macOS) || os(iOS)
             @MainActor
@@ -52,48 +22,54 @@
             func `system gray levels follow the appearance`(_ gray: Color) {
                 #expect(resolve(gray, in: .light) != resolve(gray, in: .dark))
             }
+
+            @MainActor
+            @Test(arguments: [ColorScheme.light, .dark])
+            func `system gray is an opaque mid gray`(_ scheme: ColorScheme) {
+                let gray = resolve(.systemGray, in: scheme)
+                #expect(gray.opacity == 1)
+                for channel in [gray.red, gray.green, gray.blue] {
+                    #expect((0.4 ... 0.7).contains(channel))
+                }
+            }
         #endif
 
         // MARK: - Label Colors
 
-        @Test func `label color exists`() {
-            let color = Color.label
-            #expect(type(of: color) == Color.self)
-        }
+        #if os(macOS) || os(iOS)
+            @MainActor
+            @Test(arguments: [ColorScheme.light, .dark])
+            func `label levels lose emphasis in order`(_ scheme: ColorScheme) {
+                let labels: [Color] = [.label, .secondaryLabel, .tertiaryLabel, .quaternaryLabel]
+                let opacities = labels.map { resolve($0, in: scheme).opacity }
+                #expect(zip(opacities, opacities.dropFirst()).allSatisfy { $0 > $1 })
+            }
 
-        @Test func `secondary label exists`() {
-            let color = Color.secondaryLabel
-            #expect(type(of: color) == Color.self)
-        }
+            @MainActor
+            @Test func `label contrasts with the appearance`() {
+                let light = resolve(.label, in: .light)
+                let dark = resolve(.label, in: .dark)
+                #expect(light.red < 0.5 && light.green < 0.5 && light.blue < 0.5)
+                #expect(dark.red > 0.5 && dark.green > 0.5 && dark.blue > 0.5)
+            }
 
-        @Test func `tertiary label exists`() {
-            let color = Color.tertiaryLabel
-            #expect(type(of: color) == Color.self)
-        }
+            // MARK: - Interactive Colors
 
-        @Test func `quaternary label exists`() {
-            let color = Color.quaternaryLabel
-            #expect(type(of: color) == Color.self)
-        }
+            @MainActor
+            @Test(arguments: [ColorScheme.light, .dark])
+            func `link is blue`(_ scheme: ColorScheme) {
+                let link = resolve(.link, in: scheme)
+                #expect(link.blue > link.red && link.blue > link.green)
+            }
 
-        // MARK: - Interactive Colors
-
-        @Test func `link color exists`() {
-            let color = Color.link
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `placeholder text exists`() {
-            let color = Color.placeholderText
-            #expect(type(of: color) == Color.self)
-        }
+            @MainActor
+            @Test(arguments: [Color.placeholderText, .separator], [ColorScheme.light, .dark])
+            func `placeholder text and separator are translucent`(_ color: Color, _ scheme: ColorScheme) {
+                #expect(resolve(color, in: scheme).opacity < 1)
+            }
+        #endif
 
         // MARK: - Separator Colors
-
-        @Test func `separator color exists`() {
-            let color = Color.separator
-            #expect(type(of: color) == Color.self)
-        }
 
         @MainActor
         @Test(arguments: [ColorScheme.light, .dark])
@@ -101,73 +77,25 @@
             #expect(resolve(.opaqueSeparator, in: scheme).opacity == 1)
         }
 
-        // MARK: - Background Colors
-
-        @Test func `system background exists`() {
-            let color = Color.systemBackground
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `secondary system background exists`() {
-            let color = Color.secondarySystemBackground
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `tertiary system background exists`() {
-            let color = Color.tertiarySystemBackground
-            #expect(type(of: color) == Color.self)
-        }
-
-        // MARK: - Grouped Background Colors
-
-        @Test func `system grouped background exists`() {
-            let color = Color.systemGroupedBackground
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `secondary system grouped background exists`() {
-            let color = Color.secondarySystemGroupedBackground
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `tertiary system grouped background exists`() {
-            let color = Color.tertiarySystemGroupedBackground
-            #expect(type(of: color) == Color.self)
-        }
-
-        // MARK: - Fill Colors
-
-        @Test func `system fill exists`() {
-            let color = Color.systemFill
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `secondary system fill exists`() {
-            let color = Color.secondarySystemFill
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `tertiary system fill exists`() {
-            let color = Color.tertiarySystemFill
-            #expect(type(of: color) == Color.self)
-        }
-
-        @Test func `quaternary system fill exists`() {
-            let color = Color.quaternarySystemFill
-            #expect(type(of: color) == Color.self)
-        }
-
         // MARK: - Static Text Colors
 
-        @Test func `light text exists`() {
-            let color = Color.lightText
-            #expect(type(of: color) == Color.self)
-        }
+        #if os(macOS) || os(iOS) || os(tvOS)
+            @MainActor
+            @Test(arguments: [ColorScheme.light, .dark])
+            func `dark text is opaque black in every appearance`(_ scheme: ColorScheme) {
+                let text = resolve(.darkText, in: scheme)
+                #expect([text.red, text.green, text.blue] == [0, 0, 0])
+                #expect(text.opacity == 1)
+            }
 
-        @Test func `dark text exists`() {
-            let color = Color.darkText
-            #expect(type(of: color) == Color.self)
-        }
+            @MainActor
+            @Test(arguments: [ColorScheme.light, .dark])
+            func `light text is white in every appearance`(_ scheme: ColorScheme) {
+                let text = resolve(.lightText, in: scheme)
+                #expect([text.red, text.green, text.blue].allSatisfy { abs($0 - 1) < 0.01 })
+                #expect(text.opacity > 0)
+            }
+        #endif
 
         // MARK: - Appearance
 
@@ -191,27 +119,6 @@
             var environment = EnvironmentValues()
             environment.colorScheme = scheme
             return color.resolve(in: environment)
-        }
-
-        // MARK: - Color Usage in Views
-
-        @Test func `system colors can be used in views`() {
-            _ = Text("Test")
-                .foregroundStyle(Color.label)
-                .background(Color.systemBackground)
-        }
-
-        @Test func `gray colors can be used in views`() {
-            _ = Rectangle()
-                .fill(Color.systemGray)
-                .overlay(
-                    Rectangle().fill(Color.systemGray3)
-                )
-        }
-
-        @Test func `separator colors can be used in views`() {
-            _ = Divider()
-                .background(Color.separator)
         }
     }
 

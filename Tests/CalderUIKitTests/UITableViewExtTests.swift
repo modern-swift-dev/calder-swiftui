@@ -35,7 +35,6 @@
             }
         }
 
-        @Suite(.serialized)
         @MainActor struct UITableViewExtTests {
 
             // MARK: - registerReusableCell Tests
@@ -265,28 +264,23 @@
 
             // MARK: - safeScrollToRow Tests
 
-            @Test func `safe scroll to row invalid section does not crash`() {
-                let tableView = UITableView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
-                tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+            @Test func `safe scroll to row valid index path scrolls`() {
+                let (tableView, dataSource) = makeScrollableTableView()
 
-                let dataSource = SimpleTableDataSource(sections: [["A"]])
-                tableView.dataSource = dataSource
-                tableView.reloadData()
+                tableView.safeScrollToRow(at: IndexPath(row: 99, section: 0), at: .bottom, animated: false)
 
-                tableView.safeScrollToRow(at: IndexPath(row: 0, section: 5), at: .top, animated: false)
-                #expect(true)
+                #expect(tableView.contentOffset.y > 0)
+                withExtendedLifetime(dataSource) {}
             }
 
-            @Test func `safe scroll to row invalid row does not crash`() {
-                let tableView = UITableView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
-                tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+            @Test(arguments: [IndexPath(row: 0, section: 5), IndexPath(row: 100, section: 0)])
+            func `safe scroll to row out of bounds index is ignored`(indexPath: IndexPath) {
+                let (tableView, dataSource) = makeScrollableTableView()
 
-                let dataSource = SimpleTableDataSource(sections: [["A"]])
-                tableView.dataSource = dataSource
-                tableView.reloadData()
+                tableView.safeScrollToRow(at: indexPath, at: .top, animated: false)
 
-                tableView.safeScrollToRow(at: IndexPath(row: 10, section: 0), at: .top, animated: false)
-                #expect(true)
+                #expect(tableView.contentOffset == .zero)
+                withExtendedLifetime(dataSource) {}
             }
 
             @Test(arguments: [IndexPath(row: -1, section: 0), IndexPath(row: 0, section: -1)])
@@ -306,28 +300,24 @@
 
             // MARK: - safeScrollToBottom Tests
 
-            @Test func `safe scroll to bottom empty table does not crash`() {
-                let tableView = UITableView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
-                tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-
-                let dataSource = SimpleTableDataSource(sections: [])
-                tableView.dataSource = dataSource
-                tableView.reloadData()
+            @Test func `safe scroll to bottom with an empty last section does not scroll`() {
+                let (tableView, dataSource) = makeScrollableTableView(trailingEmptySection: true)
 
                 tableView.safeScrollToBottom()
-                #expect(true)
+
+                #expect(tableView.contentOffset == .zero)
+                withExtendedLifetime(dataSource) {}
             }
 
-            @Test func `safe scroll to bottom with data does not crash`() {
-                let tableView = UITableView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
-                tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-
-                let dataSource = SimpleTableDataSource(sections: [["A", "B", "C"]])
-                tableView.dataSource = dataSource
-                tableView.reloadData()
+            @Test func `safe scroll to bottom reveals the last row`() {
+                let (tableView, dataSource) = makeScrollableTableView()
 
                 tableView.safeScrollToBottom(animated: false)
-                #expect(true)
+
+                let lastRow = tableView.rectForRow(at: IndexPath(row: 99, section: 0))
+                #expect(tableView.contentOffset.y > 0)
+                #expect(tableView.bounds.contains(lastRow))
+                withExtendedLifetime(dataSource) {}
             }
 
             // MARK: - reload Tests
@@ -345,17 +335,33 @@
                 #expect(tableView.numberOfRows(inSection: 0) == 2)
             }
 
-            @Test func `reload specific index paths not animated`() {
-                let tableView = UITableView()
+            @Test func `reload specific index paths not animated reloads only those rows`() {
+                let tableView = UITableView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
                 tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
                 let dataSource = SimpleTableDataSource(sections: [["A", "B"]])
                 tableView.dataSource = dataSource
                 tableView.reloadData()
+                tableView.layoutIfNeeded()
 
+                dataSource.sections = [["Y", "Z"]]
                 tableView.reload(at: [IndexPath(row: 0, section: 0)], animated: false)
-                #expect(true)
+                tableView.layoutIfNeeded()
+
+                #expect(tableView.cellForRow(at: IndexPath(row: 0, section: 0))?.textLabel?.text == "Y")
+                #expect(tableView.cellForRow(at: IndexPath(row: 1, section: 0))?.textLabel?.text == "B")
             }
 
+            /// A laid-out table with 100 rows, taller than its 480 point frame.
+            private func makeScrollableTableView(trailingEmptySection: Bool = false) -> (UITableView, SimpleTableDataSource) {
+                let tableView = UITableView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+                tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+                let rows = (0 ..< 100).map { "Row \($0)" }
+                let dataSource = SimpleTableDataSource(sections: trailingEmptySection ? [rows, []] : [rows])
+                tableView.dataSource = dataSource
+                tableView.reloadData()
+                tableView.layoutIfNeeded()
+                return (tableView, dataSource)
+            }
         }
     #endif
 

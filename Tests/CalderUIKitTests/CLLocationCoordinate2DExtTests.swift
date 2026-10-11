@@ -4,7 +4,7 @@
     import Foundation
     import Testing
 
-    @Suite(.serialized) struct CLLocationCoordinate2DExtTests {
+    struct CLLocationCoordinate2DExtTests {
 
         // MARK: - Convenience Init Tests
 
@@ -138,16 +138,16 @@
             let coord1 = CLLocationCoordinate2D(40.0, -100.0)
             let coord2 = CLLocationCoordinate2D(40.0, -90.0)
             let heading = coord1.getHeadingInDegrees(fromHere: coord2)
-            // Should be approximately 90 degrees (east)
-            #expect(heading >= 0 && heading <= 360)
+            // The initial great-circle bearing along a northern parallel is slightly north of due east.
+            #expect((80 ... 90).contains(heading))
         }
 
         @Test func `get heading in degrees always positive`() {
             let coord1 = CLLocationCoordinate2D(40.0, -100.0)
             let coord2 = CLLocationCoordinate2D(30.0, -110.0) // Southwest
             let heading = coord1.getHeadingInDegrees(fromHere: coord2)
-            #expect(heading >= 0)
-            #expect(heading <= 360)
+            // A negative bearing in radians wraps into the southwest quadrant rather than below zero.
+            #expect((180 ... 270).contains(heading))
         }
 
         // MARK: - Sequence center() Tests

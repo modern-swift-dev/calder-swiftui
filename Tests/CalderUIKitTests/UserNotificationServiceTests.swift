@@ -4,7 +4,7 @@
     import Testing
     import UserNotifications
 
-    @Suite(.serialized, .timeLimit(.minutes(1)))
+    @Suite(.timeLimit(.minutes(1)))
     @MainActor struct UserNotificationServiceTests {
         private final class Delegate: UserNotificationServiceDelegate {
             func willPresent(notification: UNNotification, completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {

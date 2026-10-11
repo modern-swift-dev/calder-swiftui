@@ -5,7 +5,6 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized)
         @MainActor struct UIDeviceExtTests {
 
             // MARK: - Interface Type Tests
@@ -73,16 +72,6 @@
                 ]
                 let trueCount = types.count(where: { $0 })
                 #expect(trueCount <= 1)
-            }
-
-            @Test func `all device type properties are accessible`() {
-                _ = UIDevice.isPhone
-                _ = UIDevice.isPad
-                _ = UIDevice.isTV
-                _ = UIDevice.isCar
-                _ = UIDevice.isCatalyst
-                _ = UIDevice.isSimulator
-                #expect(true)
             }
         }
     #endif

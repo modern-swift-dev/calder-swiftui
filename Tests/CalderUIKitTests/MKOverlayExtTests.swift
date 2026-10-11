@@ -5,7 +5,7 @@
     import MapKit
     import Testing
 
-    @Suite(.serialized) struct MKOverlayExtTests {
+    struct MKOverlayExtTests {
 
         // MARK: - boundingRect Tests
 

@@ -6,7 +6,6 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized)
         @MainActor struct UIImageExtTests {
 
             /// Helper to create a simple test image

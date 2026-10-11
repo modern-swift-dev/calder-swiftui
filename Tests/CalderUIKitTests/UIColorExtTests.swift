@@ -6,7 +6,6 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized)
         @MainActor struct UIColorExtTests {
 
             // MARK: - alphaComponent Tests

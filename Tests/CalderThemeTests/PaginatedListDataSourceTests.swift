@@ -3,7 +3,6 @@
     import Foundation
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct PaginatedListDataSourceTests {
 
         @Test func `init items count state and is last overloads`() {

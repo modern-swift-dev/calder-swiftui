@@ -5,7 +5,6 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized)
         @MainActor struct DelegatingTabBarControllerTests {
 
             // MARK: - selectedViewController Tests

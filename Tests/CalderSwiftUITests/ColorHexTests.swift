@@ -10,7 +10,7 @@
         import AppKit
     #endif
 
-    @Suite(.serialized) struct ColorHexTests {
+    struct ColorHexTests {
 
         // MARK: - Helper to extract RGB components
 

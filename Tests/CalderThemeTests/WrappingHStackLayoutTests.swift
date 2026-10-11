@@ -4,7 +4,6 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct WrappingHStackLayoutTests {
 
         // MARK: - Layout harness

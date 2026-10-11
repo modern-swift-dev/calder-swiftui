@@ -4,7 +4,7 @@
         @testable import CalderUIKit
         import Testing
 
-        @Suite(.serialized) struct NSColorHexTests {
+        struct NSColorHexTests {
             private let tolerance: CGFloat = 0.01
 
             @Test func `init rgb accepts supported prefixes`() throws {

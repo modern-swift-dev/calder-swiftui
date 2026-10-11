@@ -5,7 +5,7 @@
     import MapKit
     import Testing
 
-    @Suite(.serialized) struct MKCoordinateRegionExtTests {
+    struct MKCoordinateRegionExtTests {
 
         // MARK: - Init with distance Tests
 

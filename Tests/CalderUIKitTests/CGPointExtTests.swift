@@ -4,7 +4,7 @@
     import Foundation
     import Testing
 
-    @Suite(.serialized) struct CGPointExtTests {
+    struct CGPointExtTests {
 
         // MARK: - Initializers
 

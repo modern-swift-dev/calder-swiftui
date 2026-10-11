@@ -5,7 +5,7 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized) struct UIColorHexTests {
+        struct UIColorHexTests {
 
             // MARK: - RGB Init Tests
 

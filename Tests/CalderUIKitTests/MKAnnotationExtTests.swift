@@ -14,7 +14,7 @@
         }
     }
 
-    @Suite(.serialized) struct MKAnnotationExtTests {
+    struct MKAnnotationExtTests {
 
         // MARK: - latitude/longitude Properties Tests
 

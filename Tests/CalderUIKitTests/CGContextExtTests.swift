@@ -13,7 +13,7 @@
             import AppKit
         #endif
 
-        @Suite(.serialized) struct CGContextExtTests {
+        struct CGContextExtTests {
 
             private func createContext(width: Int = 100, height: Int = 100) -> CGContext? {
                 let colorSpace = CGColorSpaceCreateDeviceRGB()

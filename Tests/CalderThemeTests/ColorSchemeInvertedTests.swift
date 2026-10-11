@@ -4,7 +4,7 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized) struct ColorSchemeInvertedTests {
+    struct ColorSchemeInvertedTests {
 
         @Test func `light inverts to dark`() {
             let scheme: ColorScheme = .light

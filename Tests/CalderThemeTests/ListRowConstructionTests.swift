@@ -4,7 +4,6 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct ListRowConstructionTests {
 
         @Test func `compact trailing detail body constructs with image accessory`() {

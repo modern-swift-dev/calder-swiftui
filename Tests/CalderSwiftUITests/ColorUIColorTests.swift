@@ -7,7 +7,7 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized) struct ColorUIColorTests {
+        struct ColorUIColorTests {
 
             // MARK: - Helper to extract RGB components
 

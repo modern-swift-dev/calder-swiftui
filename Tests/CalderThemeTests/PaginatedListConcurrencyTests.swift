@@ -3,7 +3,7 @@
     import Foundation
     import Testing
 
-    @Suite(.serialized, .timeLimit(.minutes(1)))
+    @Suite(.timeLimit(.minutes(1)))
     @MainActor struct PaginatedListConcurrencyTests {
         private struct Item: Identifiable, Codable, Sendable {
             let id: Int

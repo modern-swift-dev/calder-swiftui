@@ -4,7 +4,7 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized) struct UserInterfaceSizeClassExtTests {
+    struct UserInterfaceSizeClassExtTests {
 
         // MARK: - adaptativeValue on Optional<UserInterfaceSizeClass>
 

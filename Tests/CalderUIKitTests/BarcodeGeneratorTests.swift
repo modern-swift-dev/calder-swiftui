@@ -5,7 +5,7 @@
         import SwiftUI
         import Testing
 
-        @Suite(.serialized) struct BarcodeGeneratorTests {
+        struct BarcodeGeneratorTests {
 
             // MARK: - createUIImage Tests
 
@@ -41,15 +41,16 @@
                 #expect(ciImage != nil)
             }
 
-            @Test func `create CI image with quiet space`() {
-                let ciImage = BarcodeGenerator.qr.createCIImage("test", quietSpace: 5.0)
-                #expect(ciImage != nil)
+            @Test func `create CI image with quiet space`() throws {
+                let padded = try #require(BarcodeGenerator.code128.createCIImage("test"))
+                let unpadded = try #require(BarcodeGenerator.code128.createCIImage("test", quietSpace: 0))
+                #expect(unpadded.extent.width < padded.extent.width)
+                #expect(unpadded.extent.height < padded.extent.height)
             }
 
             @Test func `create CI image empty string`() {
-                _ = BarcodeGenerator.qr.createCIImage("")
-                // Empty string might still produce an image depending on filter
-                #expect(true) // Just verify it doesn't crash
+                // Code 128 needs at least one character.
+                #expect(BarcodeGenerator.code128.createCIImage("") == nil)
             }
 
             // MARK: - createImage Tests (SwiftUI Image)

@@ -4,7 +4,6 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct InputNumericTests {
 
         @Test func `input decimal initializes text value from binding`() {

@@ -4,7 +4,6 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct FormDatePickerTests {
         private let earlier = Date(timeIntervalSince1970: 1000)
         private let later = Date(timeIntervalSince1970: 2000)

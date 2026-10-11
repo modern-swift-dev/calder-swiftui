@@ -4,46 +4,18 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized) struct StringLocalizableStringKeyTests {
+    struct StringLocalizableStringKeyTests {
 
         // MARK: - localizedKey
 
-        @Test func `localized key returns localized string key`() {
-            let string = "Hello"
-            let key = string.localizedKey
-            // LocalizedStringKey is opaque, but we can verify it's created
-            // by using it in a Text view context
-            _ = Text(key)
+        @Test(arguments: ["Hello", "", "Hello, %@ World!", "Hello 你好 مرحبا", "Hello\nWorld", "Item %d of %d"])
+        func `localized key uses the string as the key`(string: String) {
+            #expect(string.localizedKey == LocalizedStringKey(string))
         }
 
-        @Test func `localized key with empty string`() {
-            let string = ""
-            let key = string.localizedKey
-            _ = Text(key)
-        }
-
-        @Test func `localized key with special characters`() {
-            let string = "Hello, %@ World!"
-            let key = string.localizedKey
-            _ = Text(key)
-        }
-
-        @Test func `localized key with unicode`() {
-            let string = "Hello 你好 مرحبا"
-            let key = string.localizedKey
-            _ = Text(key)
-        }
-
-        @Test func `localized key with newlines`() {
-            let string = "Hello\nWorld"
-            let key = string.localizedKey
-            _ = Text(key)
-        }
-
-        @Test func `localized key with numbers`() {
-            let string = "Item %d of %d"
-            let key = string.localizedKey
-            _ = Text(key)
+        @Test func `different strings produce different keys`() {
+            #expect("Hello".localizedKey != "World".localizedKey)
+            #expect("Hello".localizedKey != "hello".localizedKey)
         }
     }
 

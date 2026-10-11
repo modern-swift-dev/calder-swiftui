@@ -3,22 +3,9 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct PaginatedListViewConstructionTests {
 
-        @Test func `continuous constructs body with default header and footer`() {
-            let source = PaginatedList.DataSource(items: [
-                item(1, title: "Alpha"),
-                item(2, title: "Beta")
-            ])
-            let view = PaginatedList.Continuous(dataSource: source) { item in
-                Text(item.wrappedValue.title)
-            }
-
-            _ = view.body
-        }
-
-        @Test func `continuous constructs body with header only`() {
+        @Test func `continuous places header content in the header`() {
             let source = PaginatedList.DataSource(items: [
                 item(1, title: "Alpha")
             ])
@@ -28,10 +15,10 @@
                 Text("Header")
             })
 
-            _ = view.body
+            #expect(view.tableHeader() == Text("Header"))
         }
 
-        @Test func `continuous constructs body with footer only`() {
+        @Test func `continuous places footer content in the footer`() {
             let source = PaginatedList.DataSource(items: [
                 item(1, title: "Alpha")
             ])
@@ -41,10 +28,10 @@
                 Text("Footer")
             })
 
-            _ = view.body
+            #expect(view.tableFooter() == Text("Footer"))
         }
 
-        @Test func `continuous constructs body with header and footer`() {
+        @Test func `continuous places header and footer content`() {
             let source = PaginatedList.DataSource(items: [
                 item(1, title: "Alpha")
             ])
@@ -56,47 +43,8 @@
                 Text("Footer")
             })
 
-            _ = view.body
-        }
-
-        @Test func `grouped constructs body and groups by discriminator`() {
-            let source = PaginatedList.DataSource(items: [
-                item(1, title: "Beta"),
-                item(2, title: "Alpha"),
-                item(3, title: "Beta")
-            ])
-            let view = PaginatedList.Grouped(dataSource: source, groupBy: { item in
-                String(item.wrappedValue.title.prefix(1))
-            }, viewFactory: { item in
-                Text(item.wrappedValue.title)
-            })
-
-            _ = view.body
-        }
-
-        @Test func `grouped constructs body with next page`() async {
-            let source = PaginatedList.DataSource<PaginatedListViewTestItem>(items: [])
-            await source.configureAndLoad {
-                PaginatedList.Results(
-                    next: URL(string: "https://example.com/next"),
-                    hasNext: true,
-                    results: [
-                        item(1, title: "Beta"),
-                        item(2, title: "Alpha")
-                    ]
-                )
-            } nextPageLoader: { _ in
-                PaginatedList.Results(results: [
-                    item(3, title: "Gamma")
-                ])
-            }
-            let view = PaginatedList.Grouped(dataSource: source, groupBy: { item in
-                String(item.wrappedValue.title.prefix(1))
-            }, viewFactory: { item in
-                Text(item.wrappedValue.title)
-            })
-
-            _ = view.body
+            #expect(view.tableHeader() == Text("Header"))
+            #expect(view.tableFooter() == Text("Footer"))
         }
 
         @Test func `continuous and grouped construct body after a failed next page`() async {
@@ -126,25 +74,7 @@
             _ = grouped.body
         }
 
-        @Test func `selection constructs body with default header and footer`() {
-            let source = PaginatedList.DataSource(items: [
-                item(1, title: "Alpha"),
-                item(2, title: "Beta")
-            ])
-            let view = PaginatedList.Selection(
-                isPresented: .constant(true),
-                selection: .constant([item(1, title: "Alpha")]),
-                mode: .single,
-                model: source,
-                viewFactory: { item in
-                    Text(item.title)
-                }
-            )
-
-            _ = view.body
-        }
-
-        @Test func `selection constructs body with header only`() {
+        @Test func `selection places header content in the header`() {
             let source = PaginatedList.DataSource(items: [
                 item(1, title: "Alpha")
             ])
@@ -161,10 +91,10 @@
                 }
             )
 
-            _ = view.body
+            #expect(view.tableHeader() == Text("Header"))
         }
 
-        @Test func `selection constructs body with footer only`() {
+        @Test func `selection places footer content in the footer`() {
             let source = PaginatedList.DataSource(items: [
                 item(1, title: "Alpha")
             ])
@@ -181,10 +111,10 @@
                 }
             )
 
-            _ = view.body
+            #expect(view.tableFooter() == Text("Footer"))
         }
 
-        @Test func `selection constructs body with header and footer`() {
+        @Test func `selection places header and footer content`() {
             let source = PaginatedList.DataSource(items: [
                 item(1, title: "Alpha")
             ])
@@ -204,7 +134,8 @@
                 }
             )
 
-            _ = view.body
+            #expect(view.tableHeader() == Text("Header"))
+            #expect(view.tableFooter() == Text("Footer"))
         }
 
         private func item(_ id: Int, title: String) -> PaginatedListViewTestItem {

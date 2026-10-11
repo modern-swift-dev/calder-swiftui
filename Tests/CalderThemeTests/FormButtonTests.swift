@@ -3,7 +3,6 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct FormButtonTests {
 
         @Test func `normal button stores values and builds body`() {

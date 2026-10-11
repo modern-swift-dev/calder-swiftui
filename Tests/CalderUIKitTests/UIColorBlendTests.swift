@@ -5,7 +5,7 @@
         import Testing
         import UIKit
 
-        @Suite(.serialized) struct UIColorBlendTests {
+        struct UIColorBlendTests {
 
             /// Helper to compare color components with tolerance
             private func getComponents(_ color: UIColor) -> (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat) {

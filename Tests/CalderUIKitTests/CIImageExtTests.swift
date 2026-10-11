@@ -3,10 +3,11 @@
         import CalderUIKit
         import CoreImage
         import Foundation
+        import ImageIO
         import Testing
         import UIKit
+        import UniformTypeIdentifiers
 
-        @Suite(.serialized)
         @MainActor struct CIImageExtTests {
 
             /// Helper to create test image data
@@ -131,13 +132,27 @@
 
             // MARK: - toHeif Tests
 
-            @Test func `to heif from data valid data`() {
-                guard let data = createTestImageData() else {
-                    Issue.record("Failed to create test image data")
-                    return
+            /// Whether this device can encode HEIF images; simulators and older hardware may not.
+            private nonisolated static var heifEncodingIsAvailable: Bool {
+                let identifiers = CGImageDestinationCopyTypeIdentifiers() as? [String] ?? []
+                return identifiers.contains(UTType.heic.identifier)
+            }
+
+            /// Whether `data` decodes as a HEIF image.
+            private func isHeif(_ data: Data) -> Bool {
+                guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+                      let type = CGImageSourceGetType(source).flatMap({ UTType($0 as String) }) else {
+                    return false
                 }
-                let heifData = CIImage.toHeif(data: data)
-                #expect(heifData != nil || heifData == nil)
+                // `public.heic` and `public.heif` are sibling types rather than one conforming to the other.
+                return type.conforms(to: .heic) || type.conforms(to: .heif)
+            }
+
+            @Test(.enabled(if: heifEncodingIsAvailable))
+            func `to heif from data valid data`() throws {
+                let data = try #require(createTestImageData())
+                let heifData = try #require(CIImage.toHeif(data: data))
+                #expect(isHeif(heifData))
             }
 
             @Test func `to heif from data invalid data`() {
@@ -146,21 +161,17 @@
                 #expect(heifData == nil)
             }
 
-            @Test func `to heif from CI image`() {
-                guard let ciImage = createTestCIImage() else {
-                    Issue.record("Failed to create test CIImage")
-                    return
-                }
-                let heifData = CIImage.toHeif(image: ciImage)
-                #expect(heifData != nil || heifData == nil)
+            @Test(.enabled(if: heifEncodingIsAvailable))
+            func `to heif from CI image`() throws {
+                let ciImage = try #require(createTestCIImage())
+                let heifData = try #require(CIImage.toHeif(image: ciImage))
+                #expect(isHeif(heifData))
             }
 
-            @Test func `to heif from UI image`() {
-                let image = createTestUIImage()
-                let heifData = CIImage.toHeif(uiImage: image)
-                if let heifData {
-                    #expect(!heifData.isEmpty)
-                }
+            @Test(.enabled(if: heifEncodingIsAvailable))
+            func `to heif from UI image`() throws {
+                let heifData = try #require(CIImage.toHeif(uiImage: createTestUIImage()))
+                #expect(isHeif(heifData))
             }
 
             @Test func `write heif from data invalid data returns nil`() {
@@ -171,63 +182,45 @@
                 #expect(url == nil)
             }
 
-            @Test func `write heif from data valid data returns nil or heif file`() {
-                guard let data = createTestImageData() else {
-                    Issue.record("Failed to create test image data")
-                    return
-                }
+            @Test(.enabled(if: heifEncodingIsAvailable))
+            func `write heif from data valid data writes a heif file`() throws {
+                let data = try #require(createTestImageData())
 
-                let url = CIImage.writeHeif(data: data)
-                defer {
-                    if let url {
-                        try? FileManager.default.removeItem(at: url)
-                    }
-                }
+                let url = try #require(CIImage.writeHeif(data: data))
+                defer { try? FileManager.default.removeItem(at: url) }
 
-                if let url {
-                    #expect(url.pathExtension == "heif")
-                }
+                try expectHeifFile(at: url)
             }
 
-            @Test func `write heif from UI image returns nil or heif file`() {
-                let url = CIImage.writeHeif(uiImage: createTestUIImage())
-                defer {
-                    if let url {
-                        try? FileManager.default.removeItem(at: url)
-                    }
-                }
+            @Test(.enabled(if: heifEncodingIsAvailable))
+            func `write heif from UI image writes a heif file`() throws {
+                let url = try #require(CIImage.writeHeif(uiImage: createTestUIImage()))
+                defer { try? FileManager.default.removeItem(at: url) }
 
-                if let url {
-                    #expect(url.pathExtension == "heif")
-                }
+                try expectHeifFile(at: url)
             }
 
-            @Test func `write heif from UI image with metadata returns nil or heif file`() {
-                let url = CIImage.writeHeif(image: createTestUIImage(), metadata: [:])
-                defer {
-                    if let url {
-                        try? FileManager.default.removeItem(at: url)
-                    }
-                }
+            @Test(.enabled(if: heifEncodingIsAvailable))
+            func `write heif from UI image with metadata writes a heif file`() throws {
+                let url = try #require(CIImage.writeHeif(image: createTestUIImage(), metadata: [:]))
+                defer { try? FileManager.default.removeItem(at: url) }
 
-                if let url {
-                    #expect(url.pathExtension == "heif")
-                }
+                try expectHeifFile(at: url)
             }
 
-            @Test func `write heif from CI image returns nil or heif file`() throws {
+            @Test(.enabled(if: heifEncodingIsAvailable))
+            func `write heif from CI image writes a heif file`() throws {
                 let ciImage = try #require(createTestCIImage())
 
-                let url = CIImage.writeHeif(image: ciImage)
-                defer {
-                    if let url {
-                        try? FileManager.default.removeItem(at: url)
-                    }
-                }
+                let url = try #require(CIImage.writeHeif(image: ciImage))
+                defer { try? FileManager.default.removeItem(at: url) }
 
-                if let url {
-                    #expect(url.pathExtension == "heif")
-                }
+                try expectHeifFile(at: url)
+            }
+
+            private func expectHeifFile(at url: URL, sourceLocation: SourceLocation = #_sourceLocation) throws {
+                #expect(url.pathExtension == "heif", sourceLocation: sourceLocation)
+                #expect(try isHeif(Data(contentsOf: url)), sourceLocation: sourceLocation)
             }
 
             // MARK: - writePNG Tests

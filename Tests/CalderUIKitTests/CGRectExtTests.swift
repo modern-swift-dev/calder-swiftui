@@ -4,7 +4,7 @@
     import Foundation
     import Testing
 
-    @Suite(.serialized) struct CGRectExtTests {
+    struct CGRectExtTests {
 
         // MARK: - Constants
 

@@ -4,7 +4,7 @@
     import Foundation
     import Testing
 
-    @Suite(.serialized) struct CLLocationExtTests {
+    struct CLLocationExtTests {
 
         // MARK: - Convenience Init Tests
 

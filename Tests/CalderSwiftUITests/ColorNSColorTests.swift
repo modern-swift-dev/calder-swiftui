@@ -7,7 +7,7 @@
         import SwiftUI
         import Testing
 
-        @Suite(.serialized) struct ColorNSColorTests {
+        struct ColorNSColorTests {
 
             // MARK: - Helpers
 

@@ -13,7 +13,7 @@
             import SwiftUI
         #endif
 
-        @Suite(.serialized) struct CGFloatExtTests {
+        struct CGFloatExtTests {
 
             // MARK: - CGFloat+Ext Tests
 

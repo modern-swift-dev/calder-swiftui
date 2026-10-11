@@ -3,13 +3,13 @@
     import SwiftUI
     import Testing
 
-    @Suite(.serialized)
     @MainActor struct ThemePublicAPITests {
 
         @Test func `theme definition has a public default initializer`() {
             let definition = ThemeDefinition()
 
-            #expect(type(of: definition.primary) == ThemeColor.self)
+            #expect(definition.textOverPrimary.getColor(scheme: .light) == .white)
+            #expect(definition.textOverWarning.getColor(scheme: .dark) == .black)
         }
 
         @Test func `theme appearance properties are public`() {
