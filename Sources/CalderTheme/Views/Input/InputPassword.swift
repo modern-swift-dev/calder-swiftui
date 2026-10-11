@@ -90,10 +90,16 @@
                                 text: $text
                             )
                         } else {
+                            // Keep revealed passwords out of autocorrection and the keyboard's learned words.
                             TextField(
                                 placeholder,
                                 text: $text
                             )
+                            .textContentType(.password)
+                            .autocorrectionDisabled()
+                            #if !os(macOS)
+                                .textInputAutocapitalization(.never)
+                            #endif
                         }
                     }
                     .font(.body)
@@ -110,6 +116,7 @@
                             .frame(width: 24, height: 24)
                             .foregroundColor(iconColor)
                     })
+                    .accessibilityLabel(revealButtonAccessibilityLabel)
                 }
                 .padding(.vertical, .small)
                 .padding(.horizontal, .xs)
@@ -136,6 +143,11 @@
                     }
                 }
             }
+        }
+
+        /// The VoiceOver label of the reveal button, describing the action it performs.
+        var revealButtonAccessibilityLabel: String {
+            isSecuredEntry ? "Show password" : "Hide password"
         }
 
         /// The foreground color of the text input.

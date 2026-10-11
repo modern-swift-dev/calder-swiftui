@@ -24,6 +24,15 @@
             #expect(field.stringValue == "secret")
         }
 
+        @Test func `revealed password field uses the password content type`() throws {
+            let window = makeWindow(InputPassword(text: .constant("secret"), placeholder: "Password", isSecuredEntry: false))
+            defer { window.close() }
+            let content = try #require(window.contentView)
+            let field = try #require(textField(in: content))
+
+            #expect(field.contentType == .password)
+        }
+
         private func makeWindow(_ view: some View) -> NSWindow {
             _ = NSApplication.shared
             let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 320, height: 160), styleMask: .borderless, backing: .buffered, defer: false)
