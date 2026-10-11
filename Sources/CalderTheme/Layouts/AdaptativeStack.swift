@@ -10,6 +10,9 @@
     ///
     /// This is useful for creating layouts that dynamically adjust their orientation
     /// based on the available horizontal space (e.g., iPhone portrait vs. iPhone landscape/iPad).
+    ///
+    /// The stack switches layouts through `AnyLayout`, so its children keep their identity, state,
+    /// focus, and scroll position when the size class changes.
     public struct AdaptativeStack<Content: View>: View {
 
         /// The horizontal alignment for the `VStack` when in a compact size class.
@@ -50,14 +53,12 @@
         }
 
         public var body: some View {
-            if horizontalSizeClass == .compact {
-                VStack(alignment: verticalAlignment, spacing: verticalSpacing) {
-                    content(horizontalSizeClass)
-                }
-            } else {
-                HStack(alignment: horizontalAlignment, spacing: horizontalSpacing) {
-                    content(horizontalSizeClass)
-                }
+            let layout = horizontalSizeClass == .compact
+                ? AnyLayout(VStackLayout(alignment: verticalAlignment, spacing: verticalSpacing))
+                : AnyLayout(HStackLayout(alignment: horizontalAlignment, spacing: horizontalSpacing))
+
+            layout {
+                content(horizontalSizeClass)
             }
         }
     }
