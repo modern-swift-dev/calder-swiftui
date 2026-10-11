@@ -37,3 +37,6 @@ with a `Results` page makes it the current page; replacing with values ends pagi
 
 `PaginatedList.DataSource.append(item:after:)` moves and updates an item that is already
 loaded instead of inserting a duplicate ID.
+
+`PaginatedList.Results` encodes `hasNext`. Decoding uses an explicit `hasNext` value when present
+and otherwise derives it from `next` and `results`.
