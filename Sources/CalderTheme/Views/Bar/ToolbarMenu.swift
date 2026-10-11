@@ -41,14 +41,18 @@
                     Menu(content: {
                         content()
                     }, label: {
-                        Button(action: {}, label: label)
-                            .buttonStyle(BarButtonStyle(variant: variant))
-                            .opacity(enabled ? 1 : 0.5)
-                            .disabled(!enabled)
+                        styledLabel
                     })
                     .disabled(!enabled)
                 }
                 .disableSharedbackground(disable: variant.sharedBackgroundDisabled)
+            }
+
+            /// The menu's label styled like a toolbar button. `BarButtonStyle` applies the disabled dimming.
+            var styledLabel: some View {
+                Button(action: {}, label: label)
+                    .buttonStyle(BarButtonStyle(variant: variant))
+                    .disabled(!enabled)
             }
         }
 
