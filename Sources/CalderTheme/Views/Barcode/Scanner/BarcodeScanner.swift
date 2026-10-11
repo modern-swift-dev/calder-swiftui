@@ -6,12 +6,26 @@
 
         /// A SwiftUI view that provides barcode and QR code scanning functionality.
         /// This view wraps `BarcodeScannerViewController` using `UIViewControllerRepresentable`.
+        ///
+        /// > Important: The host app must declare `NSCameraUsageDescription` in its `Info.plist`, with a message that
+        /// > explains why the app uses the camera. Without it, the system terminates the app the first time the scanner
+        /// > accesses the camera.
         public struct BarcodeScanner: UIViewControllerRepresentable {
 
+            /// A code detected by the scanner.
+            ///
+            /// The scanner writes a result to its `result` binding once per scan; set the binding back to
+            /// `nil` to scan again.
             public struct ScanResult: Equatable, Hashable, Sendable {
+                /// The decoded string value of the code.
                 public let payload: String
+                /// The symbology of the code, such as `.qr` or `.ean13`.
                 public let type: AVMetadataObject.ObjectType
 
+                /// Creates a scan result.
+                /// - Parameters:
+                ///   - payload: The decoded string value of the code.
+                ///   - type: The symbology of the code.
                 public init(payload: String, type: AVMetadataObject.ObjectType) {
                     self.payload = payload
                     self.type = type

@@ -44,6 +44,17 @@ Package.swift target
 )
 ```
 
+### Camera access for barcode scanning
+
+`BarcodeScanner` and `BarcodeSelector` in CalderTheme use the camera. An app that shows either view must add `NSCameraUsageDescription` to its `Info.plist` with a message that explains why it needs the camera. Without that key, the system terminates the app the first time the view accesses the camera.
+
+Info.plist
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>The camera scans barcodes and QR codes.</string>
+```
+
 ## 4. Open the API reference
 
 The [documentation index](/docs/calder-swiftui/documentation/) links every product's generated DocC reference. The site publishes documentation from the current `main` branch.

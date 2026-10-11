@@ -17,6 +17,9 @@ magnitude, so `7` stays `7`, `15` becomes `20`, and `330` becomes `400`.
 Tick counts below one use one interval, and tick spacing is always positive. Pareto
 percentages remain finite when all category values are zero.
 
+Apps that show `BarcodeScanner` or `BarcodeSelector` must declare `NSCameraUsageDescription`
+in their `Info.plist`; otherwise the system terminates the app on its first camera access.
+
 Calling `BarcodeScannerView.suspend()` suppresses both new scan results and queued delegate
 callbacks until `resume()` is called.
 

@@ -8,6 +8,10 @@
 
         /// A SwiftUI view that wraps `BarcodeSelectoViewController` to provide barcode scanning functionality using VisionKit's `DataScannerViewController`.
         /// This view allows users to scan various barcode symbologies and receive the scanned value and its type.
+        ///
+        /// > Important: The host app must declare `NSCameraUsageDescription` in its `Info.plist`, with a message that
+        /// > explains why the app uses the camera. Without it, the system terminates the app the first time the selector
+        /// > accesses the camera.
         public struct BarcodeSelector: UIViewControllerRepresentable {
 
             /// The color used to highlight detected barcodes in the scanner view. Defaults to `.blue`.
