@@ -22,13 +22,22 @@
         /// The width of the circle's border.
         public let width: CGFloat
 
-        /// Formatted percentage text to display inside the circle. Returns "-" if percent is 0 or less.
+        /// Formatted percentage text for the current locale. Returns "-" if percent is 0 or less.
+        ///
+        /// The circle itself displays the percentage formatted for the environment's locale.
         public var text: String {
+            displayText(locale: .current)
+        }
+
+        /// Formats the percentage displayed inside the circle.
+        /// - Parameter locale: The locale used to format the percentage.
+        /// - Returns: The localised percentage, such as "25%", or "-" if percent is 0 or less.
+        func displayText(locale: Locale) -> String {
             if percent <= 0 {
                 return "-"
             }
 
-            return percent.formatted(.percent)
+            return percent.formatted(.percent.locale(locale))
         }
 
         /// Initializes a `PercentageCircle` view.
@@ -45,7 +54,7 @@
         /// The content and behavior of the view.
         public var body: some View {
 
-            Text(text)
+            Text(verbatim: displayText(locale: locale))
                 .multilineTextAlignment(.center)
                 .font(.subheadline)
                 .foregroundStyle(theme.text1)

@@ -47,17 +47,49 @@
         /// The requested number of intervals on the Y-axis. Values below one use one interval.
         public var nbMarks: Int
 
+        private var titleText: LocalizableText
+        private var xAxisLabelText: LocalizableText
+        private var leftYAxisTitleText: LocalizableText
+        private var rightYAxisTitleText: LocalizableText
+
         /// The title of the chart.
-        public var title: String
+        ///
+        /// A title created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a title displayed unchanged.
+        public var title: String {
+            get { titleText.resolved }
+            set { titleText = .verbatim(newValue) }
+        }
 
         /// The label for the X-axis.
-        public var xAxisLabel: String
+        ///
+        /// A label created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a label displayed unchanged.
+        public var xAxisLabel: String {
+            get { xAxisLabelText.resolved }
+            set { xAxisLabelText = .verbatim(newValue) }
+        }
 
         /// The label for the left Y-axis (value count).
-        public var leftYAxisTitle: String
+        ///
+        /// A label created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a label displayed unchanged.
+        public var leftYAxisTitle: String {
+            get { leftYAxisTitleText.resolved }
+            set { leftYAxisTitleText = .verbatim(newValue) }
+        }
 
         /// The label for the right Y-axis (cumulative percentage).
-        public var rightYAxisTitle: String
+        ///
+        /// A label created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a label displayed unchanged.
+        public var rightYAxisTitle: String {
+            get { rightYAxisTitleText.resolved }
+            set { rightYAxisTitleText = .verbatim(newValue) }
+        }
+
+        /// The locale used to format bar values and the percentage axis.
+        @Environment(\.locale) private var locale
 
         /// The maximum value for scaling the left Y-axis.
         public var maxValue: Int
@@ -69,12 +101,13 @@
         ///
         /// The points are plotted in descending order of value, as a Pareto chart requires.
         /// Points with equal values keep their input order, and points may share a name.
+        /// Bar values and the percentage axis are formatted for the environment's locale.
         /// - Parameters:
-        ///   - title: The title of the chart.
+        ///   - title: The title of the chart, displayed unchanged.
         ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
-        ///   - xAxisLabel: The label for the X-axis.
-        ///   - leftYAxisTitle: The label for the left Y-axis.
-        ///   - rightYAxisTitle: The label for the right Y-axis.
+        ///   - xAxisLabel: The label for the X-axis, displayed unchanged.
+        ///   - leftYAxisTitle: The label for the left Y-axis, displayed unchanged.
+        ///   - rightYAxisTitle: The label for the right Y-axis, displayed unchanged.
         ///   - points: An array of `RawDataPoint` to process and display, in any order.
         public init(
             title: String,
@@ -84,13 +117,62 @@
             rightYAxisTitle: String,
             points: [RawDataPoint]
         ) {
-            self.title = title
+            self.init(
+                titleText: .verbatim(title),
+                nbMarks: nbMarks,
+                xAxisLabelText: .verbatim(xAxisLabel),
+                leftYAxisTitleText: .verbatim(leftYAxisTitle),
+                rightYAxisTitleText: .verbatim(rightYAxisTitle),
+                points: points
+            )
+        }
+
+        /// Initializes the Pareto chart with localized labels.
+        ///
+        /// SwiftUI looks up each label in its bundle and table using the environment's locale.
+        /// The points are plotted in descending order of value, as a Pareto chart requires.
+        /// Points with equal values keep their input order, and points may share a name.
+        /// Bar values and the percentage axis are formatted for the environment's locale.
+        /// - Parameters:
+        ///   - title: The localized title of the chart.
+        ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
+        ///   - xAxisLabel: The localized label for the X-axis.
+        ///   - leftYAxisTitle: The localized label for the left Y-axis.
+        ///   - rightYAxisTitle: The localized label for the right Y-axis.
+        ///   - points: An array of `RawDataPoint` to process and display, in any order.
+        public init(
+            title: LocalizedStringResource,
+            nbMarks: Int = 5,
+            xAxisLabel: LocalizedStringResource,
+            leftYAxisTitle: LocalizedStringResource,
+            rightYAxisTitle: LocalizedStringResource,
+            points: [RawDataPoint]
+        ) {
+            self.init(
+                titleText: .localized(title),
+                nbMarks: nbMarks,
+                xAxisLabelText: .localized(xAxisLabel),
+                leftYAxisTitleText: .localized(leftYAxisTitle),
+                rightYAxisTitleText: .localized(rightYAxisTitle),
+                points: points
+            )
+        }
+
+        private init(
+            titleText: LocalizableText,
+            nbMarks: Int,
+            xAxisLabelText: LocalizableText,
+            leftYAxisTitleText: LocalizableText,
+            rightYAxisTitleText: LocalizableText,
+            points: [RawDataPoint]
+        ) {
+            self.titleText = titleText
             self.nbMarks = nbMarks
-            self.xAxisLabel = xAxisLabel
-            self.leftYAxisTitle = leftYAxisTitle
-            self.rightYAxisTitle = rightYAxisTitle
-            self.maxValue = points.maxValue
-            self.dataPoints = points.computedPoints
+            self.xAxisLabelText = xAxisLabelText
+            self.leftYAxisTitleText = leftYAxisTitleText
+            self.rightYAxisTitleText = rightYAxisTitleText
+            maxValue = points.maxValue
+            dataPoints = points.computedPoints
         }
 
         /// The content and behavior of the view.
@@ -100,22 +182,22 @@
                     // Bar Chart for Absolute Values
                     ForEach(dataPoints) { data in
                         BarMark(
-                            x: .value(xAxisLabel, data.name),
-                            y: .value(leftYAxisTitle, data.value)
+                            x: .value(xAxisLabelText.text, data.name),
+                            y: .value(leftYAxisTitleText.text, data.value)
                         )
                         .annotation(position: .top) {
-                            Text("\(data.value)")
+                            Text(data.value, format: .number)
                                 .font(.caption)
                                 .foregroundStyle(theme.text3)
                         }
-                        .foregroundStyle(by: .value(xAxisLabel, data.name))
+                        .foregroundStyle(by: .value(xAxisLabelText.text, data.name))
                     }
 
                     // Line Chart for Cumulative Percentage
                     ForEach(dataPoints) { data in
                         LineMark(
-                            x: .value(xAxisLabel, data.name),
-                            y: .value(rightYAxisTitle, data.cumulated)
+                            x: .value(xAxisLabelText.text, data.name),
+                            y: .value(rightYAxisTitleText.text, data.cumulated)
                         )
                         .lineStyle(StrokeStyle(lineWidth: 2))
                         .foregroundStyle(theme.error)
@@ -125,8 +207,8 @@
                     // Circle Markers on Line Chart
                     ForEach(dataPoints) { data in
                         PointMark(
-                            x: .value(xAxisLabel, data.name),
-                            y: .value(rightYAxisTitle, data.cumulated)
+                            x: .value(xAxisLabelText.text, data.name),
+                            y: .value(rightYAxisTitleText.text, data.cumulated)
                         )
                         .foregroundStyle(theme.error)
                         .symbol {
@@ -137,17 +219,17 @@
                     }
                 }
                 .chartYAxisLabel(position: .leading) {
-                    Text(leftYAxisTitle)
+                    leftYAxisTitleText.text
                         .font(.caption)
                         .foregroundStyle(theme.text3)
                 }
                 .chartYAxisLabel(position: .trailing) {
-                    Text(rightYAxisTitle)
+                    rightYAxisTitleText.text
                         .font(.caption)
                         .foregroundStyle(theme.text3)
                 }
                 .chartXAxisLabel(position: .top, alignment: .center, spacing: .large) {
-                    Text(title)
+                    titleText.text
                         .font(.subheadline)
                         .foregroundStyle(theme.text3)
                 }
@@ -186,7 +268,7 @@
                         position: .trailing,
                         values: markValues()
                     ) { value in
-                        AxisValueLabel(percentValue(for: value.as(Int.self) ?? 0))
+                        AxisValueLabel(percentValue(for: value.as(Int.self) ?? 0, locale: locale))
                             .font(.caption)
                             .foregroundStyle(theme.text3)
                         AxisTick()
@@ -218,10 +300,12 @@
         }
 
         /// Converts a Y-axis value to a formatted percentage string for the right axis.
-        /// - Parameter value: The value of the axis mark.
+        /// - Parameters:
+        ///   - value: The value of the axis mark.
+        ///   - locale: The locale used to format the percentage.
         /// - Returns: A string representing the percentage.
-        func percentValue(for value: Int) -> String {
-            (maxValue > 0 ? Double(value) / Double(maxValue) : 0).formatted(.percent)
+        func percentValue(for value: Int, locale: Locale) -> String {
+            (maxValue > 0 ? Double(value) / Double(maxValue) : 0).formatted(.percent.locale(locale))
         }
     }
 

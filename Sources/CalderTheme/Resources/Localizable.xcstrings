@@ -25,6 +25,54 @@
         }
       }
     },
+    "laneChart.category" : {
+      "comment" : "Chart label of the colour category of a task in a lane chart.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Category"
+          }
+        }
+      }
+    },
+    "laneChart.end" : {
+      "comment" : "Chart label of the end date of a task in a lane chart.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End"
+          }
+        }
+      }
+    },
+    "laneChart.start" : {
+      "comment" : "Chart label of the start date of a task in a lane chart.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        }
+      }
+    },
+    "laneChart.task" : {
+      "comment" : "Chart label of the lane of a task in a lane chart.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Task"
+          }
+        }
+      }
+    },
     "messageBox.severity.error" : {
       "comment" : "Accessibility label announced for the icon of an error message box.",
       "extractionState" : "manual",
@@ -93,6 +141,30 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retry"
+          }
+        }
+      }
+    },
+    "percentBar.progress %@ %@" : {
+      "comment" : "Progress shown above a percent bar. %1$@ is the value and %2$@ the total, both already formatted for the locale.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ / %2$@"
+          }
+        }
+      }
+    },
+    "percentBar.progressWithUnit %@ %@ %@" : {
+      "comment" : "Progress shown above a percent bar. %1$@ is the value and %2$@ the total, both already formatted for the locale, and %3$@ the unit supplied by the app, such as \"values\".",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ / %2$@ %3$@"
           }
         }
       }

@@ -20,6 +20,15 @@
             let end: Date
         }
 
+        /// The chart label of a task's start date.
+        static let startLabel = LocalizedStringResource("laneChart.start", bundle: .module)
+        /// The chart label of a task's end date.
+        static let endLabel = LocalizedStringResource("laneChart.end", bundle: .module)
+        /// The chart label of a task's lane.
+        static let taskLabel = LocalizedStringResource("laneChart.task", bundle: .module)
+        /// The chart label of a task's colour category.
+        static let categoryLabel = LocalizedStringResource("laneChart.category", bundle: .module)
+
         /// The array of data points to display in the chart.
         let data: [DataPoint]
 
@@ -28,11 +37,11 @@
             VStack {
                 Chart(data) { task in
                     BarMark(
-                        xStart: .value("Start", task.start),
-                        xEnd: .value("End", task.end),
-                        y: .value("Task", task.name)
+                        xStart: .value(Text(Self.startLabel), task.start),
+                        xEnd: .value(Text(Self.endLabel), task.end),
+                        y: .value(Text(Self.taskLabel), task.name)
                     )
-                    .foregroundStyle(by: .value("Category", task.name))
+                    .foregroundStyle(by: .value(Text(Self.categoryLabel), task.name))
                 }
                 .chartXAxis {
                     AxisMarks(position: .bottom)

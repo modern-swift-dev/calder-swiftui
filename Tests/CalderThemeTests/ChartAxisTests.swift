@@ -26,7 +26,7 @@
                 #expect(vertical.markValues().first == 0)
                 #expect(vertical.markValues().last == 1)
                 #expect(pareto.markValues() == vertical.markValues())
-                #expect(pareto.percentValue(for: 1) == 1.0.formatted(.percent))
+                #expect(pareto.percentValue(for: 1, locale: .current) == 1.0.formatted(.percent))
             }
         }
 

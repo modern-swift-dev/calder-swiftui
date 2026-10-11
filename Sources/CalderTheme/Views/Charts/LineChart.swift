@@ -32,14 +32,36 @@
         /// values close to this count. Values below one request a single mark.
         public var nbMarks: Int
 
+        private var titleText: LocalizableText
+        private var xAxisLabelText: LocalizableText
+        private var yAxisTitleText: LocalizableText
+
         /// The title of the chart.
-        public var title: String
+        ///
+        /// A title created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a title displayed unchanged.
+        public var title: String {
+            get { titleText.resolved }
+            set { titleText = .verbatim(newValue) }
+        }
 
         /// The label for the X-axis.
-        public var xAxisLabel: String
+        ///
+        /// A label created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a label displayed unchanged.
+        public var xAxisLabel: String {
+            get { xAxisLabelText.resolved }
+            set { xAxisLabelText = .verbatim(newValue) }
+        }
 
         /// The label for the Y-axis (value count).
-        public var yAxisTitle: String
+        ///
+        /// A label created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a label displayed unchanged.
+        public var yAxisTitle: String {
+            get { yAxisTitleText.resolved }
+            set { yAxisTitleText = .verbatim(newValue) }
+        }
 
         /// The data points to be displayed in the chart.
         private var dataPoints: [DataPoint]
@@ -66,10 +88,10 @@
 
         /// Initializes the line chart with given data points.
         /// - Parameters:
-        ///   - title: The title of the chart.
+        ///   - title: The title of the chart, displayed unchanged.
         ///   - nbMarks: The desired number of marks on the Y-axis. Defaults to 5.
-        ///   - xAxisLabel: The label for the X-axis.
-        ///   - leftYAxisTitle: The label for the Y-axis.
+        ///   - xAxisLabel: The label for the X-axis, displayed unchanged.
+        ///   - leftYAxisTitle: The label for the Y-axis, displayed unchanged.
         ///   - points: An array of `DataPoint` to display. Several points may share a date.
         public init(
             title: String,
@@ -78,11 +100,52 @@
             leftYAxisTitle: String,
             points: [DataPoint]
         ) {
-            self.title = title
+            self.init(
+                titleText: .verbatim(title),
+                nbMarks: nbMarks,
+                xAxisLabelText: .verbatim(xAxisLabel),
+                yAxisTitleText: .verbatim(leftYAxisTitle),
+                points: points
+            )
+        }
+
+        /// Initializes the line chart with localized labels.
+        ///
+        /// SwiftUI looks up each label in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - title: The localized title of the chart.
+        ///   - nbMarks: The desired number of marks on the Y-axis. Defaults to 5.
+        ///   - xAxisLabel: The localized label for the X-axis.
+        ///   - leftYAxisTitle: The localized label for the Y-axis.
+        ///   - points: An array of `DataPoint` to display. Several points may share a date.
+        public init(
+            title: LocalizedStringResource,
+            nbMarks: Int = 5,
+            xAxisLabel: LocalizedStringResource,
+            leftYAxisTitle: LocalizedStringResource,
+            points: [DataPoint]
+        ) {
+            self.init(
+                titleText: .localized(title),
+                nbMarks: nbMarks,
+                xAxisLabelText: .localized(xAxisLabel),
+                yAxisTitleText: .localized(leftYAxisTitle),
+                points: points
+            )
+        }
+
+        private init(
+            titleText: LocalizableText,
+            nbMarks: Int,
+            xAxisLabelText: LocalizableText,
+            yAxisTitleText: LocalizableText,
+            points: [DataPoint]
+        ) {
+            self.titleText = titleText
             self.nbMarks = nbMarks
-            self.xAxisLabel = xAxisLabel
-            self.yAxisTitle = leftYAxisTitle
-            self.dataPoints = points
+            self.xAxisLabelText = xAxisLabelText
+            self.yAxisTitleText = yAxisTitleText
+            dataPoints = points
         }
 
         /// The content and behavior of the view.
@@ -93,8 +156,8 @@
                     // Line Chart for Cumulative Percentage
                     ForEach(plottedPoints) { data in
                         LineMark(
-                            x: .value(xAxisLabel, data.date),
-                            y: .value(yAxisTitle, data.value)
+                            x: .value(xAxisLabelText.text, data.date),
+                            y: .value(yAxisTitleText.text, data.value)
                         )
                         .lineStyle(StrokeStyle(lineWidth: 2))
                         .foregroundStyle(theme.error)
@@ -104,8 +167,8 @@
                     // Circle Markers on Line Chart
                     ForEach(plottedPoints) { data in
                         PointMark(
-                            x: .value(xAxisLabel, data.date),
-                            y: .value(yAxisTitle, data.value)
+                            x: .value(xAxisLabelText.text, data.date),
+                            y: .value(yAxisTitleText.text, data.value)
                         )
                         .foregroundStyle(theme.error)
                         .symbol {
@@ -116,12 +179,12 @@
                     }
                 }
                 .chartYAxisLabel(position: .leading) {
-                    Text(yAxisTitle)
+                    yAxisTitleText.text
                         .font(.caption)
                         .foregroundStyle(theme.text3)
                 }
                 .chartXAxisLabel(position: .top, alignment: .center, spacing: .large) {
-                    Text(title)
+                    titleText.text
                         .font(.subheadline)
                         .foregroundStyle(theme.text3)
                 }

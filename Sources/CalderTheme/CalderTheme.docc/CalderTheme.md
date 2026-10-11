@@ -21,6 +21,11 @@ messages. Their `LocalizedStringResource` initializers require a placeholder. `T
 its character counter for the environment's locale, for example "1,200 / 5,000 characters" in
 English.
 
+Charts accept localized titles and axis labels in the same way; category names stay `String`
+values. Bar annotations, ``PercentBar`` counts, ``PercentageCircle``, and the Pareto percentage
+axis are formatted for the environment's locale. ``PercentBar`` combines its counts and suffix
+with a catalog string, so translations can reorder them.
+
 Create Pareto chart categories with ``ParetoChart/RawDataPoint/init(name:value:)`` and pass
 them to the chart initializer. The chart plots categories in descending order of value, keeping
 the input order for ties, and clamps negative values to zero.

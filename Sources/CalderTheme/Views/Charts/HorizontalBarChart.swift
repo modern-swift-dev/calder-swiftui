@@ -27,28 +27,65 @@
             }
         }
 
+        private var xAxisLabelText: LocalizableText
+        private var yAxisTitleText: LocalizableText
+
         /// The label for the Y-axis (category axis).
-        public var xAxisLabel: String
+        ///
+        /// A label created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a label displayed unchanged.
+        public var xAxisLabel: String {
+            get { xAxisLabelText.resolved }
+            set { xAxisLabelText = .verbatim(newValue) }
+        }
 
         /// The label for the X-axis (value count).
-        public var yAxisTitle: String
+        ///
+        /// A label created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a label displayed unchanged.
+        public var yAxisTitle: String {
+            get { yAxisTitleText.resolved }
+            set { yAxisTitleText = .verbatim(newValue) }
+        }
 
         /// The processed data points to be displayed in the chart.
         private var dataPoints: [DataPoint]
 
         /// Initializes the horizontal bar chart with given data points.
+        ///
+        /// Each bar is annotated with its value, formatted for the environment's locale.
         /// - Parameters:
-        ///   - xAxisLabel: The label for the category axis.
-        ///   - leftYAxisTitle: The label for the value axis.
+        ///   - xAxisLabel: The label for the category axis, displayed unchanged.
+        ///   - leftYAxisTitle: The label for the value axis, displayed unchanged.
         ///   - points: An array of `HorizontalBarChart.DataPoint` to display.
         public init(
             xAxisLabel: String,
             leftYAxisTitle: String,
             points: [HorizontalBarChart.DataPoint]
         ) {
-            self.xAxisLabel = xAxisLabel
-            self.yAxisTitle = leftYAxisTitle
-            self.dataPoints = points
+            self.init(xAxisLabelText: .verbatim(xAxisLabel), yAxisTitleText: .verbatim(leftYAxisTitle), points: points)
+        }
+
+        /// Initializes the horizontal bar chart with localized axis labels.
+        ///
+        /// SwiftUI looks up each label in its bundle and table using the environment's locale.
+        /// Each bar is annotated with its value, formatted for the environment's locale.
+        /// - Parameters:
+        ///   - xAxisLabel: The localized label for the category axis.
+        ///   - leftYAxisTitle: The localized label for the value axis.
+        ///   - points: An array of `HorizontalBarChart.DataPoint` to display.
+        public init(
+            xAxisLabel: LocalizedStringResource,
+            leftYAxisTitle: LocalizedStringResource,
+            points: [HorizontalBarChart.DataPoint]
+        ) {
+            self.init(xAxisLabelText: .localized(xAxisLabel), yAxisTitleText: .localized(leftYAxisTitle), points: points)
+        }
+
+        private init(xAxisLabelText: LocalizableText, yAxisTitleText: LocalizableText, points: [HorizontalBarChart.DataPoint]) {
+            self.xAxisLabelText = xAxisLabelText
+            self.yAxisTitleText = yAxisTitleText
+            dataPoints = points
         }
 
         /// The content and behavior of the view.
@@ -58,15 +95,15 @@
                     // Bar Chart for Absolute Values
                     ForEach(dataPoints, id: \.name) { data in
                         BarMark(
-                            x: .value(yAxisTitle, data.value),
-                            y: .value(xAxisLabel, data.name)
+                            x: .value(yAxisTitleText.text, data.value),
+                            y: .value(xAxisLabelText.text, data.name)
                         )
                         .annotation(position: .trailing) {
-                            Text("\(data.value)")
+                            Text(data.value, format: .number)
                                 .font(.caption)
                                 .foregroundStyle(theme.text3)
                         }
-                        .foregroundStyle(by: .value(xAxisLabel, data.name))
+                        .foregroundStyle(by: .value(xAxisLabelText.text, data.name))
                     }
                 }
                 .chartLegend(.hidden)

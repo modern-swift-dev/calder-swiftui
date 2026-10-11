@@ -30,14 +30,36 @@
         /// The requested number of intervals on the Y-axis. Values below one use one interval.
         public var nbMarks: Int
 
+        private var titleText: LocalizableText
+        private var xAxisLabelText: LocalizableText
+        private var yAxisTitleText: LocalizableText
+
         /// The title of the chart.
-        public var title: String
+        ///
+        /// A title created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a title displayed unchanged.
+        public var title: String {
+            get { titleText.resolved }
+            set { titleText = .verbatim(newValue) }
+        }
 
         /// The label for the X-axis.
-        public var xAxisLabel: String
+        ///
+        /// A label created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a label displayed unchanged.
+        public var xAxisLabel: String {
+            get { xAxisLabelText.resolved }
+            set { xAxisLabelText = .verbatim(newValue) }
+        }
 
         /// The label for the Y-axis (value count).
-        public var yAxisTitle: String
+        ///
+        /// A label created from a `LocalizedStringResource` is resolved for the current locale.
+        /// Assigning a string replaces it with a label displayed unchanged.
+        public var yAxisTitle: String {
+            get { yAxisTitleText.resolved }
+            set { yAxisTitleText = .verbatim(newValue) }
+        }
 
         /// The maximum value for scaling the Y-axis.
         public var maxValue: Int
@@ -46,11 +68,13 @@
         private var dataPoints: [DataPoint]
 
         /// Initializes the vertical bar chart with given data points.
+        ///
+        /// Each bar is annotated with its value, formatted for the environment's locale.
         /// - Parameters:
-        ///   - title: The title of the chart.
+        ///   - title: The title of the chart, displayed unchanged.
         ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
-        ///   - xAxisLabel: The label for the X-axis.
-        ///   - leftYAxisTitle: The label for the Y-axis.
+        ///   - xAxisLabel: The label for the X-axis, displayed unchanged.
+        ///   - leftYAxisTitle: The label for the Y-axis, displayed unchanged.
         ///   - points: An array of `VerticalBarChart.DataPoint` to display.
         public init(
             title: String,
@@ -59,12 +83,54 @@
             leftYAxisTitle: String,
             points: [VerticalBarChart.DataPoint]
         ) {
-            self.title = title
+            self.init(
+                titleText: .verbatim(title),
+                nbMarks: nbMarks,
+                xAxisLabelText: .verbatim(xAxisLabel),
+                yAxisTitleText: .verbatim(leftYAxisTitle),
+                points: points
+            )
+        }
+
+        /// Initializes the vertical bar chart with localized labels.
+        ///
+        /// SwiftUI looks up each label in its bundle and table using the environment's locale.
+        /// Each bar is annotated with its value, formatted for the environment's locale.
+        /// - Parameters:
+        ///   - title: The localized title of the chart.
+        ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
+        ///   - xAxisLabel: The localized label for the X-axis.
+        ///   - leftYAxisTitle: The localized label for the Y-axis.
+        ///   - points: An array of `VerticalBarChart.DataPoint` to display.
+        public init(
+            title: LocalizedStringResource,
+            nbMarks: Int = 5,
+            xAxisLabel: LocalizedStringResource,
+            leftYAxisTitle: LocalizedStringResource,
+            points: [VerticalBarChart.DataPoint]
+        ) {
+            self.init(
+                titleText: .localized(title),
+                nbMarks: nbMarks,
+                xAxisLabelText: .localized(xAxisLabel),
+                yAxisTitleText: .localized(leftYAxisTitle),
+                points: points
+            )
+        }
+
+        private init(
+            titleText: LocalizableText,
+            nbMarks: Int,
+            xAxisLabelText: LocalizableText,
+            yAxisTitleText: LocalizableText,
+            points: [VerticalBarChart.DataPoint]
+        ) {
+            self.titleText = titleText
             self.nbMarks = nbMarks
-            self.xAxisLabel = xAxisLabel
-            self.yAxisTitle = leftYAxisTitle
-            self.maxValue = points.maxValue
-            self.dataPoints = points
+            self.xAxisLabelText = xAxisLabelText
+            self.yAxisTitleText = yAxisTitleText
+            maxValue = points.maxValue
+            dataPoints = points
         }
 
         /// The content and behavior of the view.
@@ -74,24 +140,24 @@
                     // Bar Chart for Absolute Values
                     ForEach(dataPoints, id: \.name) { data in
                         BarMark(
-                            x: .value(xAxisLabel, data.name),
-                            y: .value(yAxisTitle, data.value)
+                            x: .value(xAxisLabelText.text, data.name),
+                            y: .value(yAxisTitleText.text, data.value)
                         )
                         .annotation(position: .top) {
-                            Text("\(data.value)")
+                            Text(data.value, format: .number)
                                 .font(.caption)
                                 .foregroundStyle(theme.text3)
                         }
-                        .foregroundStyle(by: .value(xAxisLabel, data.name))
+                        .foregroundStyle(by: .value(xAxisLabelText.text, data.name))
                     }
                 }
                 .chartYAxisLabel(position: .leading) {
-                    Text(yAxisTitle)
+                    yAxisTitleText.text
                         .font(.caption)
                         .foregroundStyle(theme.text3)
                 }
                 .chartXAxisLabel(position: .top, alignment: .center, spacing: .large) {
-                    Text(title)
+                    titleText.text
                         .font(.subheadline)
                         .foregroundStyle(theme.text3)
                 }
