@@ -83,6 +83,7 @@ numbers to be typed from an empty field. The sign alone represents an absent num
 A failed next page in `PaginatedList.DataSource` keeps the loaded items and the current page.
 Reaching the end of the list again never reloads the first page. The failure is exposed as
 `nextPageError`, and the continuous and grouped lists show a row that retries the failed page.
+The row's text comes from the CalderTheme string catalog.
 The grouped list requests the next page when its end is reached, whichever sections the page fills.
 
 Cancelling a first-page load or reload keeps the loaded items and restores the page and state

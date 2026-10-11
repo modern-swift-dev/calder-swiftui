@@ -73,6 +73,30 @@
         }
       }
     },
+    "paginatedList.nextPageFailed" : {
+      "comment" : "Message in the last row of a paginated list when the next page failed to load.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load more results."
+          }
+        }
+      }
+    },
+    "paginatedList.retry" : {
+      "comment" : "Button in the last row of a paginated list that requests the failed page again.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        }
+      }
+    },
     "textView.characterCount %@ %@" : {
       "comment" : "Character counter below a text area. %1$@ is the number of characters entered and %2$@ the maximum allowed, both already formatted for the locale.",
       "extractionState" : "manual",

@@ -12,6 +12,8 @@
 
 - `TextView`'s character counter and `InputPassword`'s reveal-button labels ("Show password", "Hide password") come from CalderTheme's string catalog. The counter formats both numbers for the environment's locale, so 1200 of 5000 characters reads "1,200 / 5,000 characters" in English instead of "1200 / 5000 characters".
 
+- The `PaginatedList` row shown after a next page fails ("Couldn't load more results." and "Retry") looks up its text in CalderTheme's string catalog instead of the app's main bundle.
+
 ### Additions
 
 - CalderTheme bundles a string catalog with English text for its built-in strings.
