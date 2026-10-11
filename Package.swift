@@ -3,7 +3,6 @@
 import PackageDescription
 
 let testSwiftSettings: [SwiftSetting] = [
-    .enableExperimentalFeature("StrictConcurrency"),
     .enableUpcomingFeature("MemberImportVisibility")
 ]
 
@@ -85,7 +84,6 @@ let package = Package(
         .testTarget(
             name: "CalderSwiftUITests",
             dependencies: ["CalderSwiftUI", "CalderUIKit"] + snapshotTestingDependency,
-            exclude: ["__Snapshots__"],
             swiftSettings: testSwiftSettings
         ),
         .testTarget(
