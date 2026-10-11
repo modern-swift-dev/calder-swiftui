@@ -77,7 +77,7 @@
 
                             Text(variant.text(candidate: label, length: 10))
                                 .font(.title3)
-                                .foregroundStyle(theme.textOverPrimary)
+                                .foregroundStyle(variant.labelForeground(theme: theme))
 
                             Spacer()
                         }
@@ -179,7 +179,7 @@
                 }
             }
 
-            /// Returns the foreground color for the tile's icon and label.
+            /// Returns the foreground color for the tile's icon and chevron.
             /// - Parameter theme: The current theme applied to the environment.
             /// - Returns: A `Color` for the foreground elements.
             func foregroundColor(theme: Theme) -> Color {
@@ -187,6 +187,23 @@
                     case .empty,
                          .loading:
                         theme.text2
+                    case .info:
+                        theme.textOverPrimary
+                    case .warn:
+                        theme.textOverWarning
+                    case .error:
+                        theme.textOverError
+                }
+            }
+
+            /// Returns the foreground color for the tile's label, readable over the variant's background.
+            /// - Parameter theme: The current theme applied to the environment.
+            /// - Returns: A `Color` for the label text.
+            func labelForeground(theme: Theme) -> Color {
+                switch self {
+                    case .empty,
+                         .loading:
+                        theme.text1
                     case .info:
                         theme.textOverPrimary
                     case .warn:
@@ -260,6 +277,17 @@
                     }
                 }
                 .listStyle(.plain)
+            }
+
+            PreviewSnapshot("Variants") {
+                VStack(spacing: .small) {
+                    Tile(icon: Image(systemSymbol: .cloud), label: "Empty", text: "12", variant: .empty, action: {})
+                    Tile(icon: Image(systemSymbol: .hourglass), label: "Loading", text: "12", variant: .loading, action: {})
+                    Tile(icon: Image(systemSymbol: .checkmarkCircle), label: "Info", text: "12", variant: .info, action: {})
+                    Tile(icon: Image(systemSymbol: .exclamationmarkTriangle), label: "Warn", text: "12", variant: .warn, action: {})
+                    Tile(icon: Image(systemSymbol: .xmarkOctagon), label: "Error", text: "12", variant: .error, action: {})
+                }
+                .padding()
             }
         }
     }
