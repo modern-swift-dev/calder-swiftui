@@ -303,6 +303,13 @@
             #expect(color == themeColor.getColor(scheme: .dark, contrast: nil))
         }
 
+        @Test func `init with invalid RGB string falls back to white`() {
+            let themeColor = ThemeColor(rgb: "#GGHHII")
+
+            #expect(themeColor.getColor(scheme: .light, contrast: nil) == .white)
+            #expect(themeColor.getColor(scheme: .dark, contrast: .increased) == .white)
+        }
+
         // MARK: - getColor Method: Light Scheme
 
         @Test func `get color light scheme no contrast returns light`() {

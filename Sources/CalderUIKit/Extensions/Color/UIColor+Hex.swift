@@ -7,166 +7,64 @@
 
         // MARK: Initializers
         public extension UIColor {
-            /// Initialize the color from an hexadecimal string. Ex: 0xAABBCC or #AABBCC
+            /// Creates a color from a hexadecimal RGB string, such as `#AABBCC`, `0xAABBCC`, or `AABBCC`.
             ///
-            /// - parameter rgb The RGB string in Hexadecimal notation
-            /// - parameter the alpha channel (default to 1)
+            /// The string may start with `#`, `0x`, or `0X`, followed by exactly six hexadecimal digits
+            /// in either case. Whitespace, including leading and trailing whitespace, isn't accepted.
+            ///
+            /// - Parameters:
+            ///   - rgb: The red, green, and blue channels in hexadecimal notation.
+            ///   - alpha: The opacity, from `0` to `1`. Defaults to `1`.
+            /// - Returns: `nil` if `rgb` has the wrong number of digits or contains a non-hexadecimal character.
             convenience init?(rgb: String, alpha: CGFloat = 1) {
-                var value = rgb
-
-                if rgb.startingWith("0x") {
-                    value = value.substr(start: 2, len: value.count - 2)
-                }
-
-                if rgb.startingWith("#") {
-                    value = value.substr(start: 1, len: value.count - 1)
-                }
-
-                if value.count != 6 {
+                guard let channels = HexColorChannels.parse(rgb, count: 3) else {
                     return nil
                 }
-
-                var scanner = Scanner(string: "0x\(value.substr(start: 0, len: 2))")
-                var red: Double = 0
-                scanner.scanHexDouble(&red)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 2, len: 2))")
-                var green: Double = 0
-                scanner.scanHexDouble(&green)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 4, len: 2))")
-                var blue: Double = 0
-                scanner.scanHexDouble(&blue)
-
-                self.init(
-                    red: (red / 255).cgf,
-                    green: (green / 255).cgf,
-                    blue: (blue / 255).cgf,
-                    alpha: alpha
-                )
+                self.init(red: channels[0].cgf, green: channels[1].cgf, blue: channels[2].cgf, alpha: alpha)
             }
 
-            /// Initialize the color from an hexadecimal string. Ex: 0xAABBCC or #AABBCC
+            /// Creates a color from a hexadecimal HSV string, such as `#AABBCC`, `0xAABBCC`, or `AABBCC`.
             ///
-            /// - parameter rgb The HSV string in Hexadecimal notation
-            /// - parameter the alpha channel (default to 1)
+            /// The string may start with `#`, `0x`, or `0X`, followed by exactly six hexadecimal digits
+            /// in either case. Whitespace, including leading and trailing whitespace, isn't accepted.
+            ///
+            /// - Parameters:
+            ///   - hsv: The hue, saturation, and brightness channels in hexadecimal notation.
+            ///   - alpha: The opacity, from `0` to `1`. Defaults to `1`.
+            /// - Returns: `nil` if `hsv` has the wrong number of digits or contains a non-hexadecimal character.
             convenience init?(hsv: String, alpha: CGFloat = 1) {
-                var value = hsv
-
-                if hsv.startingWith("0x") {
-                    value = value.substr(start: 2, len: value.count - 2)
-                }
-
-                if hsv.startingWith("#") {
-                    value = value.substr(start: 1, len: value.count - 1)
-                }
-
-                if value.count != 6 {
+                guard let channels = HexColorChannels.parse(hsv, count: 3) else {
                     return nil
                 }
-
-                var scanner = Scanner(string: "0x\(value.substr(start: 0, len: 2))")
-                var h: Double = 0
-                scanner.scanHexDouble(&h)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 2, len: 2))")
-                var s: Double = 0
-                scanner.scanHexDouble(&s)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 4, len: 2))")
-                var v: Double = 0
-                scanner.scanHexDouble(&v)
-
-                self.init(
-                    hue: (h / 255).cgf,
-                    saturation: (s / 255).cgf,
-                    brightness: (v / 255).cgf,
-                    alpha: alpha
-                )
+                self.init(hue: channels[0].cgf, saturation: channels[1].cgf, brightness: channels[2].cgf, alpha: alpha)
             }
 
-            /// Initialize the color from an hexadecimal string. Ex: 0xAABBCCDD or #AABBCCDD
+            /// Creates a color from a hexadecimal RGBA string, such as `#AABBCCDD`, `0xAABBCCDD`, or `AABBCCDD`.
             ///
-            /// - parameter rgb The RGBA string in Hexadecimal notation
+            /// The string may start with `#`, `0x`, or `0X`, followed by exactly eight hexadecimal digits
+            /// in either case. Whitespace, including leading and trailing whitespace, isn't accepted.
+            ///
+            /// - Parameter rgba: The red, green, blue, and alpha channels in hexadecimal notation.
+            /// - Returns: `nil` if `rgba` has the wrong number of digits or contains a non-hexadecimal character.
             convenience init?(rgba: String) {
-                var value = rgba
-
-                if rgba.startingWith("0x") {
-                    value = value.substr(start: 2, len: value.count - 2)
-                }
-
-                if rgba.startingWith("#") {
-                    value = value.substr(start: 1, len: value.count - 1)
-                }
-
-                if value.count != 8 {
+                guard let channels = HexColorChannels.parse(rgba, count: 4) else {
                     return nil
                 }
-
-                var scanner = Scanner(string: "0x\(value.substr(start: 0, len: 2))")
-                var red: Double = 0
-                scanner.scanHexDouble(&red)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 2, len: 2))")
-                var green: Double = 0
-                scanner.scanHexDouble(&green)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 4, len: 2))")
-                var blue: Double = 0
-                scanner.scanHexDouble(&blue)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 6, len: 2))")
-                var alpha: Double = 0
-                scanner.scanHexDouble(&alpha)
-
-                self.init(
-                    red: (red / 255).cgf,
-                    green: (green / 255).cgf,
-                    blue: (blue / 255).cgf,
-                    alpha: (alpha / 255).cgf
-                )
+                self.init(red: channels[0].cgf, green: channels[1].cgf, blue: channels[2].cgf, alpha: channels[3].cgf)
             }
 
-            /// Initialize the color from an hexadecimal string. Ex: 0xAABBCCDD or #AABBCCDD
+            /// Creates a color from a hexadecimal HSVA string, such as `#AABBCCDD`, `0xAABBCCDD`, or `AABBCCDD`.
             ///
-            /// - parameter rgb The HSVA string in Hexadecimal notation
+            /// The string may start with `#`, `0x`, or `0X`, followed by exactly eight hexadecimal digits
+            /// in either case. Whitespace, including leading and trailing whitespace, isn't accepted.
+            ///
+            /// - Parameter hsva: The hue, saturation, brightness, and alpha channels in hexadecimal notation.
+            /// - Returns: `nil` if `hsva` has the wrong number of digits or contains a non-hexadecimal character.
             convenience init?(hsva: String) {
-                var value = hsva
-
-                if hsva.startingWith("0x") {
-                    value = value.substr(start: 2, len: value.count - 2)
-                }
-
-                if hsva.startingWith("#") {
-                    value = value.substr(start: 1, len: value.count - 1)
-                }
-
-                if value.count != 8 {
+                guard let channels = HexColorChannels.parse(hsva, count: 4) else {
                     return nil
                 }
-
-                var scanner = Scanner(string: "0x\(value.substr(start: 0, len: 2))")
-                var h: Double = 0
-                scanner.scanHexDouble(&h)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 2, len: 2))")
-                var s: Double = 0
-                scanner.scanHexDouble(&s)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 4, len: 2))")
-                var v: Double = 0
-                scanner.scanHexDouble(&v)
-
-                scanner = Scanner(string: "0x\(value.substr(start: 6, len: 2))")
-                var alpha: Double = 0
-                scanner.scanHexDouble(&alpha)
-
-                self.init(
-                    hue: (h / 255).cgf,
-                    saturation: (s / 255).cgf,
-                    brightness: (v / 255).cgf,
-                    alpha: (alpha / 255).cgf
-                )
+                self.init(hue: channels[0].cgf, saturation: channels[1].cgf, brightness: channels[2].cgf, alpha: channels[3].cgf)
             }
         }
 

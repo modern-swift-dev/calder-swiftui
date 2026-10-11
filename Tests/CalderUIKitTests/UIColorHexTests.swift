@@ -135,6 +135,47 @@
                 #expect(color == nil)
             }
 
+            // MARK: - Invalid input
+
+            @Test(arguments: ["#GGHHII", "#12345G", "0x12345Z", "+12345", "-12345", "#+1234F", "#0x1234", "##123456"])
+            func `init rgb and hsv reject invalid digits`(_ hex: String) {
+                #expect(UIColor(rgb: hex) == nil)
+                #expect(UIColor(hsv: hex) == nil)
+            }
+
+            @Test(arguments: ["#GGHHIIJJ", "#1234567G", "0x1234567Z", "+1234567", "-1234567", "#0x123456", "##1234567"])
+            func `init rgba and hsva reject invalid digits`(_ hex: String) {
+                #expect(UIColor(rgba: hex) == nil)
+                #expect(UIColor(hsva: hex) == nil)
+            }
+
+            @Test(arguments: ["", "#", "0x", "0X"])
+            func `init rejects empty values`(_ hex: String) {
+                #expect(UIColor(rgb: hex) == nil)
+                #expect(UIColor(hsv: hex) == nil)
+                #expect(UIColor(rgba: hex) == nil)
+                #expect(UIColor(hsva: hex) == nil)
+            }
+
+            @Test(arguments: [" #336699", "#336699 ", "#336699\n", "#33 6699", "\t0x336699"])
+            func `init rgb and hsv reject whitespace`(_ hex: String) {
+                #expect(UIColor(rgb: hex) == nil)
+                #expect(UIColor(hsv: hex) == nil)
+            }
+
+            @Test(arguments: [" #336699CC", "#336699CC ", "#3366 99CC"])
+            func `init rgba and hsva reject whitespace`(_ hex: String) {
+                #expect(UIColor(rgba: hex) == nil)
+                #expect(UIColor(hsva: hex) == nil)
+            }
+
+            @Test func `init accepts uppercase 0 X prefix`() {
+                #expect(UIColor(rgb: "0X336699") != nil)
+                #expect(UIColor(hsv: "0X8040C0") != nil)
+                #expect(UIColor(rgba: "0X336699CC") != nil)
+                #expect(UIColor(hsva: "0X8040C0CC") != nil)
+            }
+
             // MARK: - toRGB Tests
 
             @Test func `to RGB red default prefix`() {

@@ -6,78 +6,33 @@
     // MARK: Hex
     public extension Color {
 
-        /// Initialize the color from an hexadecimal string. Ex: 0xAABBCC or #AABBCC
+        /// Creates an opaque sRGB color from a hexadecimal string, such as `#AABBCC`, `0xAABBCC`, or `AABBCC`.
         ///
-        /// - parameter rgb The RGB string in Hexadecimal notation
-        /// - parameter the alpha channel (default to 1)
-        init(rgb: String) {
-            var value = rgb
-
-            if rgb.startingWith("0x") {
-                value = value.substr(start: 2, len: value.count - 2)
+        /// The string may start with `#`, `0x`, or `0X`, followed by exactly six hexadecimal digits
+        /// in either case. Whitespace, including leading and trailing whitespace, isn't accepted.
+        ///
+        /// - Parameter rgb: The red, green, and blue channels in hexadecimal notation.
+        /// - Returns: `nil` if `rgb` has the wrong number of digits or contains a non-hexadecimal character.
+        init?(rgb: String) {
+            guard let channels = HexColorChannels.parse(rgb, count: 3) else {
+                return nil
             }
-
-            if rgb.startingWith("#") {
-                value = value.substr(start: 1, len: value.count - 1)
-            }
-
-            if value.count != 6 {
-                self = .white
-                return
-            }
-
-            var scanner = Scanner(string: "0x\(value.substr(start: 0, len: 2))")
-            var red: Double = 0
-            scanner.scanHexDouble(&red)
-
-            scanner = Scanner(string: "0x\(value.substr(start: 2, len: 2))")
-            var green: Double = 0
-            scanner.scanHexDouble(&green)
-
-            scanner = Scanner(string: "0x\(value.substr(start: 4, len: 2))")
-            var blue: Double = 0
-            scanner.scanHexDouble(&blue)
-
-            self = .init(red: red / 255.0, green: green / 255.0, blue: blue / 255.0)
+            self.init(red: channels[0], green: channels[1], blue: channels[2])
         }
 
-        /// Initialize the color from an hexadecimal string. Ex: 0xAABBCC or #AABBCC
+        /// Creates an sRGB color from a hexadecimal string with an alpha channel, such as `#AABBCCDD`,
+        /// `0xAABBCCDD`, or `AABBCCDD`.
         ///
-        /// - parameter rgb The RGB string in Hexadecimal notation
-        /// - parameter the alpha channel (default to 1)
+        /// The string may start with `#`, `0x`, or `0X`, followed by exactly eight hexadecimal digits
+        /// in either case. Whitespace, including leading and trailing whitespace, isn't accepted.
+        ///
+        /// - Parameter rgba: The red, green, blue, and alpha channels in hexadecimal notation.
+        /// - Returns: `nil` if `rgba` has the wrong number of digits or contains a non-hexadecimal character.
         init?(rgba: String) {
-            var value = rgba
-
-            if rgba.startingWith("0x") {
-                value = value.substr(start: 2, len: value.count - 2)
+            guard let channels = HexColorChannels.parse(rgba, count: 4) else {
+                return nil
             }
-
-            if rgba.startingWith("#") {
-                value = value.substr(start: 1, len: value.count - 1)
-            }
-
-            if value.count != 8 {
-                self = .white
-                return
-            }
-
-            var scanner = Scanner(string: "0x\(value.substr(start: 0, len: 2))")
-            var red: Double = 0
-            scanner.scanHexDouble(&red)
-
-            scanner = Scanner(string: "0x\(value.substr(start: 2, len: 2))")
-            var green: Double = 0
-            scanner.scanHexDouble(&green)
-
-            scanner = Scanner(string: "0x\(value.substr(start: 4, len: 2))")
-            var blue: Double = 0
-            scanner.scanHexDouble(&blue)
-
-            scanner = Scanner(string: "0x\(value.substr(start: 6, len: 2))")
-            var alpha: Double = 0
-            scanner.scanHexDouble(&alpha)
-
-            self = .init(red: red / 255.0, green: green / 255.0, blue: blue / 255.0, opacity: alpha / 255.0)
+            self.init(red: channels[0], green: channels[1], blue: channels[2], opacity: channels[3])
         }
 
     }

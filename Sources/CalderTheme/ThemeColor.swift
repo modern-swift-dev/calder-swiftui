@@ -74,31 +74,34 @@
 
         /// Initializes a `ThemeColor` by lightening a color from an RGB hex string.
         /// - Parameters:
-        ///   - rgb: The hex string representing the base color.
+        ///   - rgb: The hex string representing the base color, in the format accepted by `Color(rgb:)`.
+        ///     An invalid string produces white.
         ///   - ratio: The amount by which to lighten the color (default is 0.5).
         ///   - lightContrastRatio: Optional ratio to generate a darker contrast color.
         ///   - darkContrastRatio: Optional ratio to generate a lighter contrast color.
         public init(lighten rgb: String, ratio: CGFloat = 0.5, lightContrastRatio: CGFloat? = nil, darkContrastRatio: CGFloat? = nil) {
-            let base = Color(rgb: rgb)
+            let base = Color(rgb: rgb) ?? .white
             self = .init(lighten: base, ratio: ratio, lightContrastRatio: lightContrastRatio, darkContrastRatio: darkContrastRatio)
         }
 
         /// Initializes a `ThemeColor` by darkening a color from an RGB hex string.
         /// - Parameters:
-        ///   - rgb: The hex string representing the base color.
+        ///   - rgb: The hex string representing the base color, in the format accepted by `Color(rgb:)`.
+        ///     An invalid string produces white.
         ///   - ratio: The amount by which to darken the color (default is 0.5).
         ///   - lightContrastRatio: Optional ratio to generate a lighter contrast color.
         ///   - darkContrastRatio: Optional ratio to generate a darker contrast color.
         public init(darken rgb: String, ratio: CGFloat = 0.5, lightContrastRatio: CGFloat? = nil, darkContrastRatio: CGFloat? = nil) {
-            let base = Color(rgb: rgb)
+            let base = Color(rgb: rgb) ?? .white
             self = .init(darken: base, ratio: ratio, lightContrastRatio: lightContrastRatio, darkContrastRatio: darkContrastRatio)
         }
 
         /// Initializes a `ThemeColor` from an RGB hex string, using it for all modes and contrasts.
         /// - Parameters:
-        ///   - rgb: The hex string representing the base color.
+        ///   - rgb: The hex string representing the base color, in the format accepted by `Color(rgb:)`.
+        ///     An invalid string produces white.
         public init(rgb: String) {
-            let base = Color(rgb: rgb)
+            let base = Color(rgb: rgb) ?? .white
             self.light = base
             self.dark = base
             self.lightContrast = base

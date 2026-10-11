@@ -176,14 +176,14 @@
             #expect(type(of: gradient) == LinearGradient.self)
         }
 
-        @Test func `init darken with hex color`() {
-            let hexColor = Color(rgb: "#FF5500")
+        @Test func `init darken with hex color`() throws {
+            let hexColor = try #require(Color(rgb: "#FF5500"))
             let gradient = LinearGradient(darken: hexColor)
             #expect(type(of: gradient) == LinearGradient.self)
         }
 
-        @Test func `init lighten with hex color`() {
-            let hexColor = Color(rgb: "#0055FF")
+        @Test func `init lighten with hex color`() throws {
+            let hexColor = try #require(Color(rgb: "#0055FF"))
             let gradient = LinearGradient(lighten: hexColor)
             #expect(type(of: gradient) == LinearGradient.self)
         }
