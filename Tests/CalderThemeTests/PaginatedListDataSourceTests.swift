@@ -21,6 +21,45 @@
             #expect(!source.isLast(1))
         }
 
+        @Test func `empty initial items start in the empty state`() {
+            let source = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
+
+            #expect(source.items.isEmpty)
+            expectEmpty(source.state)
+        }
+
+        @Test func `count reports the server total from the latest page that includes one`() async throws {
+            let nextURL = try #require(URL(string: "https://example.com/next"))
+            let recorder = PageRecorder()
+            let source = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
+            await source.configureAndLoad {
+                PaginatedList.Results(count: 10, next: nextURL, hasNext: true, results: [item(1)])
+            } nextPageLoader: { _ in
+                recorder.nextPageLoads += 1
+                if recorder.nextPageLoads == 1 {
+                    return PaginatedList.Results(count: 12, next: nextURL, hasNext: true, results: [item(2)])
+                }
+                return PaginatedList.Results(count: nil, next: nil, hasNext: false, results: [item(3)])
+            }
+            #expect(source.count == 10)
+
+            await source.next()
+            #expect(source.count == 12)
+
+            await source.next()
+            #expect(source.count == 12)
+
+            source.remove(id: 1)
+            source.upsert(item(4))
+            #expect(source.count == 12)
+
+            source.replaceAll(PaginatedList.Results(count: 30, next: nextURL, hasNext: true, results: [item(5)]))
+            #expect(source.count == 30)
+
+            source.replaceAll(values: [item(6), item(7)])
+            #expect(source.count == 2)
+        }
+
         @Test func `remove by item and id updates items and state`() {
             let source = PaginatedList.DataSource(items: [
                 item(1),
@@ -299,6 +338,7 @@
 
     @MainActor private final class PageRecorder {
         var firstPageLoads = 0
+        var nextPageLoads = 0
         var requestedCursors: [URL?] = []
     }
 

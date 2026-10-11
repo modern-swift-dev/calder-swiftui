@@ -31,7 +31,14 @@
                 }
             }
 
-            /// The total count of items available, if known.
+            /// The total number of items reported by the server, if known.
+            ///
+            /// This is the `count` of the most recently loaded page that includes one, so it can
+            /// exceed the number of loaded items. Loading or replacing the first page sets it from
+            /// that page, and replacing with values or initializing with items sets it to their
+            /// number. Local edits such as ``remove(_:)``, ``upsert(_:append:computeState:)``, and
+            /// `append(item:after:)` don't change it; use `items.count` for the
+            /// number of loaded items.
             public private(set) var count: Int?
             /// The array of currently loaded data items.
             public internal(set) var items: [DataType]
@@ -71,13 +78,13 @@
 
             /// Initializes a new `DataSource` with a given array of items.
             ///
-            /// This initializer sets the initial state to `.displaying` and populates the `items` array.
+            /// The initial state is `.empty` when `items` is empty and `.displaying` otherwise.
             /// - Parameter items: The initial array of data items.
             public init(
                 items: [DataType]
             ) {
                 self.items = items
-                state = .displaying
+                state = items.isEmpty ? .empty() : .displaying
                 currentPage = .init(results: items)
                 count = items.count
                 self.firstPageLoader = {
@@ -204,6 +211,7 @@
                 invalidateRequests()
                 cancellationRestorePoint = nil
                 currentPage = page
+                count = page.count
                 setItems(page.results)
             }
 
@@ -376,6 +384,9 @@
                     }
                     loadedNextPageCount += 1
                     currentPage = newPage
+                    if let total = newPage.count {
+                        count = total
+                    }
                     appendAll(newPage)
                 } catch {
                     guard requestId == currentRequestId,

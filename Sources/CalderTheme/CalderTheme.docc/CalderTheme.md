@@ -40,3 +40,7 @@ loaded instead of inserting a duplicate ID.
 
 `PaginatedList.Results` encodes `hasNext`. Decoding uses an explicit `hasNext` value when present
 and otherwise derives it from `next` and `results`.
+
+`PaginatedList.DataSource.count` is the total reported by the server. Every loaded page that
+includes a count updates it, while local edits leave it unchanged. A data source created with no
+items starts in the empty state.
