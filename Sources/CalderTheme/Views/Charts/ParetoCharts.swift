@@ -226,11 +226,9 @@
     }
 
     extension [ParetoChart.RawDataPoint] {
-        /// Calculates the maximum raw value from the data points, rounded up to the nearest hundred, for Y-axis scaling.
+        /// Calculates the maximum value for Y-axis scaling, rounded up proportionally to the data.
         var maxValue: Int {
-            let values: [Int] = map(\.value)
-            let max = values.max() ?? 0
-            return Int(ceil(Double(max) / 100.0)) * 100
+            ChartAxis.niceMaximum(for: map(\.value).max() ?? 0)
         }
 
         /// Sorts the points by descending value and computes their cumulative percentage.

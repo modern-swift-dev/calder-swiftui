@@ -8,7 +8,7 @@
                 title: "Counts", xAxisLabel: "Category", leftYAxisTitle: "Count", rightYAxisTitle: "Percent",
                 points: [.init(name: "Example", value: 10)]
             )
-            #expect(chart.maxValue == 100)
+            #expect(chart.maxValue == 10)
         }
     }
 #endif

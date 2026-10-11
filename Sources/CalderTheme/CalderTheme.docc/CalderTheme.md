@@ -11,7 +11,9 @@ Create Pareto chart categories with ``ParetoChart/RawDataPoint/init(name:value:)
 them to the chart initializer. The chart plots categories in descending order of value, keeping
 the input order for ties, and clamps negative values to zero.
 
-Vertical bar and Pareto charts support empty and all-zero data with a zero axis mark.
+Vertical bar and Pareto charts support empty and all-zero data with a zero axis mark. Their
+value axis maximum rounds the largest value up to the next multiple of its own order of
+magnitude, so `7` stays `7`, `15` becomes `20`, and `330` becomes `400`.
 Tick counts below one use one interval, and tick spacing is always positive. Pareto
 percentages remain finite when all category values are zero.
 
