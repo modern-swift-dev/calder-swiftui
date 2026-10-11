@@ -7,6 +7,86 @@
     @Suite(.serialized)
     @MainActor struct WrappingHStackLayoutTests {
 
+        // MARK: - Layout harness
+
+        /// Records the placement bounds each probe receives during layout.
+        ///
+        /// SwiftUI runs layout on the main thread, so probes record through `MainActor.assumeIsolated`.
+        @MainActor final class Recorder {
+            var frames: [Int: CGRect] = [:]
+        }
+
+        /// A leaf view that reports a fixed ideal size and records how the container lays it out.
+        struct Probe: Layout {
+            let id: Int
+            let size: CGSize
+            let recorder: Recorder
+
+            func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+                size
+            }
+
+            func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+                MainActor.assumeIsolated {
+                    recorder.frames[id] = bounds
+                }
+                for subview in subviews {
+                    subview.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
+                }
+            }
+        }
+
+        /// Lays out probes of the given sizes in a wrapping stack inside a fixed frame.
+        private static func content(
+            _ sizes: [CGSize],
+            horizontalSpacing: CGFloat,
+            verticalSpacing: CGFloat = 0,
+            width: CGFloat,
+            height: CGFloat = 400,
+            recorder: Recorder
+        ) -> some View {
+            WrappingHStackLayout(alignment: .topLeading, horizontalSpacing: horizontalSpacing, verticalSpacing: verticalSpacing) {
+                ForEach(sizes.indices, id: \.self) { index in
+                    Probe(id: index, size: sizes[index], recorder: recorder) {
+                        Color.clear
+                    }
+                }
+            }
+            .frame(width: width, height: height, alignment: .topLeading)
+        }
+
+        // MARK: - Layout behaviour
+
+        @Test func `changing horizontal spacing re-lays out rows`() {
+            let recorder = Recorder()
+            let sizes = [CGSize(width: 40, height: 10), CGSize(width: 40, height: 10)]
+            let renderer = ImageRenderer(content: AnyView(Self.content(sizes, horizontalSpacing: 0, width: 100, recorder: recorder)))
+            _ = renderer.cgImage
+            let firstRowY = recorder.frames[0]?.minY
+            #expect(recorder.frames[1]?.minY == firstRowY)
+
+            renderer.content = AnyView(Self.content(sizes, horizontalSpacing: 30, width: 100, recorder: recorder))
+            _ = renderer.cgImage
+
+            // 40 + 30 + 40 exceeds 100, so the second probe must wrap to a new row.
+            #expect(recorder.frames[1]?.minY == (firstRowY ?? 0) + 10)
+            #expect(recorder.frames[1]?.minX == recorder.frames[0]?.minX)
+        }
+
+        @Test func `changing vertical spacing re-lays out rows`() {
+            let recorder = Recorder()
+            let sizes = [CGSize(width: 80, height: 10), CGSize(width: 80, height: 10)]
+            let renderer = ImageRenderer(content: AnyView(Self.content(sizes, horizontalSpacing: 0, verticalSpacing: 0, width: 100, recorder: recorder)))
+            _ = renderer.cgImage
+            let firstRowY = recorder.frames[0]?.minY ?? 0
+            #expect(recorder.frames[1]?.minY == firstRowY + 10)
+
+            renderer.content = AnyView(Self.content(sizes, horizontalSpacing: 0, verticalSpacing: 15, width: 100, recorder: recorder))
+            _ = renderer.cgImage
+
+            #expect(recorder.frames[1]?.minY == firstRowY + 25)
+        }
+
         // MARK: - Initialization
 
         @Test func `initializes with default values`() {

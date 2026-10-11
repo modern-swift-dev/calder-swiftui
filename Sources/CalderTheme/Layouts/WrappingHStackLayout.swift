@@ -58,12 +58,17 @@
             Cache(minSize: minSize(subviews: subviews))
         }
 
-        /// Updates the existing cache with new subview information.
+        /// Updates the existing cache when the layout or its subviews change.
+        ///
+        /// SwiftUI calls this method when the layout's spacing or alignment changes or when the
+        /// subviews (including their spacing preferences) change, so the cached rows are discarded
+        /// and recomputed on the next layout pass.
         /// - Parameters:
         ///   - cache: A binding to the cache to update.
         ///   - subviews: The current subviews to consider.
         public func updateCache(_ cache: inout Cache, subviews: Subviews) {
             cache.minSize = minSize(subviews: subviews)
+            cache.rows = nil
         }
 
         /// Asks the layout to recommend a size for the container.
