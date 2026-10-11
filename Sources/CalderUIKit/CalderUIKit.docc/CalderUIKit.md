@@ -57,3 +57,5 @@ The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangl
 `UIImage.base64URLJpg()` now encodes JPEG data (at compression quality `1.0`) instead of labelling PNG data as `image/jpeg`. `base64URLPng()` and `base64URLJpg()` no longer insert line breaks into the Base64 payload. `base64()` and `base64String()` are unchanged and still wrap at 64 characters.
 
 `CIImage.writePNG(uiImage:)` and `CIImage.writeJpeg(uiImage:compression:)` now throw `CIImage.WriteError.encodingFailed` when the image cannot be encoded, instead of returning a URL to a file that was never written.
+
+`UIView.setViewGradient(startLocation:startPoint:startColor:endLocation:endPoint:endColor:type:)` now hosts its gradient in a single non-interactive subview at index 0 that resizes with the view. Repeated calls reconfigure that gradient instead of stacking layers. The method no longer sets `masksToBounds` on the view, so shadows are no longer clipped; the gradient clips itself using the view's corner radius at the time of the call.

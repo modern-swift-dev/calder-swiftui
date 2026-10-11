@@ -43,7 +43,12 @@
         }
 
         public extension UIView {
-            /// Applies a gradient to the view's layer.
+            /// Applies a gradient behind the view's content.
+            ///
+            /// The gradient is drawn by a single non-interactive subview inserted at index 0, whose
+            /// `CAGradientLayer` resizes with the view's bounds. Calling this method again moves that subview back to
+            /// index 0 and reconfigures it instead of adding another one. The view's clipping is left unchanged; the gradient adopts
+            /// the view's current corner radius, corner curve, and masked corners and clips only itself.
             /// - Parameters:
             ///   - startLocation: The normalized start location of the gradient (0.0 to 1.0). Defaults to 0.0.
             ///   - startPoint: The starting point of the gradient in the layer's coordinate space. Defaults to (0, 0).
@@ -61,19 +66,25 @@
                 endColor: UIColor,
                 type: CAGradientLayerType = .axial
             ) {
-                let layer = CAGradientLayer()
-                layer.type = type
-                layer.masksToBounds = true
-                layer.needsDisplayOnBoundsChange = true
-                layer.frame = bounds
-                layer.startPoint = startPoint
-                layer.endPoint = endPoint
-                layer.locations = [startLocation.asNumber, endLocation.asNumber]
-                layer.colors = [startColor.cgColor, endColor.cgColor]
+                let gradientView: GradientLayerView
+                if let existing = subviews.lazy.compactMap({ $0 as? GradientLayerView }).first {
+                    gradientView = existing
+                    sendSubviewToBack(existing)
+                } else {
+                    gradientView = GradientLayerView(frame: bounds)
+                    insertSubview(gradientView, at: 0)
+                }
 
-                self.layer.masksToBounds = true
-                self.layer.needsDisplayOnBoundsChange = true
-                self.layer.insertSublayer(layer, at: 0)
+                let gradientLayer = gradientView.gradientLayer
+                gradientLayer.type = type
+                gradientLayer.startPoint = startPoint
+                gradientLayer.endPoint = endPoint
+                gradientLayer.locations = [startLocation.asNumber, endLocation.asNumber]
+                gradientLayer.colors = [startColor.cgColor, endColor.cgColor]
+                gradientLayer.cornerRadius = layer.cornerRadius
+                gradientLayer.cornerCurve = layer.cornerCurve
+                gradientLayer.maskedCorners = layer.maskedCorners
+                gradientLayer.masksToBounds = true
             }
         }
 

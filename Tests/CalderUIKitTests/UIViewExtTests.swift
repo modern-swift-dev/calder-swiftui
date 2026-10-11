@@ -71,6 +71,48 @@
                 #expect(gradientLayer?.type == .radial)
             }
 
+            @Test func `set view gradient repeatedly reuses one gradient layer`() {
+                let view = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
+
+                view.setViewGradient(startColor: .red, endColor: .blue)
+                view.setViewGradient(startColor: .green, endColor: .yellow, type: .radial)
+
+                let gradientLayers = (view.layer.sublayers ?? []).compactMap { $0 as? CAGradientLayer }
+                #expect(gradientLayers.count == 1)
+                #expect(gradientLayers.first?.colors as? [CGColor] == [UIColor.green.cgColor, UIColor.yellow.cgColor])
+                #expect(gradientLayers.first?.type == .radial)
+            }
+
+            @Test func `set view gradient again keeps the gradient behind other subviews`() {
+                let view = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
+                view.setViewGradient(startColor: .red, endColor: .blue)
+                view.insertSubview(UIView(), at: 0)
+
+                view.setViewGradient(startColor: .green, endColor: .yellow)
+
+                #expect(view.layer.sublayers?.first is CAGradientLayer)
+            }
+
+            @Test func `set view gradient tracks the view bounds`() {
+                let view = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
+                view.setViewGradient(startColor: .red, endColor: .blue)
+
+                view.frame = CGRect(x: 10, y: 20, width: 240, height: 60)
+                view.layoutIfNeeded()
+
+                let gradientLayer = view.layer.sublayers?.first as? CAGradientLayer
+                #expect(gradientLayer?.frame == CGRect(x: 0, y: 0, width: 240, height: 60))
+            }
+
+            @Test func `set view gradient does not force host clipping`() {
+                let view = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
+
+                view.setViewGradient(startColor: .red, endColor: .blue)
+
+                #expect(view.layer.masksToBounds == false)
+                #expect(view.clipsToBounds == false)
+            }
+
             // MARK: - firstResponder Tests
 
             @Test func `first responder no first responder returns nil`() {
