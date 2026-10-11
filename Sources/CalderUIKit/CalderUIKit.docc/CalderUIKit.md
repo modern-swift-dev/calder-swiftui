@@ -25,3 +25,5 @@ The `center()` helpers on sequences of coordinates, locations, and annotations n
 The `coordinateRegion(padding:)` helpers now size each axis independently: the latitude delta spans the latitudes and the longitude delta spans the longitudes, each extended by `padding`. They previously produced a square region sized by the larger axis. Empty sequences now return `MKCoordinateRegion()`, which has a zero center and a zero span, instead of a region spanning the whole globe.
 
 `CLLocationCoordinate2D.distanceInMeters(from:)` now scales longitude differences by the cosine of the mean latitude, so it matches `CLLocation.distance(from:)` for short distances. East-west distances away from the equator are shorter than before, which makes `isNear(_:thresholdInMeters:)` match more coordinates at high latitudes.
+
+The `MKMapView` overlay insertion helpers now keep overlays in the order given instead of reversing them. Type-based helpers find the overlay type within the requested level rather than across all levels, and the `above:` variants insert above the last matching overlay instead of below it.

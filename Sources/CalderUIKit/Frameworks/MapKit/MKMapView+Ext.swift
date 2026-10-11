@@ -9,27 +9,39 @@
         public extension MKMapView {
 
             /// Inserts an array of overlays at a specified index and level on the map view.
+            ///
+            /// The overlays keep their order: the first overlay is inserted at `index` and each following overlay
+            /// directly above the previous one.
             /// - Parameters:
             ///   - overlays: An array of `MKOverlay` objects to insert.
-            ///   - index: The index at which to insert the overlays.
+            ///   - index: The index within `level` at which to insert the first overlay. Values outside the level's
+            ///     bounds are clamped to the bottom or top of the level.
             ///   - level: The `MKOverlayLevel` (e.g., .aboveRoads, .aboveLabels) at which to render the overlays.
             @MainActor func insertOverlays(_ overlays: [any MKOverlay], at index: Int, level: MKOverlayLevel) {
-                for overlay in overlays {
-                    insertOverlay(overlay, at: max(0, index), level: level)
+                let startIndex = min(max(0, index), self.overlays(in: level).count)
+                for (offset, overlay) in overlays.enumerated() {
+                    insertOverlay(overlay, at: startIndex + offset, level: level)
                 }
             }
 
             /// Inserts an array of overlays above a specified existing overlay.
+            ///
+            /// The overlays keep their order: the first overlay is inserted directly above `above` and each
+            /// following overlay directly above the previous one.
             /// - Parameters:
             ///   - overlays: An array of `MKOverlay` objects to insert.
             ///   - above: The `MKOverlay` object above which the new overlays will be inserted.
             @MainActor func insertOverlays(_ overlays: [any MKOverlay], above: any MKOverlay) {
+                var sibling = above
                 for overlay in overlays {
-                    insertOverlay(overlay, above: above)
+                    insertOverlay(overlay, above: sibling)
+                    sibling = overlay
                 }
             }
 
             /// Inserts an array of overlays below a specified existing overlay.
+            ///
+            /// The overlays keep their order, with the last overlay directly below `below`.
             /// - Parameters:
             ///   - overlays: An array of `MKOverlay` objects to insert.
             ///   - below: The `MKOverlay` object below which the new overlays will be inserted.
@@ -40,43 +52,59 @@
             }
 
             /// Inserts an array of overlays below the first occurrence of a specified overlay type at a given level.
+            ///
+            /// The overlays keep their order. If `level` contains no overlay of the specified type, the overlays are
+            /// inserted at the bottom of the level.
             /// - Parameters:
             ///   - overlays: An array of `MKOverlay` objects to insert.
             ///   - below: The type of `MKOverlay` below which the new overlays will be inserted.
-            ///   - level: The `MKOverlayLevel` at which to render the overlays.
+            ///   - level: The `MKOverlayLevel` at which to render the overlays and in which to search for the type.
             @MainActor func insertOverlays(_ overlays: [any MKOverlay], below: (some MKOverlay).Type, level: MKOverlayLevel) {
-                let index = firstIndexOf(overlayType: below)
+                let index = firstIndex(of: below, in: level) ?? 0
                 insertOverlays(overlays, at: index, level: level)
             }
 
             /// Inserts an array of overlays above the last occurrence of a specified overlay type at a given level.
+            ///
+            /// The overlays keep their order. If `level` contains no overlay of the specified type, the overlays are
+            /// inserted at the top of the level.
             /// - Parameters:
             ///   - overlays: An array of `MKOverlay` objects to insert.
             ///   - above: The type of `MKOverlay` above which the new overlays will be inserted.
-            ///   - level: The `MKOverlayLevel` at which to render the overlays.
+            ///   - level: The `MKOverlayLevel` at which to render the overlays and in which to search for the type.
             @MainActor func insertOverlays(_ overlays: [any MKOverlay], above: (some MKOverlay).Type, level: MKOverlayLevel) {
-                let index = lastIndexOf(overlayType: above)
+                let index = lastIndex(of: above, in: level).map { $0 + 1 } ?? self.overlays(in: level).count
                 insertOverlays(overlays, at: index, level: level)
             }
 
             /// Inserts a single overlay below the first occurrence of a specified overlay type at a given level.
+            ///
+            /// If `level` contains no overlay of the specified type, the overlay is inserted at the bottom of the level.
             /// - Parameters:
             ///   - overlay: The `MKOverlay` object to insert.
             ///   - below: The type of `MKOverlay` below which the new overlay will be inserted.
-            ///   - level: The `MKOverlayLevel` at which to render the overlay.
+            ///   - level: The `MKOverlayLevel` at which to render the overlay and in which to search for the type.
             @MainActor func insertOverlay(_ overlay: any MKOverlay, below: (some MKOverlay).Type, level: MKOverlayLevel) {
-                let index = firstIndexOf(overlayType: below)
-                insertOverlays([overlay], at: index, level: level)
+                insertOverlays([overlay], below: below, level: level)
             }
 
             /// Inserts a single overlay above the last occurrence of a specified overlay type at a given level.
+            ///
+            /// If `level` contains no overlay of the specified type, the overlay is inserted at the top of the level.
             /// - Parameters:
             ///   - overlay: The `MKOverlay` object to insert.
             ///   - above: The type of `MKOverlay` above which the new overlay will be inserted.
-            ///   - level: The `MKOverlayLevel` at which to render the overlay.
+            ///   - level: The `MKOverlayLevel` at which to render the overlay and in which to search for the type.
             @MainActor func insertOverlay(_ overlay: any MKOverlay, above: (some MKOverlay).Type, level: MKOverlayLevel) {
-                let index = lastIndexOf(overlayType: above)
-                insertOverlays([overlay], at: index, level: level)
+                insertOverlays([overlay], above: above, level: level)
+            }
+
+            @MainActor private func firstIndex<T: MKOverlay>(of _: T.Type, in level: MKOverlayLevel) -> Int? {
+                overlays(in: level).firstIndex { $0 is T }
+            }
+
+            @MainActor private func lastIndex<T: MKOverlay>(of _: T.Type, in level: MKOverlayLevel) -> Int? {
+                overlays(in: level).lastIndex { $0 is T }
             }
         }
 

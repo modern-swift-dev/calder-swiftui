@@ -32,10 +32,9 @@
             }
         }
 
-        // Disabled: MKMapView internally creates CLLocationManager which waits indefinitely
-        // for authorization in test environments, causing the test process to hang.
-        // See: rdar://FB123456 (hypothetical radar for this issue)
-        @Suite(.serialized, .disabled("MKMapView CLLocationManager hangs test process"))
+        /// MKMapView can create a CLLocationManager that waits for authorization in test
+        /// environments; the time limit fails the suite instead of hanging the test process.
+        @Suite(.serialized, .timeLimit(.minutes(1)))
         @MainActor struct MKMapViewExtTests {
 
             /// Legacy helper for backwards compatibility
@@ -51,6 +50,23 @@
                 mapView.removeAnnotations(mapView.annotations)
                 mapView.removeOverlays(mapView.overlays)
                 mapView.delegate = nil
+            }
+
+            private func identifiers(_ overlays: [any MKOverlay]) -> [ObjectIdentifier] {
+                overlays.map { ObjectIdentifier($0) }
+            }
+
+            private func circle() -> MKCircle {
+                MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
+            }
+
+            private func polyline() -> MKPolyline {
+                MKPolyline(coordinates: [CLLocationCoordinate2D(40, -100), CLLocationCoordinate2D(41, -101)], count: 2)
+            }
+
+            /// Adds overlays to the `.aboveRoads` level so all-level indices differ from `.aboveLabels` indices.
+            private func addRoadOverlays(to mapView: MKMapView) {
+                mapView.addOverlays([polyline(), polyline()], level: .aboveRoads)
             }
 
             // MARK: - firstIndexOf Tests
@@ -135,78 +151,117 @@
 
             @Test func `insert overlays at index`() {
                 let mapView = createMapView()
-                let circle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
+                let circle = circle()
                 mapView.insertOverlays([circle], at: 0, level: .aboveRoads)
-                #expect(mapView.overlays.count == 1)
+                #expect(identifiers(mapView.overlays(in: .aboveRoads)) == identifiers([circle]))
                 cleanupMapView(mapView)
             }
 
-            @Test func `insert overlays multiple at index`() {
+            @Test func `insert overlays multiple at index keeps their order`() {
                 let mapView = createMapView()
-                let circle1 = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
-                let circle2 = MKCircle(center: CLLocationCoordinate2D(41, -101), radius: 2000)
-                mapView.insertOverlays([circle1, circle2], at: 0, level: .aboveLabels)
-                #expect(mapView.overlays.count == 2)
+                let base = circle()
+                mapView.addOverlay(base, level: .aboveLabels)
+                let first = polyline()
+                let second = polyline()
+                mapView.insertOverlays([first, second], at: 0, level: .aboveLabels)
+                #expect(identifiers(mapView.overlays(in: .aboveLabels)) == identifiers([first, second, base]))
                 cleanupMapView(mapView)
             }
 
-            @Test func `insert overlays above`() {
+            @Test func `insert overlays above keeps their order`() {
                 let mapView = createMapView()
-                let baseCircle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
-                mapView.addOverlay(baseCircle)
-                let newCircle = MKCircle(center: CLLocationCoordinate2D(41, -101), radius: 2000)
-                mapView.insertOverlays([newCircle], above: baseCircle)
-                #expect(mapView.overlays.count == 2)
+                let base = circle()
+                let top = circle()
+                mapView.addOverlays([base, top], level: .aboveLabels)
+                let first = polyline()
+                let second = polyline()
+                mapView.insertOverlays([first, second], above: base)
+                #expect(identifiers(mapView.overlays(in: .aboveLabels)) == identifiers([base, first, second, top]))
                 cleanupMapView(mapView)
             }
 
-            @Test func `insert overlays below`() {
+            @Test func `insert overlays below keeps their order`() {
                 let mapView = createMapView()
-                let baseCircle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
-                mapView.addOverlay(baseCircle)
-                let newCircle = MKCircle(center: CLLocationCoordinate2D(41, -101), radius: 2000)
-                mapView.insertOverlays([newCircle], below: baseCircle)
-                #expect(mapView.overlays.count == 2)
+                let bottom = circle()
+                let base = circle()
+                mapView.addOverlays([bottom, base], level: .aboveLabels)
+                let first = polyline()
+                let second = polyline()
+                mapView.insertOverlays([first, second], below: base)
+                #expect(identifiers(mapView.overlays(in: .aboveLabels)) == identifiers([bottom, first, second, base]))
                 cleanupMapView(mapView)
             }
 
-            @Test func `insert overlays below type`() {
+            @Test func `insert overlays below type uses the index within the level`() {
                 let mapView = createMapView()
-                let baseCircle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
-                mapView.addOverlay(baseCircle)
+                addRoadOverlays(to: mapView)
                 let polygon = MKPolygon(coordinates: [], count: 0)
-                mapView.insertOverlays([polygon], below: MKCircle.self, level: .aboveRoads)
-                #expect(mapView.overlays.count == 2)
+                let base = circle()
+                mapView.addOverlays([polygon, base], level: .aboveLabels)
+                let first = polyline()
+                let second = polyline()
+                mapView.insertOverlays([first, second], below: MKCircle.self, level: .aboveLabels)
+                #expect(identifiers(mapView.overlays(in: .aboveLabels)) == identifiers([polygon, first, second, base]))
                 cleanupMapView(mapView)
             }
 
-            @Test func `insert overlays above type`() {
+            @Test func `insert overlays above type inserts above the last occurrence within the level`() {
                 let mapView = createMapView()
-                let baseCircle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
-                mapView.addOverlay(baseCircle)
+                addRoadOverlays(to: mapView)
+                let firstCircle = circle()
+                let lastCircle = circle()
                 let polygon = MKPolygon(coordinates: [], count: 0)
-                mapView.insertOverlays([polygon], above: MKCircle.self, level: .aboveRoads)
-                #expect(mapView.overlays.count == 2)
+                mapView.addOverlays([firstCircle, lastCircle, polygon], level: .aboveLabels)
+                let first = polyline()
+                let second = polyline()
+                mapView.insertOverlays([first, second], above: MKCircle.self, level: .aboveLabels)
+                #expect(identifiers(mapView.overlays(in: .aboveLabels)) == identifiers([firstCircle, lastCircle, first, second, polygon]))
                 cleanupMapView(mapView)
             }
 
-            @Test func `insert overlay below type`() {
+            @Test func `insert overlays above missing type appends to the level`() {
                 let mapView = createMapView()
-                let baseCircle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
-                mapView.addOverlay(baseCircle)
-                let newCircle = MKCircle(center: CLLocationCoordinate2D(41, -101), radius: 2000)
-                mapView.insertOverlay(newCircle, below: MKCircle.self, level: .aboveRoads)
-                #expect(mapView.overlays.count == 2)
+                let polygon = MKPolygon(coordinates: [], count: 0)
+                mapView.addOverlay(polygon, level: .aboveLabels)
+                let first = polyline()
+                let second = polyline()
+                mapView.insertOverlays([first, second], above: MKCircle.self, level: .aboveLabels)
+                #expect(identifiers(mapView.overlays(in: .aboveLabels)) == identifiers([polygon, first, second]))
                 cleanupMapView(mapView)
             }
 
-            @Test func `insert overlay above type`() {
+            @Test func `insert overlays below missing type inserts at the bottom of the level`() {
                 let mapView = createMapView()
-                let baseCircle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
-                mapView.addOverlay(baseCircle)
-                let newCircle = MKCircle(center: CLLocationCoordinate2D(41, -101), radius: 2000)
-                mapView.insertOverlay(newCircle, above: MKCircle.self, level: .aboveRoads)
-                #expect(mapView.overlays.count == 2)
+                let polygon = MKPolygon(coordinates: [], count: 0)
+                mapView.addOverlay(polygon, level: .aboveLabels)
+                let first = polyline()
+                let second = polyline()
+                mapView.insertOverlays([first, second], below: MKCircle.self, level: .aboveLabels)
+                #expect(identifiers(mapView.overlays(in: .aboveLabels)) == identifiers([first, second, polygon]))
+                cleanupMapView(mapView)
+            }
+
+            @Test func `insert overlay below type uses the index within the level`() {
+                let mapView = createMapView()
+                addRoadOverlays(to: mapView)
+                let polygon = MKPolygon(coordinates: [], count: 0)
+                let base = circle()
+                mapView.addOverlays([polygon, base], level: .aboveLabels)
+                let newOverlay = polyline()
+                mapView.insertOverlay(newOverlay, below: MKCircle.self, level: .aboveLabels)
+                #expect(identifiers(mapView.overlays(in: .aboveLabels)) == identifiers([polygon, newOverlay, base]))
+                cleanupMapView(mapView)
+            }
+
+            @Test func `insert overlay above type inserts above the last occurrence within the level`() {
+                let mapView = createMapView()
+                addRoadOverlays(to: mapView)
+                let base = circle()
+                let polygon = MKPolygon(coordinates: [], count: 0)
+                mapView.addOverlays([base, polygon], level: .aboveLabels)
+                let newOverlay = polyline()
+                mapView.insertOverlay(newOverlay, above: MKCircle.self, level: .aboveLabels)
+                #expect(identifiers(mapView.overlays(in: .aboveLabels)) == identifiers([base, newOverlay, polygon]))
                 cleanupMapView(mapView)
             }
 
