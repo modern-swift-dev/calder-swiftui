@@ -646,9 +646,13 @@
                 BarcodeScannerView.boundingRect(of: corners.map { layer.layerPointConverted(fromCaptureDevicePoint: $0) })
             }
 
-            /// Returns a `UIBezierPath` representing the boundaries of the detected object within the given preview layer.
+            /// Returns a cut-out path for the detected object within the given preview layer.
+            ///
+            /// The path starts with the full bounds of `layer` and then adds the object's outline. Filled with the even-odd
+            /// rule (`usesEvenOddFillRule` or `CAShapeLayerFillRule.evenOdd`), it covers the preview everywhere except the
+            /// detected object, which makes it suitable for a dimming overlay that leaves the code visible.
             /// - Parameter layer: The `AVCaptureVideoPreviewLayer` displaying the video.
-            /// - Returns: The `UIBezierPath` of the detected object.
+            /// - Returns: The full-preview path with the object's outline cut out.
             func path(for layer: AVCaptureVideoPreviewLayer) -> UIBezierPath {
                 BarcodeScannerView.cutOutPath(in: layer.bounds, around: corners.map { layer.layerPointConverted(fromCaptureDevicePoint: $0) })
             }
@@ -661,14 +665,18 @@
             /// - Parameter points: The corners of a detected code in layer coordinates.
             /// - Returns: The bounding rectangle of `points`.
             nonisolated static func boundingRect(of points: [CGPoint]) -> CGRect {
-                let minX: CGFloat = points.min { param1, param2 in param1.x < param2.x }.map(\.x) ?? 0.0
-                let minY: CGFloat = points.min { param1, param2 in param1.y < param2.y }.map(\.y) ?? 0.0
-                let maxX: CGFloat = points.max { param1, param2 in param1.x < param2.x }.map(\.x) ?? 0.0
-                let maxY: CGFloat = points.max { param1, param2 in param1.y < param2.y }.map(\.y) ?? 0.0
+                let xs = points.map(\.x)
+                let ys = points.map(\.y)
+                let minX = xs.min() ?? 0.0
+                let minY = ys.min() ?? 0.0
+                let maxX = xs.max() ?? 0.0
+                let maxY = ys.max() ?? 0.0
                 return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
             }
 
             /// Returns a path made of `bounds` followed by the closed polygon through `points`.
+            ///
+            /// Filled with the even-odd rule, the path covers `bounds` except the polygon: an intentional cut-out.
             /// - Parameters:
             ///   - bounds: The bounds of the preview layer.
             ///   - points: The corners of a detected code in layer coordinates.
