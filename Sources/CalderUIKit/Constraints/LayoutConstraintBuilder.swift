@@ -74,6 +74,20 @@
                 component.asConstraints
             }
 
+            /// Builds an `if` block without an `else`, producing no constraints when the condition is false.
+            /// - Parameter component: The block's constraints, or `nil` when the condition is false.
+            /// - Returns: The block's constraints, or an empty array when the condition is false.
+            public static func buildOptional(_ component: [NSLayoutConstraint]?) -> [NSLayoutConstraint] {
+                component ?? []
+            }
+
+            /// Builds a `for` loop, combining the constraints from every iteration in order.
+            /// - Parameter components: The constraints produced by each iteration.
+            /// - Returns: The constraints of every iteration, in iteration order.
+            public static func buildArray(_ components: [[NSLayoutConstraint]]) -> [NSLayoutConstraint] {
+                components.flatMap(\.self)
+            }
+
             /// Builds an expression into an array of `NSLayoutConstraint`s.
             public static func buildExpression(_ expression: any LayoutConstraintGroup) -> [NSLayoutConstraint] {
                 expression.asConstraints

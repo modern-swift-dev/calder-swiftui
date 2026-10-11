@@ -82,6 +82,34 @@
                 #expect(constraints.count == 2)
             }
 
+            @Test(arguments: [true, false])
+            func `constraint builder if without else`(includeHeight: Bool) {
+                let view = UIView()
+                let constraints = NSLayoutConstraint.activate {
+                    view.widthAnchor.eq(20)
+                    if includeHeight {
+                        view.heightAnchor.eq(30)
+                    }
+                }
+                #expect(constraints.count == (includeHeight ? 2 : 1))
+                #expect(constraints.allSatisfy(\.isActive) == true)
+            }
+
+            @Test func `constraint builder for loop`() {
+                let container = UIView()
+                let subviews = (0 ..< 3).map { _ in UIView() }
+                subviews.forEach(container.addSubview)
+                let constraints = NSLayoutConstraint.activate {
+                    container.widthAnchor.eq(100)
+                    for subview in subviews {
+                        subview.widthAnchor.eq(container.widthAnchor)
+                        subview.heightAnchor.eq(10)
+                    }
+                }
+                #expect(constraints.count == 7)
+                #expect(constraints.allSatisfy(\.isActive) == true)
+            }
+
             @Test func `constraint activate`() {
                 let view = UIView()
                 let constraints: [NSLayoutConstraint] = [
