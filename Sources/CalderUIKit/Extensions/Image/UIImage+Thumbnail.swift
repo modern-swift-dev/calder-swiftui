@@ -26,54 +26,59 @@
 
             /// Generate a thumbnail
             ///
-            /// - parameter target the CGSize
-            /// - parameter keepAspectRatio the aspect ratio is to be preserved
-            /// - Returns: The thumbnail
+            /// The image is drawn with `orientation` applied, so an orientation that swaps width and height is
+            /// taken into account. The result uses the main screen's preferred scale and a transparent background.
+            ///
+            /// - Parameters:
+            ///   - target: The size of the thumbnail, in points.
+            ///   - keepAspectRatio: `true` to fit the whole image inside `target`, centred, preserving its aspect
+            ///     ratio; `false` to stretch the whole image to fill `target`.
+            ///   - orientation: The orientation to apply instead of the image's own orientation; ignored when the
+            ///     image isn't backed by a `CGImage`.
+            /// - Returns: The thumbnail.
             @MainActor func resize(_ target: CGSize, _ keepAspectRatio: Bool = true, _ orientation: UIImage.Orientation? = nil) -> UIImage {
+                let orientedImage = scaledCopy(scale, orientation) ?? self
+
+                var rect = CGRect(origin: .zero, size: target)
                 if keepAspectRatio {
-                    guard let scaledImage = scaledCopy(scale, orientation) else {
-                        return self
-                    }
-                    let imageScale: CGFloat = min(target.width / size.width, target.height / size.height)
+                    let imageSize = orientedImage.size
+                    let imageScale: CGFloat = min(target.width / imageSize.width, target.height / imageSize.height)
 
-                    let w: CGFloat = size.width * imageScale
-                    let h: CGFloat = size.height * imageScale
-                    let x: CGFloat = (target.width - w) / 2
-                    let y: CGFloat = (target.height - h) / 2
-                    let rect = CGRect(x: x, y: y, width: w, height: h)
-
-                    UIGraphicsBeginImageContextWithOptions(target, false, UIScreen.main.scale)
-                    scaledImage.draw(in: rect)
-                    let thumbnail = UIGraphicsGetImageFromCurrentImageContext()
-                    UIGraphicsEndImageContext()
-                    return thumbnail?.withRenderingMode(renderingMode) ?? self
+                    let w: CGFloat = imageSize.width * imageScale
+                    let h: CGFloat = imageSize.height * imageScale
+                    rect = CGRect(x: (target.width - w) / 2, y: (target.height - h) / 2, width: w, height: h)
                 }
 
-                UIGraphicsBeginImageContextWithOptions(target, false, UIScreen.main.scale)
-                draw(in: CGRect(0, 0, size.width, size.height))
-                let thumbnail = UIGraphicsGetImageFromCurrentImageContext()
-                UIGraphicsEndImageContext()
-                return thumbnail?.withRenderingMode(renderingMode) ?? self
+                return Self.render(orientedImage, in: rect, canvasSize: target).withRenderingMode(renderingMode)
             }
 
             /// Generate a resize copy of the original picture, with the new size specified as an absolute value.
             ///
-            /// - parameters newSize: the actual size in pixels
-            /// - parameters orientation: the orientation of the picture
-            /// - returns: the newly resized image.
+            /// The longer side of the image, after applying `orientation`, becomes `newSize` points. The result uses
+            /// the main screen's preferred scale.
+            ///
+            /// - Parameters:
+            ///   - newSize: The length of the longer side, in points.
+            ///   - orientation: The orientation to apply instead of the image's own orientation.
+            /// - Returns: The newly resized image, or the receiver if it isn't backed by a `CGImage`.
             @MainActor func resizeToFit(_ newSize: CGFloat, _ orientation: UIImage.Orientation? = nil) -> UIImage {
-                let imageScale: CGFloat = newSize / max(size.height, size.width)
-                guard let scaledImage = scaledCopy(imageScale, orientation) else {
+                guard let orientedImage = scaledCopy(scale, orientation) else {
                     return self
                 }
-                let w: CGFloat = size.width * imageScale
-                let h: CGFloat = size.height * imageScale
-                let rect = CGRect(x: 0, y: 0, width: w, height: h)
-                UIGraphicsBeginImageContextWithOptions(rect.size, false, UIScreen.main.scale)
-                scaledImage.draw(in: rect)
-                let thumbnail = UIGraphicsGetImageFromCurrentImageContext()
-                UIGraphicsEndImageContext()
-                return thumbnail?.withRenderingMode(renderingMode) ?? self
+                let imageSize = orientedImage.size
+                let imageScale: CGFloat = newSize / max(imageSize.height, imageSize.width)
+                let rect = CGRect(x: 0, y: 0, width: imageSize.width * imageScale, height: imageSize.height * imageScale)
+                return Self.render(orientedImage, in: rect, canvasSize: rect.size).withRenderingMode(renderingMode)
+            }
+
+            /// Draws `image` into `rect` on a transparent canvas of `canvasSize` points at the main screen's preferred scale.
+            @MainActor private static func render(_ image: UIImage, in rect: CGRect, canvasSize: CGSize) -> UIImage {
+                let format = UIGraphicsImageRendererFormat.preferred()
+                format.opaque = false
+                format.preferredRange = .standard
+                return UIGraphicsImageRenderer(size: canvasSize, format: format).image { _ in
+                    image.draw(in: rect)
+                }
             }
 
             /// Generate a scaled copy

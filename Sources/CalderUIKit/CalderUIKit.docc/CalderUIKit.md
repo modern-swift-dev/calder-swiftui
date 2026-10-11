@@ -49,3 +49,5 @@ The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangl
 `CGContext.drawText(text:rect:font:color:)` now draws into the receiving context instead of the current UIKit or AppKit graphics context.
 
 `CGContext.drawStar(rect:color:nbPoint:)` now centres the star in `rect`, sizes it to the shorter side, and draws a star with `nbPoint` tips for both odd and even counts. `CGContext.drawSquare(frame:fillColor:strokeWidth:strokeColor:)` now fills before stroking, so the whole stroke is visible.
+
+`UIImage.resize(_:_:_:)` now scales the whole image to the target size when the aspect ratio is not kept, instead of cropping it. `resize(_:_:_:)` and `resizeToFit(_:_:)` account for orientation overrides that swap width and height, and render with `UIGraphicsImageRenderer` at the preferred format scale instead of `UIScreen.main.scale`.
