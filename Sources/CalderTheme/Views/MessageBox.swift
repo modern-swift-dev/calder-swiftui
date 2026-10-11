@@ -12,6 +12,9 @@
     /// Use `MessageBox` to display important information to the user in a visually distinct way.
     /// It offers several predefined `Variant` styles for common use cases (success, info, warn, error, header),
     /// and a `custom` variant for complete control over its appearance.
+    ///
+    /// VoiceOver reads the message box as one element: the severity of a built-in variant
+    /// (for example, "Warning"), then the title and message. A custom variant's icon is decorative.
     public struct MessageBox: View {
 
         /// The available visual variants of the message box.
@@ -44,6 +47,18 @@
                     case .warn: Image(systemSymbol: .exclamationmarkTriangleFill)
                     case .error: Image(systemSymbol: .flameFill)
                     case let .custom(icon, _, _): icon
+                }
+            }
+
+            /// The severity announced by assistive technologies in place of the icon's symbol name,
+            /// or `nil` for `.custom` variants, whose icon is treated as decorative.
+            var accessibilitySeverity: LocalizedStringKey? {
+                switch self {
+                    case .success: "Success"
+                    case .info: "Information"
+                    case .warn: "Warning"
+                    case .error: "Error"
+                    case .custom: nil
                 }
             }
 
@@ -110,6 +125,8 @@
                 icon
                     .font(.title3)
                     .foregroundStyle(variant.iconColor(theme: theme))
+                    .accessibilityLabel(Text(variant.accessibilitySeverity ?? ""))
+                    .accessibilityHidden(variant.accessibilitySeverity == nil)
 
                 VStack(alignment: .leading, spacing: .xxxs) {
                     if !title.isEmpty {
@@ -133,6 +150,7 @@
             .contentShape(RoundedRectangle(cornerRadius: .xxs))
             .clipShape(RoundedRectangle(cornerRadius: .xxs))
             .shadow(color: theme.shadow, radius: 4, x: 2, y: 2)
+            .accessibilityElement(children: .combine)
         }
 
     }

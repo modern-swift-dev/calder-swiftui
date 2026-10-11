@@ -13,6 +13,7 @@
             let label: String?
             let value: String?
             let traits: UIAccessibilityTraits
+            let expandedStatus: UIAccessibility.ExpandedStatus
         }
 
         /// Returns the accessibility elements exposed by `view`, in traversal order.
@@ -34,7 +35,14 @@
 
         private static func collect(_ object: NSObject, into result: inout [Element]) {
             if object.isAccessibilityElement {
-                result.append(Element(label: object.accessibilityLabel, value: object.accessibilityValue, traits: object.accessibilityTraits))
+                result.append(
+                    Element(
+                        label: object.accessibilityLabel,
+                        value: object.accessibilityValue,
+                        traits: object.accessibilityTraits,
+                        expandedStatus: object.accessibilityExpandedStatus
+                    )
+                )
             }
             if let elements = object.accessibilityElements {
                 for case let child as NSObject in elements {

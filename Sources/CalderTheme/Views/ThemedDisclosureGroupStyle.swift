@@ -13,6 +13,9 @@
         /// ensuring consistency with the application's overall design. The chevron rotates 90 degrees
         /// when the group is expanded, providing a clear visual cue to the user.
         ///
+        /// The decorative chevron is hidden from assistive technologies; VoiceOver reads the label and
+        /// the group's expanded or collapsed state.
+        ///
         /// - Note: This style relies on `Environment(\.theme)` for its styling properties.
         public struct ThemedDisclosureGroupStyle: DisclosureGroupStyle {
 
@@ -42,6 +45,7 @@
                             Image(systemSymbol: .chevronRight)
                                 .font(.subheadline)
                                 .rotationEffect(configuration.isExpanded ? .degrees(90) : .zero)
+                                .accessibilityHidden(true)
                         }
                         .padding(.xs)
                         .foregroundStyle(theme.text1)
