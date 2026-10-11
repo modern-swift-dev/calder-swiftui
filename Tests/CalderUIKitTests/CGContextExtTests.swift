@@ -175,40 +175,58 @@
 
             // MARK: - drawText Tests
 
-            @Test func `draw text basic`() {
-                guard let context = createContext() else {
-                    Issue.record("Failed to create context")
-                    return
-                }
-
-                let text: NSString = "Hello"
+            @Test func `draw text paints the receiving context inside the rect`() throws {
+                let bitmap = try #require(RGBABitmap(width: 100, height: 100))
                 let rect = CGRect(10.0, 10.0, 80.0, 30.0)
-                context.drawText(
-                    text: text,
+
+                bitmap.context.drawText(
+                    text: "Hello",
                     rect: rect,
-                    font: NSUIFont.systemFont(ofSize: 14),
+                    font: NSUIFont.systemFont(ofSize: 20),
                     color: NSUIColor.black
                 )
 
-                #expect(context.width == 100)
+                let total = bitmap.paintedPixelCount(inContextRect: CGRect(0, 0, 100, 100))
+                #expect(bitmap.paintedPixelCount(inContextRect: rect) > 20)
+                #expect(bitmap.paintedPixelCount(inContextRect: rect) == total)
             }
 
-            @Test func `draw text empty string`() {
-                guard let context = createContext() else {
-                    Issue.record("Failed to create context")
-                    return
+            @Test(arguments: [false, true])
+            func `draw text is upright in unflipped and flipped contexts`(flipped: Bool) throws {
+                let bitmap = try #require(RGBABitmap(width: 100, height: 100))
+                if flipped {
+                    bitmap.context.translateBy(x: 0, y: 100)
+                    bitmap.context.scaleBy(x: 1, y: -1)
                 }
 
-                let text: NSString = ""
-                let rect = CGRect(0.0, 0.0, 100.0, 100.0)
-                context.drawText(
-                    text: text,
-                    rect: rect,
+                bitmap.context.drawText(
+                    text: "T",
+                    rect: CGRect(0.0, 0.0, 100.0, 100.0),
+                    font: NSUIFont.systemFont(ofSize: 60),
+                    color: NSUIColor.black
+                )
+
+                // Rows count from the top of the image. An upright "T" has its wide bar above its narrow stem.
+                let inkPerRow = (0 ..< bitmap.height).map { y in
+                    (0 ..< bitmap.width).count { bitmap.pixel(x: $0, y: y).alpha > 0 }
+                }
+                let inkedRows = inkPerRow.indices.filter { inkPerRow[$0] > 0 }
+                let top = try #require(inkedRows.first)
+                let bottom = try #require(inkedRows.last)
+                #expect(inkPerRow[top + 2] > 3 * inkPerRow[bottom - 2], "rows: \(inkPerRow[top + 2]) vs \(inkPerRow[bottom - 2])")
+            }
+
+            @Test func `draw text empty string paints nothing`() throws {
+                let bitmap = try #require(RGBABitmap(width: 100, height: 100))
+
+                bitmap.context.drawText(
+                    text: "",
+                    rect: CGRect(0.0, 0.0, 100.0, 100.0),
                     font: NSUIFont.systemFont(ofSize: 12),
                     color: NSUIColor.gray
                 )
 
-                #expect(context.width == 100)
+                #expect(bitmap.paintedPixelCount(inContextRect: CGRect(0, 0, 100, 100)) == 0)
             }
 
             // MARK: - drawStar Tests

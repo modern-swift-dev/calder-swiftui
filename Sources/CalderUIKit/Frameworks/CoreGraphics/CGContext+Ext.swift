@@ -105,6 +105,12 @@
                 }
 
                 /// Draws text within a specified rectangle using a given font and color.
+                ///
+                /// The text is drawn upright into the receiver, which is made the current UIKit or AppKit graphics
+                /// context for the duration of the call. The receiver is treated as flipped (top-left origin, as with
+                /// `UIGraphicsImageRenderer`) when its current transformation matrix inverts the y-axis, and as
+                /// unflipped (bottom-left origin, as with a bitmap `CGContext`) otherwise.
+                /// Call this method on the thread that owns the receiver.
                 /// - Parameters:
                 ///   - text: The `NSString` to draw.
                 ///   - rect: The `CGRect` defining the area where the text will be drawn.
@@ -130,11 +136,30 @@
                     style.lineBreakMode = NSLineBreakMode.byTruncatingTail
                     style.alignment = NSTextAlignment.center
 
+                    let isFlipped = ctm.d < 0
+                    #if os(macOS) && !targetEnvironment(macCatalyst)
+                        NSGraphicsContext.saveGraphicsState()
+                        NSGraphicsContext.current = NSGraphicsContext(cgContext: self, flipped: isFlipped)
+                    #else
+                        if !isFlipped {
+                            // UIKit draws text for a flipped context; flip around `rect` so it stays upright in place.
+                            translateBy(x: 0, y: rect.minY + rect.maxY)
+                            scaleBy(x: 1, y: -1)
+                        }
+                        UIGraphicsPushContext(self)
+                    #endif
+
                     text.draw(in: rect, withAttributes: [
                         NSAttributedString.Key.font: font,
                         NSAttributedString.Key.paragraphStyle: style,
                         NSAttributedString.Key.foregroundColor: color
                     ])
+
+                    #if os(macOS) && !targetEnvironment(macCatalyst)
+                        NSGraphicsContext.restoreGraphicsState()
+                    #else
+                        UIGraphicsPopContext()
+                    #endif
 
                     restoreGState()
                 }

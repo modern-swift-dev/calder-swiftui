@@ -45,3 +45,5 @@ CalderUIKit no longer declares retroactive `Sendable` conformances for `UNUserNo
 `UITableView.indexPathForLastRow(inSection:)`, `UICollectionView.indexPathForLastItem(inSection:)`, `indexPathForLastRow`, and `indexPathForLastItem` return `nil` for empty or out-of-range sections instead of row or item 0. `UITableView.safeScrollToRow(at:at:animated:)` ignores negative indices.
 
 The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangle's origin. `topLeft` returns `(minX, minY)` instead of `.zero`, `topRight` and `bottomLeft` use `minY` and `minX`, and `center` returns `(midX, midY)` instead of `(minX, midY)`.
+
+`CGContext.drawText(text:rect:font:color:)` now draws into the receiving context instead of the current UIKit or AppKit graphics context.
