@@ -386,17 +386,50 @@
                     session.commitConfiguration()
                 }
 
+                let input: AVCaptureDeviceInput
                 do {
-                    let input = try AVCaptureDeviceInput(device: device)
-                    session.addInput(input)
-
-                    let output = AVCaptureMetadataOutput()
-                    output.setMetadataObjectsDelegate(metadataObjectsDelegate, queue: DispatchQueue.main)
-                    session.addOutput(output)
-                    output.metadataObjectTypes = typesProvider?.supportedObjectTypes(output) ?? output.availableMetadataObjectTypes
+                    input = try AVCaptureDeviceInput(device: device)
                 } catch {
                     os_log("%{public}@", log: .default, type: .error, String(describing: error))
+                    return
                 }
+                guard session.canAddInput(input) else {
+                    os_log("The barcode scanner session cannot add its camera input.", log: .default, type: .error)
+                    return
+                }
+                session.addInput(input)
+
+                let output = AVCaptureMetadataOutput()
+                guard session.canAddOutput(output) else {
+                    os_log("The barcode scanner session cannot add its metadata output.", log: .default, type: .error)
+                    return
+                }
+                session.addOutput(output)
+                output.setMetadataObjectsDelegate(metadataObjectsDelegate, queue: DispatchQueue.main)
+
+                let available = output.availableMetadataObjectTypes
+                let requested = typesProvider?.supportedObjectTypes(output) ?? available
+                let supported = supportedMetadataObjectTypes(requested: requested, available: available)
+                if supported.count < requested.count {
+                    let unsupported = requested.filter { !supported.contains($0) }.map(\.rawValue)
+                    os_log("Ignoring unsupported barcode types: %{public}@", log: .default, type: .error, unsupported.joined(separator: ", "))
+                }
+                output.metadataObjectTypes = supported
+            }
+
+            /// Returns the requested metadata object types that the output can detect, in their requested order.
+            ///
+            /// Assigning an unavailable type to `AVCaptureMetadataOutput.metadataObjectTypes` raises an exception,
+            /// so unsupported types are dropped instead.
+            /// - Parameters:
+            ///   - requested: The types the scanner was asked to detect.
+            ///   - available: The output's `availableMetadataObjectTypes`.
+            /// - Returns: The requested types that are also available.
+            nonisolated static func supportedMetadataObjectTypes(
+                requested: [AVMetadataObject.ObjectType],
+                available: [AVMetadataObject.ObjectType]
+            ) -> [AVMetadataObject.ObjectType] {
+                requested.filter(available.contains)
             }
         }
 

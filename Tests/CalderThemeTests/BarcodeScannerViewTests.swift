@@ -128,6 +128,15 @@
                 #expect(delegate.supportedObjectTypes(AVCaptureMetadataOutput()) == [.qr])
             }
 
+            @Test func `unsupported requested types are filtered out`() {
+                let types = BarcodeScannerView.supportedMetadataObjectTypes(
+                    requested: [.ean13, .face, .qr, .humanBody],
+                    available: [.qr, .ean8, .ean13]
+                )
+
+                #expect(types == [.ean13, .qr])
+            }
+
             @Test func `remove UPC check digit keeps eleven digit value`() {
                 let value = BarcodeScannerView.removeUPCCheckDigitIfPresent("81001211009")
 
