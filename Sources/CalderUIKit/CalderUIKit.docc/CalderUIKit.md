@@ -43,3 +43,5 @@ CalderUIKit no longer declares retroactive `Sendable` conformances for `UNUserNo
 `UIApplication.suspendApplication()` and `UIApplication.exitApplication(_:code:)` are deprecated. `suspendApplication()` no longer sends a private selector and does nothing. `exitApplication(_:code:)` waits without blocking the main thread and no longer suspends the app before exiting. Apps should let the user leave instead of suspending or terminating themselves.
 
 `UITableView.indexPathForLastRow(inSection:)`, `UICollectionView.indexPathForLastItem(inSection:)`, `indexPathForLastRow`, and `indexPathForLastItem` return `nil` for empty or out-of-range sections instead of row or item 0. `UITableView.safeScrollToRow(at:at:animated:)` ignores negative indices.
+
+The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangle's origin. `topLeft` returns `(minX, minY)` instead of `.zero`, `topRight` and `bottomLeft` use `minY` and `minX`, and `center` returns `(midX, midY)` instead of `(minX, midY)`.

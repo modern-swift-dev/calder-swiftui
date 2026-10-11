@@ -60,57 +60,50 @@
             #expect(rect.origin.y == -20.0)
         }
 
-        // MARK: - Corner Points
+        // MARK: - Corner, Mid-Edge, and Centre Points
 
-        @Test func `top left returns zero`() {
+        @Test func `top left is the origin`() {
             let rect = CGRect(50.0, 100.0, 200.0, 150.0)
-            #expect(rect.topLeft == .zero)
+            #expect(rect.topLeft == CGPoint(x: 50.0, y: 100.0))
         }
 
-        @Test func `top right returns correct point`() {
-            let rect = CGRect(0.0, 0.0, 200.0, 150.0)
-            #expect(rect.topRight.x == 200.0)
-            #expect(rect.topRight.y == 0.0)
+        @Test func `top right is max x and min y`() {
+            let rect = CGRect(50.0, 100.0, 200.0, 150.0)
+            #expect(rect.topRight == CGPoint(x: 250.0, y: 100.0))
         }
 
-        @Test func `bottom left returns correct point`() {
-            let rect = CGRect(0.0, 0.0, 200.0, 150.0)
-            #expect(rect.bottomLeft.x == 0.0)
-            #expect(rect.bottomLeft.y == 150.0)
+        @Test func `bottom left is min x and max y`() {
+            let rect = CGRect(50.0, 100.0, 200.0, 150.0)
+            #expect(rect.bottomLeft == CGPoint(x: 50.0, y: 250.0))
         }
 
-        @Test func `bottom right returns correct point`() {
-            let rect = CGRect(0.0, 0.0, 200.0, 150.0)
-            #expect(rect.bottomRight.x == 200.0)
-            #expect(rect.bottomRight.y == 150.0)
+        @Test func `bottom right is max x and max y`() {
+            let rect = CGRect(50.0, 100.0, 200.0, 150.0)
+            #expect(rect.bottomRight == CGPoint(x: 250.0, y: 250.0))
         }
 
-        @Test func `mid left returns correct point`() {
-            let rect = CGRect(0.0, 0.0, 200.0, 100.0)
-            #expect(rect.midLeft.x == 0.0)
-            #expect(rect.midLeft.y == 50.0)
+        @Test func `mid left is min x and mid y`() {
+            let rect = CGRect(50.0, 100.0, 200.0, 150.0)
+            #expect(rect.midLeft == CGPoint(x: 50.0, y: 175.0))
         }
 
-        @Test func `mid right returns correct point`() {
-            let rect = CGRect(0.0, 0.0, 200.0, 100.0)
-            #expect(rect.midRight.x == 200.0)
-            #expect(rect.midRight.y == 50.0)
+        @Test func `mid right is max x and mid y`() {
+            let rect = CGRect(50.0, 100.0, 200.0, 150.0)
+            #expect(rect.midRight == CGPoint(x: 250.0, y: 175.0))
         }
 
-        @Test func `center returns correct point`() {
-            let rect = CGRect(0.0, 0.0, 200.0, 100.0)
-            #expect(rect.center.x == 0.0)
-            #expect(rect.center.y == 50.0)
+        @Test func `center is mid x and mid y`() {
+            let rect = CGRect(50.0, 100.0, 200.0, 150.0)
+            #expect(rect.center == CGPoint(x: 150.0, y: 175.0))
         }
 
-        // MARK: - With Offset
-
-        @Test func `corner points with offset`() {
-            let rect = CGRect(10.0, 20.0, 100.0, 80.0)
-            #expect(rect.topRight.x == 110.0)
-            #expect(rect.bottomLeft.y == 100.0)
-            #expect(rect.bottomRight.x == 110.0)
-            #expect(rect.bottomRight.y == 100.0)
+        @Test func `points of a rect with negative origin`() {
+            let rect = CGRect(-40.0, -20.0, 80.0, 40.0)
+            #expect(rect.topLeft == CGPoint(x: -40.0, y: -20.0))
+            #expect(rect.topRight == CGPoint(x: 40.0, y: -20.0))
+            #expect(rect.bottomLeft == CGPoint(x: -40.0, y: 20.0))
+            #expect(rect.bottomRight == CGPoint(x: 40.0, y: 20.0))
+            #expect(rect.center == .zero)
         }
 
     }

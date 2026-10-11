@@ -53,39 +53,41 @@
         // MARK: - computed properties
         public extension CGRect {
 
-            /// The top-left corner point of the rectangle.
+            /// The top-left corner point of the rectangle, `(minX, minY)`.
+            ///
+            /// "Top" follows the UIKit coordinate system, where y grows downward.
             var topLeft: CGPoint {
-                .zero
+                .init(minX, minY)
             }
 
-            /// The top-right corner point of the rectangle.
+            /// The top-right corner point of the rectangle, `(maxX, minY)`.
             var topRight: CGPoint {
-                .init(maxX, 0)
+                .init(maxX, minY)
             }
 
-            /// The bottom-left corner point of the rectangle.
+            /// The bottom-left corner point of the rectangle, `(minX, maxY)`.
             var bottomLeft: CGPoint {
-                .init(0, maxY)
+                .init(minX, maxY)
             }
 
-            /// The bottom-right corner point of the rectangle.
+            /// The bottom-right corner point of the rectangle, `(maxX, maxY)`.
             var bottomRight: CGPoint {
                 .init(maxX, maxY)
             }
 
-            /// The middle-left point of the rectangle.
+            /// The middle-left point of the rectangle, `(minX, midY)`.
             var midLeft: CGPoint {
                 .init(minX, midY)
             }
 
-            /// The middle-right point of the rectangle.
+            /// The middle-right point of the rectangle, `(maxX, midY)`.
             var midRight: CGPoint {
                 .init(maxX, midY)
             }
 
-            /// The center point of the rectangle.
+            /// The center point of the rectangle, `(midX, midY)`.
             var center: CGPoint {
-                .init(minX, midY)
+                .init(midX, midY)
             }
         }
 
