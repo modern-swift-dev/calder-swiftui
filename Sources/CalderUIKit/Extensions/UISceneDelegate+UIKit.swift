@@ -37,13 +37,6 @@
         #if canImport(SwiftUI)
             import SwiftUI
 
-            /// An empty SwiftUI `View` used as a placeholder.
-            struct EmptyView: View {
-                var body: some View {
-                    Text("")
-                }
-            }
-
             /// A basic `UISceneDelegate` implementation for SwiftUI apps that can be subclassed
             /// to provide a custom root SwiftUI `View` for a `UIWindowScene`.
             open class SwiftUISceneDelegate: NSObject, UISceneDelegate {
@@ -52,11 +45,18 @@
                 public var window: UIWindow?
 
                 /// Creates the root SwiftUI view for the window, optionally based on a user activity.
-                /// Subclasses should override this method to provide their specific root SwiftUI view.
+                ///
+                /// Subclasses override this method to supply their root view, wrapped in `AnyView`.
+                /// The default implementation returns an `EmptyView`.
                 /// - Parameter userActivity: An optional `NSUserActivity` that initiated the scene connection.
-                /// - Returns: A `View` instance to be hosted in a `UIHostingController` as the `rootViewController` of the window.
-                open func createRootView(_: NSUserActivity?) -> some View {
-                    EmptyView()
+                /// - Returns: The view to host in a `UIHostingController` as the `rootViewController` of the window.
+                open func createRootView(_: NSUserActivity?) -> AnyView {
+                    AnyView(EmptyView())
+                }
+
+                /// Creates the hosting controller for the root view returned by ``createRootView(_:)``.
+                func rootViewController(for userActivity: NSUserActivity?) -> UIViewController {
+                    UIHostingController(rootView: createRootView(userActivity))
                 }
 
                 /// Called when a scene session is about to be connected to the scene.
@@ -69,7 +69,7 @@
                     let activity = options.userActivities.first ?? session.stateRestorationActivity
                     if let windowScene = scene as? UIWindowScene {
                         let window = UIWindow(windowScene: windowScene)
-                        window.rootViewController = UIHostingController(rootView: createRootView(activity))
+                        window.rootViewController = rootViewController(for: activity)
                         self.window = window
                         window.makeKeyAndVisible()
                     }
