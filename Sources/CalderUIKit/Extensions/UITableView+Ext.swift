@@ -42,10 +42,7 @@
             ///   - scrollPosition: The position to scroll the row to within the table view.
             ///   - animated: A boolean indicating whether to animate the scroll.
             func safeScrollToRow(at indexPath: IndexPath, at scrollPosition: UITableView.ScrollPosition, animated: Bool) {
-                guard indexPath.section < numberOfSections else {
-                    return
-                }
-                guard indexPath.row < numberOfRows(inSection: indexPath.section) else {
+                guard isValidIndexPath(indexPath) else {
                     return
                 }
                 scrollToRow(at: indexPath, at: scrollPosition, animated: animated)
@@ -98,7 +95,8 @@
             // MARK: - Properties
 
             public extension UITableView {
-                /// The `IndexPath` of the last row in the table view.
+                /// The `IndexPath` of the last row in the table view's last section, or `nil` if there are no sections
+                /// or the last section is empty.
                 var indexPathForLastRow: IndexPath? {
                     guard let lastSection else {
                         return nil
@@ -118,15 +116,16 @@
 
                 /// Returns the `IndexPath` for the last row in a specific section.
                 /// - Parameter section: The section to get the last row in.
-                /// - Returns: An optional `IndexPath` for the last row in the section, or `nil` if the section is invalid.
+                /// - Returns: The `IndexPath` of the last row in the section, or `nil` if the section is out of range or empty.
                 func indexPathForLastRow(inSection section: Int) -> IndexPath? {
-                    guard numberOfSections > 0, section >= 0 else {
+                    guard section >= 0, section < numberOfSections else {
                         return nil
                     }
-                    guard numberOfRows(inSection: section) > 0 else {
-                        return IndexPath(row: 0, section: section)
+                    let rowCount = numberOfRows(inSection: section)
+                    guard rowCount > 0 else {
+                        return nil
                     }
-                    return IndexPath(row: numberOfRows(inSection: section) - 1, section: section)
+                    return IndexPath(row: rowCount - 1, section: section)
                 }
 
                 /// Checks whether an `IndexPath` is valid within the table view.

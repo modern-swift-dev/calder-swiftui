@@ -94,7 +94,8 @@
             // MARK: - Properties
 
             public extension UICollectionView {
-                /// The `IndexPath` of the last item in the collection view.
+                /// The `IndexPath` of the last item in the collection view's last section, or `nil` if there are no sections
+                /// or the last section is empty.
                 var indexPathForLastItem: IndexPath? {
                     indexPathForLastItem(inSection: lastSection)
                 }
@@ -111,18 +112,16 @@
 
                 /// Returns the `IndexPath` for the last item in a specific section.
                 /// - Parameter section: The section to get the last item in.
-                /// - Returns: An optional `IndexPath` for the last item in the section, or `nil` if the section is invalid.
+                /// - Returns: The `IndexPath` of the last item in the section, or `nil` if the section is out of range or empty.
                 func indexPathForLastItem(inSection section: Int) -> IndexPath? {
-                    guard section >= 0 else {
+                    guard section >= 0, section < numberOfSections else {
                         return nil
                     }
-                    guard section < numberOfSections else {
+                    let itemCount = numberOfItems(inSection: section)
+                    guard itemCount > 0 else {
                         return nil
                     }
-                    guard numberOfItems(inSection: section) > 0 else {
-                        return IndexPath(item: 0, section: section)
-                    }
-                    return IndexPath(item: numberOfItems(inSection: section) - 1, section: section)
+                    return IndexPath(item: itemCount - 1, section: section)
                 }
 
                 /// Checks whether an `IndexPath` is valid within the collection view.

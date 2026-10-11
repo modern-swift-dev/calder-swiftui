@@ -158,7 +158,18 @@
                 #expect(tableView.indexPathForLastRow(inSection: -1) == nil)
             }
 
-            @Test func `index path for last row in section empty section returns zero row`() {
+            @Test func `index path for last row in section out of range section returns nil`() {
+                let tableView = UITableView()
+                tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+
+                let dataSource = SimpleTableDataSource(sections: [["Item"]])
+                tableView.dataSource = dataSource
+                tableView.reloadData()
+
+                #expect(tableView.indexPathForLastRow(inSection: 1) == nil)
+            }
+
+            @Test func `index path for last row in section empty section returns nil`() {
                 let tableView = UITableView()
                 tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
 
@@ -166,9 +177,18 @@
                 tableView.dataSource = dataSource
                 tableView.reloadData()
 
-                let result = tableView.indexPathForLastRow(inSection: 0)
-                #expect(result?.section == 0)
-                #expect(result?.row == 0)
+                #expect(tableView.indexPathForLastRow(inSection: 0) == nil)
+            }
+
+            @Test func `index path for last row empty last section returns nil`() {
+                let tableView = UITableView()
+                tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+
+                let dataSource = SimpleTableDataSource(sections: [["A"], []])
+                tableView.dataSource = dataSource
+                tableView.reloadData()
+
+                #expect(tableView.indexPathForLastRow == nil)
             }
 
             @Test func `index path for last row in section valid section`() {
@@ -267,6 +287,21 @@
 
                 tableView.safeScrollToRow(at: IndexPath(row: 10, section: 0), at: .top, animated: false)
                 #expect(true)
+            }
+
+            @Test(arguments: [IndexPath(row: -1, section: 0), IndexPath(row: 0, section: -1)])
+            func `safe scroll to row negative index is ignored`(indexPath: IndexPath) {
+                let tableView = UITableView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+                tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+
+                let dataSource = SimpleTableDataSource(sections: [["A"]])
+                tableView.dataSource = dataSource
+                tableView.reloadData()
+                let initialOffset = tableView.contentOffset
+
+                tableView.safeScrollToRow(at: indexPath, at: .top, animated: false)
+
+                #expect(tableView.contentOffset == initialOffset)
             }
 
             // MARK: - safeScrollToBottom Tests

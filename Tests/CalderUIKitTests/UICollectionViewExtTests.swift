@@ -71,14 +71,22 @@
 
             // MARK: - indexPathForLastItem Tests
 
-            @Test func `index path for last item empty collection view returns nil or zero`() {
+            @Test func `index path for last item empty collection view returns nil`() {
                 let collectionView = createCollectionView()
                 let dataSource = SimpleCollectionDataSource(sections: [])
                 collectionView.dataSource = dataSource
                 collectionView.reloadData()
 
-                let result = collectionView.indexPathForLastItem
-                #expect(result == nil || result?.item == 0)
+                #expect(collectionView.indexPathForLastItem == nil)
+            }
+
+            @Test func `index path for last item empty last section returns nil`() {
+                let collectionView = createCollectionView()
+                let dataSource = SimpleCollectionDataSource(sections: [["A"], []])
+                collectionView.dataSource = dataSource
+                collectionView.reloadData()
+
+                #expect(collectionView.indexPathForLastItem == nil)
             }
 
             @Test func `index path for last item single item single section`() {
@@ -123,15 +131,13 @@
                 #expect(collectionView.indexPathForLastItem(inSection: 5) == nil)
             }
 
-            @Test func `index path for last item in section empty section returns zero item`() {
+            @Test func `index path for last item in section empty section returns nil`() {
                 let collectionView = createCollectionView()
                 let dataSource = SimpleCollectionDataSource(sections: [[]])
                 collectionView.dataSource = dataSource
                 collectionView.reloadData()
 
-                let result = collectionView.indexPathForLastItem(inSection: 0)
-                #expect(result?.section == 0)
-                #expect(result?.item == 0)
+                #expect(collectionView.indexPathForLastItem(inSection: 0) == nil)
             }
 
             @Test func `index path for last item in section valid section`() {
