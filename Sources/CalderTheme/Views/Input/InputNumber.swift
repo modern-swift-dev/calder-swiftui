@@ -36,6 +36,8 @@
         let invalidMessage: String?
 
         #if canImport(UIKit) && !os(watchOS)
+            /// The locale used to parse decimal input.
+            @Environment(\.locale) private var locale
             /// The decimal binding used by the app-compatible initializer.
             private let decimalValue: Binding<Double>?
             /// The keyboard displayed for decimal input.
@@ -88,6 +90,18 @@
 
         #if canImport(UIKit) && !os(watchOS)
             /// Initializes a themed decimal input field.
+            ///
+            /// The field parses input with the decimal separator of the environment's `locale`, so
+            /// "12,5" in `fr_FR` and "12.5" in `en_US` both write `12.5`. Clearing the field writes `0`.
+            /// The field rejects text that isn't a number in that locale, such as "abc", instead of
+            /// writing `0`. A lone minus sign is accepted while typing and leaves the binding unchanged.
+            ///
+            /// - Parameters:
+            ///   - value: A binding to the decimal value that the field displays and updates.
+            ///   - placeholder: The placeholder text displayed when the field is empty.
+            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
+            ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
+            ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 value: Binding<Double>,
                 placeholder: String,
@@ -110,6 +124,16 @@
             }
 
             /// Initializes a themed decimal input field with its placeholder first.
+            ///
+            /// The field parses input with the decimal separator of the environment's `locale`.
+            /// The field rejects text that isn't a number in that locale.
+            ///
+            /// - Parameters:
+            ///   - placeholder: The placeholder text displayed when the field is empty.
+            ///   - value: A binding to the decimal value that the field displays and updates.
+            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
+            ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
+            ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 _ placeholder: String,
                 value: Binding<Double>,
@@ -193,16 +217,50 @@
                         guard oldValue != newValue else {
                             return
                         }
+                        // Reject text that isn't a number in the current locale instead of storing a stale or zero value.
+                        guard Self.acceptsDecimalText(newValue, locale: locale) else {
+                            textValue = oldValue
+                            return
+                        }
+                        // A lone minus sign starts a negative number and leaves the binding unchanged.
+                        guard let parsedValue = Self.parseDecimal(newValue, locale: locale) else {
+                            return
+                        }
 
-                        value.wrappedValue = newValue.isEmpty ? 0 : Double(newValue) ?? 0
+                        value.wrappedValue = parsedValue
                     }
                     .onChange(of: value.wrappedValue, initial: false) { _, newValue in
-                        if (Double(textValue) ?? 0) != newValue {
+                        if Self.parseDecimal(textValue, locale: locale) != newValue {
                             textValue = newValue == 0 ? "" : String(newValue)
                         }
                     }
             }
         #endif
+
+        /// Parses decimal text using the separators of a locale.
+        /// - Parameters:
+        ///   - text: The text to parse.
+        ///   - locale: The locale whose decimal separator the text uses.
+        /// - Returns: `0` for empty text, the parsed value, or `nil` when the whole text is not a number in `locale`.
+        static func parseDecimal(_ text: String, locale: Locale) -> Double? {
+            if text.isEmpty {
+                return 0
+            }
+            let formatter = NumberFormatter()
+            formatter.locale = locale
+            formatter.numberStyle = .decimal
+            formatter.usesGroupingSeparator = false
+            return formatter.number(from: text)?.doubleValue
+        }
+
+        /// Returns whether decimal text is a number in a locale or a lone minus sign typed before one.
+        /// - Parameters:
+        ///   - text: The text to check.
+        ///   - locale: The locale whose decimal separator the text uses.
+        /// - Returns: `true` when the field accepts the text.
+        static func acceptsDecimalText(_ text: String, locale: Locale) -> Bool {
+            text == "-" || parseDecimal(text, locale: locale) != nil
+        }
 
         /// Formats a binding update for display, clearing the field for an absent value.
         func formattedText(for value: Int64?) -> String {

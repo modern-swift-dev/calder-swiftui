@@ -129,6 +129,54 @@
             #expect(decimal.parseInput("-12.5") == -12.5)
         }
 
+        @Test(arguments: [
+            ("en_US", "12.5", 12.5),
+            ("fr_FR", "12,5", 12.5),
+            ("en_US", "-3", -3),
+            ("fr_FR", "-3", -3),
+            ("en_US", "12.", 12),
+            ("fr_FR", "12,", 12)
+        ])
+        func `double input parses text in the given locale`(localeIdentifier: String, text: String, expected: Double) {
+            #expect(InputNumber.parseDecimal(text, locale: Locale(identifier: localeIdentifier)) == expected)
+        }
+
+        @Test(arguments: ["en_US", "fr_FR"])
+        func `double input treats empty text as zero`(localeIdentifier: String) {
+            #expect(InputNumber.parseDecimal("", locale: Locale(identifier: localeIdentifier)) == 0)
+        }
+
+        @Test(arguments: [
+            ("en_US", "abc"),
+            ("en_US", "-"),
+            ("en_US", "12abc"),
+            ("en_US", "12,5"),
+            ("fr_FR", "abc"),
+            ("fr_FR", "-"),
+            ("fr_FR", "12.5"),
+            ("fr_FR", "12,5,6")
+        ])
+        func `double input rejects text that is not a number in the given locale`(localeIdentifier: String, text: String) {
+            #expect(InputNumber.parseDecimal(text, locale: Locale(identifier: localeIdentifier)) == nil)
+        }
+
+        @Test(arguments: [
+            ("en_US", "", true),
+            ("en_US", "-", true),
+            ("en_US", "12.", true),
+            ("en_US", "12.5", true),
+            ("fr_FR", "-", true),
+            ("fr_FR", "12,", true),
+            ("fr_FR", "12,5", true),
+            ("en_US", "abc", false),
+            ("en_US", "12,5", false),
+            ("fr_FR", "12.5", false),
+            ("fr_FR", "--", false)
+        ])
+        func `double input accepts only numbers and editing states in the given locale`(localeIdentifier: String, text: String, accepted: Bool) {
+            #expect(InputNumber.acceptsDecimalText(text, locale: Locale(identifier: localeIdentifier)) == accepted)
+        }
+
         @Test func `number formatter uses posix separator and integer limit`() {
             let formatter = InputNumber.numberFormatter(maxIntegerDigits: 3)
 
