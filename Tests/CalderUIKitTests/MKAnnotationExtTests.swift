@@ -57,8 +57,8 @@
             ]
             let center = annotations.center()
 
-            #expect(abs(center.latitude - 41.0) < 0.0001)
-            #expect(abs(center.longitude - -99.0) < 0.0001)
+            #expect(abs(center.latitude - 41.004320) < 0.0001)
+            #expect(abs(center.longitude - -99.015175) < 0.0001)
         }
 
         @Test func `center four annotations`() {
@@ -70,7 +70,7 @@
             ]
             let center = annotations.center()
 
-            #expect(abs(center.latitude - 40.0) < 0.0001)
+            #expect(abs(center.latitude - 40.432461) < 0.0001)
             #expect(abs(center.longitude - -100.0) < 0.0001)
         }
 
@@ -82,6 +82,22 @@
             let center = annotations.center()
 
             #expect(center.latitude < 0) // Should be in southern hemisphere
+        }
+
+        @Test func `center of no annotations is invalid`() {
+            let annotations: [MKAnnotation] = []
+            #expect(!CLLocationCoordinate2DIsValid(annotations.center()))
+        }
+
+        @Test func `center across the antimeridian`() {
+            let annotations: [MKAnnotation] = [
+                TestAnnotation(coordinate: CLLocationCoordinate2D(10.0, 179.0)),
+                TestAnnotation(coordinate: CLLocationCoordinate2D(10.0, -179.0))
+            ]
+            let center = annotations.center()
+
+            #expect(abs(center.latitude - 10.001493) < 0.0001)
+            #expect(abs(abs(center.longitude) - 180.0) < 0.0001)
         }
 
         // MARK: - Sequence<MKAnnotation> coordinateRegion Tests

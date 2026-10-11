@@ -48,8 +48,8 @@
                 CLLocation(42.0, -98.0)
             ]
             let center = locations.center()
-            #expect(abs(center.latitude - 41.0) < 0.0001)
-            #expect(abs(center.longitude - -99.0) < 0.0001)
+            #expect(abs(center.latitude - 41.004320) < 0.0001)
+            #expect(abs(center.longitude - -99.015175) < 0.0001)
         }
 
         @Test func `center four corners`() {
@@ -60,7 +60,7 @@
                 CLLocation(30.0, -90.0) // SE
             ]
             let center = locations.center()
-            #expect(abs(center.latitude - 40.0) < 0.0001)
+            #expect(abs(center.latitude - 40.432461) < 0.0001)
             #expect(abs(center.longitude - -100.0) < 0.0001)
         }
 
@@ -71,6 +71,18 @@
             ]
             let center = locations.center()
             #expect(center.latitude < 0) // Should be in southern hemisphere
+        }
+
+        @Test func `center of empty sequence is invalid`() {
+            let center = [CLLocation]().center()
+            #expect(!CLLocationCoordinate2DIsValid(center.coordinate))
+        }
+
+        @Test func `center across the antimeridian`() {
+            let locations = [CLLocation(10.0, 179.0), CLLocation(10.0, -179.0)]
+            let center = locations.center()
+            #expect(abs(center.latitude - 10.001493) < 0.0001)
+            #expect(abs(abs(center.longitude) - 180.0) < 0.0001)
         }
     }
 #endif

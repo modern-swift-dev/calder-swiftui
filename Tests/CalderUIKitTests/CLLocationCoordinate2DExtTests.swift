@@ -128,14 +128,14 @@
             #expect(abs(center.longitude - -100.0) < 0.0001)
         }
 
-        @Test func `center two coordinates`() {
+        @Test func `center two coordinates is their spherical midpoint`() {
             let coords = [
                 CLLocationCoordinate2D(40.0, -100.0),
                 CLLocationCoordinate2D(42.0, -98.0)
             ]
             let center = coords.center()
-            #expect(abs(center.latitude - 41.0) < 0.0001)
-            #expect(abs(center.longitude - -99.0) < 0.0001)
+            #expect(abs(center.latitude - 41.004320) < 0.0001)
+            #expect(abs(center.longitude - -99.015175) < 0.0001)
         }
 
         @Test func `center multiple coordinates`() {
@@ -146,8 +146,31 @@
                 CLLocationCoordinate2D(30.0, -90.0)
             ]
             let center = coords.center()
-            #expect(abs(center.latitude - 40.0) < 0.0001)
+            #expect(abs(center.latitude - 40.432461) < 0.0001)
             #expect(abs(center.longitude - -100.0) < 0.0001)
+        }
+
+        @Test func `center of empty sequence is invalid`() {
+            let center = [CLLocationCoordinate2D]().center()
+            #expect(!CLLocationCoordinate2DIsValid(center))
+        }
+
+        @Test func `center across the antimeridian`() {
+            let coords = [
+                CLLocationCoordinate2D(10.0, 179.0),
+                CLLocationCoordinate2D(10.0, -179.0)
+            ]
+            let center = coords.center()
+            #expect(abs(center.latitude - 10.001493) < 0.0001)
+            #expect(abs(abs(center.longitude) - 180.0) < 0.0001)
+        }
+
+        @Test func `center of antipodal coordinates is invalid`() {
+            let coords = [
+                CLLocationCoordinate2D(0.0, 0.0),
+                CLLocationCoordinate2D(0.0, 180.0)
+            ]
+            #expect(!CLLocationCoordinate2DIsValid(coords.center()))
         }
     }
 #endif

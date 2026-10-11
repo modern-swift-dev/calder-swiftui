@@ -98,37 +98,33 @@
         }
 
         public extension Sequence<CLLocationCoordinate2D> {
-            /// Calculates the geographical center of a sequence of `CLLocationCoordinate2D` objects.
-            /// This method determines the bounding box (furthest north, south, east, and west points)
-            /// and returns a `CLLocationCoordinate2D` object at the midpoint of that bounding box.
-            /// - Returns: A `CLLocationCoordinate2D` representing the approximate center of the coordinates.
+            /// Calculates the geographical center of a sequence of `CLLocationCoordinate2D` values.
+            ///
+            /// The center is the spherical mean of the coordinates: each coordinate is converted to a unit
+            /// vector, the vectors are averaged, and the average is converted back to a coordinate.
+            /// Centers are therefore correct across the antimeridian; for example, `179°` and `-179°`
+            /// center on `180°` rather than `0°`.
+            ///
+            /// - Returns: The spherical mean of the coordinates, or `kCLLocationCoordinate2DInvalid` when the
+            ///   sequence is empty or the mean is undefined because the coordinates cancel out, such as two
+            ///   antipodal points. Use `CLLocationCoordinate2DIsValid(_:)` to detect these cases.
             func center() -> CLLocationCoordinate2D {
-                var furthestNorth = -90.0
-                var furthestSouth = 90.0
-                var furthestEast = -180.0
-                var furthestWest = 180.0
-
-                for arg in self {
-                    if arg.latitude > furthestNorth {
-                        furthestNorth = arg.latitude
-                    }
-
-                    if arg.latitude < furthestSouth {
-                        furthestSouth = arg.latitude
-                    }
-
-                    if arg.longitude > furthestEast {
-                        furthestEast = arg.longitude
-                    }
-
-                    if arg.longitude < furthestWest {
-                        furthestWest = arg.longitude
-                    }
+                var x = 0.0
+                var y = 0.0
+                var z = 0.0
+                for coordinate in self {
+                    let latitude = coordinate.latitude.degreesToRadians
+                    let longitude = coordinate.longitude.degreesToRadians
+                    x += cos(latitude) * cos(longitude)
+                    y += cos(latitude) * sin(longitude)
+                    z += sin(latitude)
                 }
 
-                let lat = (furthestNorth + furthestSouth) / 2.0
-                let lon = (furthestWest + furthestEast) / 2.0
-                return CLLocationCoordinate2D(lat, lon)
+                let horizontal = hypot(x, y)
+                guard hypot(horizontal, z) > 1e-9 else {
+                    return kCLLocationCoordinate2DInvalid
+                }
+                return CLLocationCoordinate2D(atan2(z, horizontal).radiansToDegrees, atan2(y, x).radiansToDegrees)
             }
         }
 

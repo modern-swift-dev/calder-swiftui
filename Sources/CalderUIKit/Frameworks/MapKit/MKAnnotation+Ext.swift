@@ -18,36 +18,14 @@
 
         public extension Sequence<MKAnnotation> {
             /// Calculates the geographical center of a sequence of `MKAnnotation` objects.
-            /// This method determines the bounding box (furthest north, south, east, and west points)
-            /// and returns a `CLLocationCoordinate2D` at the midpoint of that bounding box.
-            /// - Returns: A `CLLocationCoordinate2D` representing the approximate center of the annotations.
+            ///
+            /// The center is the spherical mean of the annotations' coordinates, so centers are correct across
+            /// the antimeridian. See `Sequence<CLLocationCoordinate2D>.center()` for details.
+            ///
+            /// - Returns: The spherical mean of the annotations' coordinates, or `kCLLocationCoordinate2DInvalid`
+            ///   when the sequence is empty or the mean is undefined.
             func center() -> CLLocationCoordinate2D {
-                var furthestNorth = -90.0
-                var furthestSouth = 90.0
-                var furthestEast = -180.0
-                var furthestWest = 180.0
-
-                for location in self {
-                    if location.latitude > furthestNorth {
-                        furthestNorth = location.latitude
-                    }
-
-                    if location.latitude < furthestSouth {
-                        furthestSouth = location.latitude
-                    }
-
-                    if location.longitude > furthestEast {
-                        furthestEast = location.longitude
-                    }
-
-                    if location.longitude < furthestWest {
-                        furthestWest = location.longitude
-                    }
-                }
-
-                let lat = (furthestNorth + furthestSouth) / 2.0
-                let lon = (furthestWest + furthestEast) / 2.0
-                return CLLocationCoordinate2D(lat, lon)
+                map(\.coordinate).center()
             }
         }
     #endif

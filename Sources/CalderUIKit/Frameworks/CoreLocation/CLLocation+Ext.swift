@@ -36,36 +36,14 @@
         // MARK: - Utilities
         public extension Sequence where Element: CLLocation {
             /// Calculates the geographical center of a sequence of `CLLocation` objects.
-            /// This method determines the bounding box (furthest north, south, east, and west points)
-            /// and returns a `CLLocation` object at the midpoint of that bounding box.
-            /// - Returns: A `CLLocation` representing the approximate center of the locations.
+            ///
+            /// The center is the spherical mean of the locations' coordinates, so centers are correct across
+            /// the antimeridian. See `Sequence<CLLocationCoordinate2D>.center()` for details.
+            ///
+            /// - Returns: A `CLLocation` at the spherical mean of the locations. Its coordinate is
+            ///   `kCLLocationCoordinate2DInvalid` when the sequence is empty or the mean is undefined.
             func center() -> CLLocation {
-                var furthestNorth = -90.0
-                var furthestSouth = 90.0
-                var furthestEast = -180.0
-                var furthestWest = 180.0
-
-                for arg in self {
-                    if arg.latitude > furthestNorth {
-                        furthestNorth = arg.latitude
-                    }
-
-                    if arg.latitude < furthestSouth {
-                        furthestSouth = arg.latitude
-                    }
-
-                    if arg.longitude > furthestEast {
-                        furthestEast = arg.longitude
-                    }
-
-                    if arg.longitude < furthestWest {
-                        furthestWest = arg.longitude
-                    }
-                }
-
-                let lat = (furthestNorth + furthestSouth) / 2.0
-                let lon = (furthestWest + furthestEast) / 2.0
-                return CLLocation(lat, lon)
+                CLLocation(map(\.coordinate).center())
             }
         }
     #endif
