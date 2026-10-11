@@ -19,7 +19,8 @@ callbacks until `resume()` is called.
 
 `BarcodeGeneratorView` generates its image off the main thread and keeps it across parent view
 updates; it regenerates only when the code or barcode type changes. `BarcodeGeneratorView.Model`
-is main-actor isolated.
+is main-actor isolated. When the payload cannot be encoded, the view shows an error instead of a
+progress indicator.
 
 Optional numeric inputs update their displayed text when the bound value changes, including
 clearing it when the value becomes `nil`. Display formatting does not round or truncate the

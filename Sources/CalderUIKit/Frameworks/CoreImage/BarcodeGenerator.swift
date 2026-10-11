@@ -40,8 +40,25 @@
                 }
             }
 
+            var encoding: String.Encoding {
+                switch self {
+                    case .qr:
+                        .utf8
+                    case .code128,
+                         .pdf417:
+                        .ascii
+                }
+            }
+
+            /// Creates a Core Image barcode for a payload.
+            ///
+            /// QR codes encode the payload as UTF-8. Code 128 and PDF417 barcodes encode it as ASCII.
+            /// - Parameters:
+            ///   - barcode: The payload to encode.
+            ///   - quietSpace: The margin around the barcode, for symbologies that support one.
+            /// - Returns: The barcode image, or `nil` when the payload cannot be encoded.
             public func createCIImage(_ barcode: String, quietSpace: CGFloat? = nil) -> CIImage? {
-                guard let filter = CIFilter(name: filterName), let data = barcode.data(using: .ascii) else {
+                guard let filter = CIFilter(name: filterName), let data = barcode.data(using: encoding) else {
                     return nil
                 }
 

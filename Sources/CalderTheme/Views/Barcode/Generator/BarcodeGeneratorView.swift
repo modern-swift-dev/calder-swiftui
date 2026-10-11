@@ -22,6 +22,9 @@
                 /// The generated barcode image, if available.
                 public var image: Image?
 
+                /// Whether the last generation failed because the payload cannot be encoded.
+                public private(set) var generationFailed = false
+
                 /// The string value to encode into the barcode.
                 public let code: String
 
@@ -39,12 +42,14 @@
 
                 /// Generates the barcode image off the main thread and stores it in `image`.
                 ///
-                /// Does nothing when an image is already available.
+                /// Sets `generationFailed` when the payload cannot be encoded. Does nothing when an image is
+                /// already available or generation has already failed.
                 public func generate() async {
-                    guard image == nil else {
+                    guard image == nil, !generationFailed else {
                         return
                     }
                     image = await Self.makeImage(code: code, generator: generator)
+                    generationFailed = image == nil
                 }
 
                 @concurrent private nonisolated static func makeImage(code: String, generator: BarcodeGenerator) async -> Image? {
@@ -62,6 +67,7 @@
                 }
             }
 
+            @Environment(\.theme) private var theme
             @State private var model: Model
             private let latestModel: Model
 
@@ -78,11 +84,22 @@
                 latestModel = model
             }
 
-            /// The body of the `BarcodeGeneratorView` displaying either the generated image or a progress indicator.
+            /// The body of the `BarcodeGeneratorView` displaying the generated image, a progress indicator, or an error
+            /// when the payload cannot be encoded.
             public var body: some View {
                 Group {
                     if let image = model.image {
                         image
+                    } else if model.generationFailed {
+                        VStack(spacing: .small) {
+                            Image(systemSymbol: .exclamationmarkTriangle)
+                                .foregroundStyle(theme.error)
+                                .font(.title)
+
+                            Text(verbatim: "Unable to generate barcode")
+                                .font(.body)
+                                .foregroundStyle(theme.text1)
+                        }
                     } else {
                         ProgressView()
                     }

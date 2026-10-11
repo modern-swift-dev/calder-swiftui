@@ -136,6 +136,28 @@
                 let image = BarcodeGenerator.code128.createUIImage(barcode: "0123456789")
                 #expect(image != nil)
             }
+
+            // MARK: - Payload Encoding Tests
+
+            @Test func `qr code encodes non-ASCII payload as UTF-8`() throws {
+                let payload = "Café https://exämple.com/ü"
+                let ciImage = try #require(BarcodeGenerator.qr.createCIImage(payload))
+                let detector = try #require(CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: nil))
+
+                let decoded = detector.features(in: ciImage).compactMap { ($0 as? CIQRCodeFeature)?.messageString }
+
+                #expect(decoded == [payload])
+            }
+
+            @Test func `code 128 rejects non-ASCII payload`() {
+                #expect(BarcodeGenerator.code128.createCIImage("Café") == nil)
+                #expect(BarcodeGenerator.code128.createImage(barcode: "Café") == nil)
+            }
+
+            @Test func `pdf 417 rejects non-ASCII payload`() {
+                #expect(BarcodeGenerator.pdf417.createCIImage("Café") == nil)
+                #expect(BarcodeGenerator.pdf417.createImage(barcode: "Café") == nil)
+            }
         }
     #endif
 
