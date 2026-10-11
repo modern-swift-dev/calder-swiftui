@@ -19,14 +19,16 @@
             }
 
             /// Represents the different states of the barcode scanner.
+            ///
+            /// Changing the state passed to ``BarcodeScanner`` takes effect on the next SwiftUI update.
             public enum State {
-                /// Initial state - scanner is not active.
+                /// Initial state. The scanner starts scanning when it appears, as with ``scanning``.
                 case pristine
-                /// Scanner is actively scanning for codes.
+                /// Scanner is actively scanning for codes. Switching to this state resumes detection and restarts a finished camera.
                 case scanning
-                /// Scanner is temporarily suspended but not stopped.
+                /// Scanner is temporarily suspended but not stopped: no codes are reported, and a running camera keeps running.
                 case suspended
-                /// Scanner has finished and is no longer active.
+                /// Scanner has finished and is no longer active: no codes are reported and the camera stops.
                 case finished
             }
 
@@ -64,12 +66,14 @@
             }
 
             /// Updates the underlying `BarcodeScannerViewController` when the SwiftUI view's state changes.
+            ///
+            /// A changed ``state`` takes effect immediately: `.scanning` resumes detection, `.suspended` pauses it,
+            /// and `.finished` stops the camera.
             /// - Parameters:
             ///   - uiViewController: The `BarcodeScannerViewController` to update.
             ///   - context: The representable context.
             public func updateUIViewController(_ uiViewController: BarcodeScannerViewController, context: Context) {
-                // State management is handled by the view controller's lifecycle methods
-                // Additional state updates can be added here if needed
+                uiViewController.apply(state)
             }
 
             /// Creates the coordinator that acts as the bridge between SwiftUI and UIKit.

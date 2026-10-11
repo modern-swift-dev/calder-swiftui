@@ -36,6 +36,10 @@ The scanner's metadata output delivers to a background metadata queue: the nonis
 to `onCodeScanned(_:type:rect:path:)`. CalderTheme no longer declares retroactive `Sendable`
 conformances on `AVCaptureSession` or `AVCaptureVideoPreviewLayer`.
 
+`BarcodeScanner` applies changes to its `state` after creation: `.suspended` pauses detection,
+`.scanning` resumes it (restarting the camera after `.finished`), and `.finished` stops the
+camera.
+
 Optional numeric inputs update their displayed text when the bound value changes, including
 clearing it when the value becomes `nil`. Display formatting does not round or truncate the
 source binding.

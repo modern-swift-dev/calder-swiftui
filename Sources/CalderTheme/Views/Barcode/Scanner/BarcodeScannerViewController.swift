@@ -20,7 +20,7 @@
             }
 
             /// The barcode scanner view responsible for capturing QR codes.
-            private lazy var barcodeScanner: BarcodeScannerView = {
+            lazy var barcodeScanner: BarcodeScannerView = {
                 let view = BarcodeScannerView(model: .init(backgroundColor: UIColor.black, scanRegionWidthRatio: 0.4))
                 view.translatesAutoresizingMaskIntoConstraints = false
                 view.delegate = self
@@ -37,11 +37,23 @@
                 }
             }
 
+            /// The scanner state most recently applied with ``apply(_:)``.
+            private(set) var state: BarcodeScanner.State = .pristine
+
             /// Called just before the view appears.
-            /// Resets the scanner and starts/resumes the scanning process.
+            /// Resets the scanner and starts/resumes the scanning process, unless the applied state is
+            /// `.suspended` (the camera starts but detection stays paused) or `.finished` (nothing starts).
             override public func viewWillAppear(_ animated: Bool) {
                 super.viewWillAppear(animated)
-                start()
+                switch state {
+                    case .pristine,
+                         .scanning:
+                        start()
+                    case .suspended:
+                        barcodeScanner.start()
+                    case .finished:
+                        break
+                }
             }
 
             /// Called just before the view disappears.
@@ -61,6 +73,30 @@
             /// Stop scanning
             public func stop() {
                 barcodeScanner.stop()
+            }
+
+            /// Applies a scanner state when it differs from the current one.
+            ///
+            /// `.scanning` starts the camera if needed and resumes detection, `.suspended` pauses detection while
+            /// the camera keeps running, and `.finished` pauses detection and stops the camera. `.pristine` changes nothing.
+            /// - Parameter newState: The state to apply.
+            func apply(_ newState: BarcodeScanner.State) {
+                guard newState != state else {
+                    return
+                }
+                state = newState
+
+                switch newState {
+                    case .pristine:
+                        break
+                    case .scanning:
+                        start()
+                    case .suspended:
+                        barcodeScanner.suspend()
+                    case .finished:
+                        barcodeScanner.suspend()
+                        stop()
+                }
             }
         }
 
