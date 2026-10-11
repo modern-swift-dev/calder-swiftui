@@ -14,8 +14,14 @@ struct StringManipTests {
     @Test func `empty and boundary substrings`() {
         #expect("".substr(len: 0) == "")
         #expect("Hello".substr(start: 5, len: 0) == "")
-        #expect("Hello".substr(start: 6, len: 0) == "Hello")
-        #expect("Hello".substr(start: 4, len: 2) == "Hello")
+    }
+
+    @Test func `overflowing ranges return the in-range part`() {
+        #expect("Hello".substr(start: 4, len: 2) == "o")
+        #expect("Hello".substr(start: 3, len: Int.max) == "lo")
+        #expect("Hello".substr(start: 5, len: 1) == "")
+        #expect("Hello".substr(start: 6, len: 0) == "")
+        #expect("Hello".substr(start: Int.max, len: 1) == "")
     }
 
     @Test func `substring respects grapheme clusters`() {
