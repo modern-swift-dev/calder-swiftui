@@ -40,17 +40,27 @@
         @available(*, deprecated, message: "Exercises the deprecated isHardwardKeyboard alias.")
         @Test func `deprecated misspelled alias reports isHardwareKeyboard`() async throws {
             let observer = KeyboardObserver()
-            NotificationCenter.default.post(
-                name: UIResponder.keyboardDidShowNotification,
-                object: nil,
-                userInfo: [
-                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
-                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(x: 0, y: 0, width: 320, height: 55))
-                ]
-            )
+            postShow(size: CGSize(width: 320, height: 55))
             try await waitUntil { observer.visible }
             #expect(observer.isHardwareKeyboard)
             #expect(observer.isHardwardKeyboard)
+        }
+
+        @Test func `show frame change and hide notifications apply in arrival order`() async throws {
+            let observer = KeyboardObserver()
+            postShow(size: CGSize(width: 320, height: 300))
+            postFrameChange(size: CGSize(width: 320, height: 280))
+            postHide()
+            postShow(size: CGSize(width: 320, height: 260))
+            postFrameChange(size: CGSize(width: 320, height: 55))
+            try await waitUntil { observer.visible && observer.keyboardSize == CGSize(width: 320, height: 55) }
+            #expect(observer.isHardwareKeyboard)
+
+            postFrameChange(size: CGSize(width: 320, height: 300))
+            postHide()
+            try await waitUntil { !observer.visible }
+            #expect(observer.keyboardSize == .zero)
+            #expect(!observer.isHardwareKeyboard)
         }
 
         @Test func `notification subscriptions do not retain observer`() {
@@ -85,14 +95,7 @@
             window.layoutIfNeeded()
             #expect(recorder.renderedVisibility.last == false)
 
-            NotificationCenter.default.post(
-                name: UIResponder.keyboardDidShowNotification,
-                object: nil,
-                userInfo: [
-                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
-                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(x: 0, y: 0, width: 320, height: 300))
-                ]
-            )
+            postShow(size: CGSize(width: 320, height: 300))
             try await waitUntil {
                 window.layoutIfNeeded()
                 return recorder.renderedVisibility.last == true
@@ -103,17 +106,36 @@
             let observer = KeyboardObserver()
             var changeCount = 0
             let subscription = observer.objectWillChange.sink { changeCount += 1 }
+            postShow(size: CGSize(width: 320, height: 300))
+            try await waitUntil { observer.visible }
+            #expect(changeCount > 0)
+            subscription.cancel()
+        }
+
+        private func postShow(size: CGSize) {
             NotificationCenter.default.post(
                 name: UIResponder.keyboardDidShowNotification,
                 object: nil,
                 userInfo: [
                     UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
-                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(x: 0, y: 0, width: 320, height: 300))
+                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(origin: .zero, size: size))
                 ]
             )
-            try await waitUntil { observer.visible }
-            #expect(changeCount > 0)
-            subscription.cancel()
+        }
+
+        private func postFrameChange(size: CGSize) {
+            NotificationCenter.default.post(
+                name: UIResponder.keyboardDidChangeFrameNotification,
+                object: nil,
+                userInfo: [
+                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
+                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(origin: .zero, size: size))
+                ]
+            )
+        }
+
+        private func postHide() {
+            NotificationCenter.default.post(name: UIResponder.keyboardDidHideNotification, object: nil)
         }
 
         private func waitUntil(_ condition: () -> Bool) async throws {

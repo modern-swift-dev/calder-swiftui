@@ -11,7 +11,7 @@
         /// It also conforms to `ObservableObject` for source compatibility with `@StateObject` and `@ObservedObject`
         /// call sites; prefer `@State` or `@Environment` in new code.
         ///
-        /// Observation continues for the lifetime of this object. Notifications are debounced by 150 milliseconds.
+        /// Observation continues for the lifetime of this object. Notifications are applied on the main actor in the order they are posted.
         @MainActor @Observable public class KeyboardObserver: ObservableObject {
 
             /// Whether a local keyboard has been shown and has not subsequently been hidden.
@@ -28,60 +28,85 @@
 
             /// The size reported by the most recent keyboard frame notification, or zero after hiding.
             public private(set) var keyboardSize: CGSize = .zero
-            @ObservationIgnored
-            private var cancellables = Set<AnyCancellable>()
+            private let events: AsyncStream<KeyboardEvent>.Continuation
+            private let subscription: AnyCancellable
 
             /// Starts observing keyboard notifications. Create and access the observer on the main actor.
+            ///
+            /// Keyboard show, frame-change, and hide notifications are applied on the main actor one at a time,
+            /// in the order they are posted.
             public init() {
-                NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)
-                    .debounce(for: .milliseconds(150), scheduler: DispatchQueue.main)
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] notification in
-                        guard let isLocal = notification.userInfo?[UIResponder.keyboardIsLocalUserInfoKey] as? NSNumber, isLocal.boolValue else {
-                            return
-                        }
-                        let size = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.size
-                        Task { @MainActor [weak self] in
-                            self?.objectWillChange.send()
-                            self?.visible = true
-                            if let size {
-                                self?.updateKeyboardSize(size)
-                            }
-                        }
-                    }
-                    .store(in: &cancellables)
+                let (stream, continuation) = AsyncStream.makeStream(of: KeyboardEvent.self)
+                events = continuation
+                let center = NotificationCenter.default
+                subscription = Publishers.Merge3(
+                    center.publisher(for: UIResponder.keyboardDidShowNotification),
+                    center.publisher(for: UIResponder.keyboardDidChangeFrameNotification),
+                    center.publisher(for: UIResponder.keyboardDidHideNotification)
+                )
+                .compactMap { @Sendable notification in KeyboardEvent(notification) }
+                .sink { @Sendable event in continuation.yield(event) }
 
-                NotificationCenter.default.publisher(for: UIResponder.keyboardDidChangeFrameNotification)
-                    .debounce(for: .milliseconds(150), scheduler: DispatchQueue.main)
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] notification in
-                        guard let size = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.size else {
-                            return
-                        }
-                        Task { @MainActor [weak self] in
-                            self?.objectWillChange.send()
-                            self?.updateKeyboardSize(size)
-                        }
+                Task { [weak self] in
+                    for await event in stream {
+                        self?.apply(event)
                     }
-                    .store(in: &cancellables)
+                }
+            }
 
-                NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)
-                    .debounce(for: .milliseconds(150), scheduler: DispatchQueue.main)
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] _ in
-                        Task { @MainActor [weak self] in
-                            self?.objectWillChange.send()
-                            self?.visible = false
-                            self?.isHardwareKeyboard = false
-                            self?.keyboardSize = .zero
+            deinit {
+                events.finish()
+            }
+
+            private func apply(_ event: KeyboardEvent) {
+                objectWillChange.send()
+                switch event {
+                    case let .show(size):
+                        visible = true
+                        if let size {
+                            updateKeyboardSize(size)
                         }
-                    }
-                    .store(in: &cancellables)
+                    case let .frameChange(size):
+                        updateKeyboardSize(size)
+                    case .hide:
+                        visible = false
+                        isHardwareKeyboard = false
+                        keyboardSize = .zero
+                }
             }
 
             private func updateKeyboardSize(_ size: CGSize) {
                 keyboardSize = size
                 isHardwareKeyboard = size.height <= 75 // typical keyboard height when a hardware keyboard is connected is around 55px. So using 75px has a safety value.
+            }
+
+            /// A keyboard notification reduced to the values the observer applies.
+            private enum KeyboardEvent: Sendable {
+                case show(size: CGSize?)
+                case frameChange(size: CGSize)
+                case hide
+
+                init?(_ notification: Notification) {
+                    let userInfo = notification.userInfo
+                    let isLocal = (userInfo?[UIResponder.keyboardIsLocalUserInfoKey] as? NSNumber)?.boolValue ?? false
+                    let size = (userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.size
+                    switch notification.name {
+                        case UIResponder.keyboardDidShowNotification:
+                            guard isLocal else {
+                                return nil
+                            }
+                            self = .show(size: size)
+                        case UIResponder.keyboardDidChangeFrameNotification:
+                            guard let size else {
+                                return nil
+                            }
+                            self = .frameChange(size: size)
+                        case UIResponder.keyboardDidHideNotification:
+                            self = .hide
+                        default:
+                            return nil
+                    }
+                }
             }
         }
 
