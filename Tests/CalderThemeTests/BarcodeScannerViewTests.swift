@@ -1,5 +1,5 @@
 #if canImport(SwiftUI) || canImport(UIKit) || canImport(AppKit)
-    #if canImport(UIKit) && canImport(Vision) && !os(visionOS)
+    #if canImport(UIKit) && canImport(Vision) && !os(visionOS) && !os(watchOS)
         import AVFoundation
         import CalderStdLib
         @testable import CalderTheme

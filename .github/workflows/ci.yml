@@ -10,13 +10,13 @@ defaults:
 
 jobs:
   lint:
-    runs-on: macos-26
+    runs-on: xcode-27
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
-      - name: Verify Swift 6.3
-        run: swift --version | grep -F 'Swift version 6.3'
+      - name: Verify Swift 6.4
+        run: swift --version | grep -F 'Swift version 6.4'
       - name: Install lint tools
         run: |
           brew install mint actionlint
@@ -25,9 +25,9 @@ jobs:
         run: make lint
 
   apple:
-    runs-on: macos-26
+    runs-on: xcode-27
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
@@ -37,29 +37,29 @@ jobs:
             simulator-name: iPhone 17 Pro
             runtime-platform: iOS
             # Must match the runtime used to record snapshot baselines.
-            runtime-version: '26.5'
+            runtime-version: '27.0'
           - platform: tvOS
             simulator-name: Apple TV 4K (3rd generation)
             runtime-platform: tvOS
-            runtime-version: '26.5'
+            runtime-version: '27.0'
           - platform: visionOS
             simulator-name: Apple Vision Pro
             runtime-platform: visionOS
-            runtime-version: '26.5'
+            runtime-version: '27.0'
           - platform: watchOS
-            simulator-name: Apple Watch Series 11 (46mm)
+            simulator-name: Apple Watch Series 12 (46mm)
             runtime-platform: watchOS
-            runtime-version: '26.5'
+            runtime-version: '27.0'
     steps:
       - uses: actions/checkout@v4
       - name: Install xcbeautify
         run: |
           brew install mint
           mint install cpisciotta/xcbeautify
-      - name: Verify Xcode 26.6 and Swift 6.3
+      - name: Verify Xcode 27.0 and Swift 6.4
         run: |
-          xcodebuild -version | grep -F 'Xcode 26.6' 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
-          swift --version | grep -F 'Swift version 6.3'
+          xcodebuild -version | grep -F 'Xcode 27.0' 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+          swift --version | grep -F 'Swift version 6.4'
       - name: Ensure ${{ matrix.simulator-name }} simulator exists
         id: simulator
         if: matrix.platform != 'macOS'
