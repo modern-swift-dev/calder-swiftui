@@ -27,7 +27,7 @@ make test-watchos
 make test-visionos
 ```
 
-`make test-all` runs all supported Apple platform tests.
+`make test` runs the macOS tests followed by every platform target above.
 
 ### Simulator runtimes and snapshot baselines
 
@@ -45,7 +45,7 @@ The [central documentation repository](https://github.com/modern-swift-dev/docs)
 make documentation
 ```
 
-The command builds all nine DocC archives and writes `.build/documentation/Calder-Documentation.zip`. This archive is separate from the Pages site.
+The command builds the four DocC archives, one per library product, and writes `.build/documentation/Calder-Documentation.zip`. This archive is separate from the Pages site.
 
 ## Publish a release
 
