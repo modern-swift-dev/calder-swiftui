@@ -163,6 +163,12 @@
             /// The pending task that restores the inactive scan-region tint.
             private var tintReset: Task<Void, Never>?
 
+            /// Provides the preview rotation angle for the running camera.
+            private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
+
+            /// Observes ``rotationCoordinator`` to rotate the preview when the interface orientation changes.
+            private var rotationObservation: NSKeyValueObservation?
+
             /// Initializes a new `BarcodeScannerView` with the specified model.
             /// - Parameter model: The view model containing configuration for the scanner.
             public init(model: Model) {
@@ -331,13 +337,32 @@
                         metadataQueue: metadataQueue,
                         typesProvider: typesProvider
                     )
+                    // The preview connection exists only once the input is added, so rotate it after configuration.
+                    Task { @MainActor in
+                        self.configureVideoOrientation()
+                    }
                 }
 
                 self.layer.insertSublayer(layer, at: 0)
                 self.updateRectOfInterest()
                 observeInputFormatChanges()
+                observeRotation(of: device, previewLayer: layer)
 
                 controller.startRunning()
+            }
+
+            /// Rotates the preview whenever the rotation coordinator for `device` and `previewLayer` reports a new angle.
+            /// - Parameters:
+            ///   - device: The camera that feeds the preview.
+            ///   - previewLayer: The layer that displays the preview.
+            private func observeRotation(of device: AVCaptureDevice, previewLayer: AVCaptureVideoPreviewLayer) {
+                let coordinator = AVCaptureDevice.RotationCoordinator(device: device, previewLayer: previewLayer)
+                rotationCoordinator = coordinator
+                rotationObservation = coordinator.observe(\.videoRotationAngleForHorizonLevelPreview) { @Sendable [weak self] _, _ in
+                    Task { @MainActor in
+                        self?.configureVideoOrientation()
+                    }
+                }
             }
 
             /// Suspends the barcode scanning process. When suspended, the delegate will not receive new scanned codes.
@@ -358,6 +383,9 @@
             func stop() {
                 inputFormatObservation?.cancel()
                 inputFormatObservation = nil
+                rotationObservation?.invalidate()
+                rotationObservation = nil
+                rotationCoordinator = nil
                 avVideoPreviewLayer?.removeFromSuperlayer()
                 avVideoPreviewLayer = nil
                 sessionController?.stopRunning()
@@ -453,57 +481,20 @@
         // MARK: - Orientation
 
         public extension BarcodeScannerView {
-            /// Configures the video orientation of the `AVCaptureVideoPreviewLayer`
-            /// to match the current interface orientation of the device.
+            /// Rotates the `AVCaptureVideoPreviewLayer` so the preview stays level with the horizon in the current
+            /// interface orientation.
+            ///
+            /// The angle comes from `AVCaptureDevice.RotationCoordinator`, which derives it from the camera and the
+            /// preview layer's interface orientation rather than from `UIDevice.orientation`.
             func configureVideoOrientation() {
-                #if !os(tvOS)
-                    if #available(iOS 18, *) {
-                        if let videoLayer = avVideoPreviewLayer, let connection = videoLayer.connection {
-                            let angle: CGFloat = videoAngleFrom(orientation: UIDevice.current.orientation)
-                            if connection.isVideoRotationAngleSupported(angle) {
-                                connection.videoRotationAngle = angle
-                            }
-                        }
-
-                    } else {
-                        if let orientation = self.window?.windowScene?.interfaceOrientation {
-                            switch orientation {
-                                case .portrait:
-                                    avVideoPreviewLayer?.connection?.videoOrientation = .portrait
-                                case .landscapeLeft:
-                                    avVideoPreviewLayer?.connection?.videoOrientation = .landscapeLeft
-                                case .landscapeRight:
-                                    avVideoPreviewLayer?.connection?.videoOrientation = .landscapeRight
-                                case .portraitUpsideDown:
-                                    avVideoPreviewLayer?.connection?.videoOrientation = .portraitUpsideDown
-                                case .unknown:
-                                    avVideoPreviewLayer?.connection?.videoOrientation = .portrait
-                                @unknown default:
-                                    avVideoPreviewLayer?.connection?.videoOrientation = .portrait
-                            }
-                        }
-                    }
-                #endif
-            }
-
-            #if !os(tvOS)
-                /// Translate the Device orientation to the correct video capture orientation
-                private func videoAngleFrom(orientation: UIDeviceOrientation) -> CGFloat {
-                    switch orientation {
-                        case .portrait:
-                            0.0
-                        case .landscapeLeft:
-                            -90.0
-                        case .landscapeRight:
-                            90.0
-                        case .portraitUpsideDown:
-                            180.0
-                        default:
-                            0.0
-                    }
+                guard let rotationCoordinator, let connection = avVideoPreviewLayer?.connection else {
+                    return
                 }
-            #endif
-
+                let angle = rotationCoordinator.videoRotationAngleForHorizonLevelPreview
+                if connection.isVideoRotationAngleSupported(angle) {
+                    connection.videoRotationAngle = angle
+                }
+            }
         }
 
         // MARK: - Layers & Overlay
