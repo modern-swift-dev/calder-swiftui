@@ -23,3 +23,6 @@ source binding.
 
 Numeric inputs accept a minus sign as an intermediate editing state, allowing negative
 numbers to be typed from an empty field. The sign alone represents an absent numeric value.
+
+A failed next page in `PaginatedList.DataSource` keeps the loaded items and the current page.
+Reaching the end of the list again never reloads the first page.

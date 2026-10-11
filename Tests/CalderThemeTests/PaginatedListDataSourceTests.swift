@@ -125,7 +125,7 @@
             #expect(ids(source) == [3])
         }
 
-        @Test func `next success no next and error paths`() async throws {
+        @Test func `next success and no next paths`() async throws {
             let nextURL = try #require(URL(string: "https://example.com/next"))
             let success = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
 
@@ -148,18 +148,31 @@
             #expect(ids(noNext) == [1])
             #expect(!noNext.hasNext)
             expectDisplaying(noNext.state)
+        }
 
-            let failing = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
-            await failing.configureAndLoad {
-                PaginatedList.Results(count: 2, next: nextURL, hasNext: true, results: [item(1)])
-            } nextPageLoader: { _ in
+        @Test func `next page failure keeps loaded items and cursor`() async throws {
+            let nextURL = try #require(URL(string: "https://example.com/page-2"))
+            let recorder = PageRecorder()
+            let source = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
+            await source.configureAndLoad {
+                recorder.firstPageLoads += 1
+                return PaginatedList.Results(count: 3, next: nextURL, hasNext: true, results: [item(1)])
+            } nextPageLoader: { page in
+                recorder.requestedCursors.append(page.next)
                 throw PaginatedListDataSourceTestError.failed
             }
 
-            await failing.next()
-            #expect(ids(failing) == [1])
-            #expect(!failing.hasNext)
-            expectDisplaying(failing.state)
+            await source.next()
+            #expect(ids(source) == [1])
+            #expect(source.hasNext)
+            expectDisplaying(source.state)
+
+            await source.load()
+            #expect(recorder.firstPageLoads == 1)
+            #expect(ids(source) == [1])
+
+            await source.next()
+            #expect(recorder.requestedCursors == [nextURL, nextURL])
         }
 
         @Test func `loader error clears items count and sets error state`() async {
@@ -222,6 +235,11 @@
 
     private enum PaginatedListDataSourceTestError: Error {
         case failed
+    }
+
+    @MainActor private final class PageRecorder {
+        var firstPageLoads = 0
+        var requestedCursors: [URL?] = []
     }
 
     private actor FirstPageLoader {

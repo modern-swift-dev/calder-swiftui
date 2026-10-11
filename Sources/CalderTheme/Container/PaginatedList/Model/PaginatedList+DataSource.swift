@@ -296,8 +296,9 @@
             /// Loads the next page of data if available.
             ///
             /// This method checks if there's a next page and uses the `nextPageLoader` to fetch it.
-            /// Overlapping next-page calls are ignored. Cancellation preserves the current
-            /// page for retry; results from before a reload or clear are discarded.
+            /// Overlapping next-page calls are ignored. Cancellation and failure preserve the
+            /// loaded items and the current page so the same page can be requested again;
+            /// results from before a reload or clear are discarded.
             public func next() async {
                 guard let page = currentPage, page.hasNext,
                       !isLoadingNextPage, !isLoadingFirstPage, !Task.isCancelled else {
@@ -323,7 +324,6 @@
                           !Task.isCancelled, !(error is CancellationError) else {
                         return
                     }
-                    currentPage = nil
                     os_log("%{public}@", log: .default, type: .error, String(describing: error))
                 }
             }
