@@ -15,21 +15,27 @@
         public struct RawDataPoint {
             /// The category name (X-axis).
             var name: String
-            /// The absolute value associated with the category (left Y-axis).
+            /// The absolute value associated with the category (left Y-axis), never negative.
             var value: Int
 
             /// Creates a category and its absolute value for a Pareto chart.
+            ///
+            /// A Pareto chart plots shares of a total, so negative values are clamped to zero.
+            /// Each point keeps its own identity, but points that share a name share a category
+            /// on the X-axis, so give each category a unique name.
             /// - Parameters:
             ///   - name: The category label.
-            ///   - value: The absolute value for the category.
+            ///   - value: The absolute value for the category. Negative values are treated as zero.
             public init(name: String, value: Int) {
                 self.name = name
-                self.value = value
+                self.value = max(0, value)
             }
         }
 
         /// Represents a processed data point with cumulative percentage for the Pareto chart.
-        struct DataPoint {
+        struct DataPoint: Identifiable {
+            /// The position of the point in the sorted data, unique even when names repeat.
+            var id: Int
             /// The category name (X-axis).
             var name: String
             /// The absolute value associated with the category (left Y-axis).
@@ -60,13 +66,16 @@
         private var dataPoints: [DataPoint]
 
         /// Initializes the Pareto chart with given raw data points.
+        ///
+        /// The points are plotted in descending order of value, as a Pareto chart requires.
+        /// Points with equal values keep their input order, and points may share a name.
         /// - Parameters:
         ///   - title: The title of the chart.
         ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
         ///   - xAxisLabel: The label for the X-axis.
         ///   - leftYAxisTitle: The label for the left Y-axis.
         ///   - rightYAxisTitle: The label for the right Y-axis.
-        ///   - points: An array of `RawDataPoint` to process and display.
+        ///   - points: An array of `RawDataPoint` to process and display, in any order.
         public init(
             title: String,
             nbMarks: Int = 5,
@@ -89,7 +98,7 @@
             VStack(alignment: .leading, spacing: .medium) {
                 Chart {
                     // Bar Chart for Absolute Values
-                    ForEach(dataPoints, id: \.name) { data in
+                    ForEach(dataPoints) { data in
                         BarMark(
                             x: .value(xAxisLabel, data.name),
                             y: .value(leftYAxisTitle, data.value)
@@ -103,7 +112,7 @@
                     }
 
                     // Line Chart for Cumulative Percentage
-                    ForEach(dataPoints, id: \.name) { data in
+                    ForEach(dataPoints) { data in
                         LineMark(
                             x: .value(xAxisLabel, data.name),
                             y: .value(rightYAxisTitle, data.cumulated)
@@ -114,7 +123,7 @@
                     }
 
                     // Circle Markers on Line Chart
-                    ForEach(dataPoints, id: \.name) { data in
+                    ForEach(dataPoints) { data in
                         PointMark(
                             x: .value(xAxisLabel, data.name),
                             y: .value(rightYAxisTitle, data.cumulated)
@@ -224,14 +233,15 @@
             return Int(ceil(Double(max) / 100.0)) * 100
         }
 
-        /// Computes cumulative percentage for Pareto chart representation.
+        /// Sorts the points by descending value and computes their cumulative percentage.
         /// The `cumulated` value is scaled to `maxValue` for display on the secondary Y-axis.
         var computedPoints: [ParetoChart.DataPoint] {
             let total = map(\.value).reduce(0, +)
             var cumulativeSum = 0
-            return map { point in
+            return sorted { $0.value > $1.value }.enumerated().map { index, point in
                 cumulativeSum += point.value
                 return .init(
+                    id: index,
                     name: point.name,
                     value: point.value,
                     cumulated: total == 0 ? 0 : Double(cumulativeSum) / Double(total) * Double(maxValue)

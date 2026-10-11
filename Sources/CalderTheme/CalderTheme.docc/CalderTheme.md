@@ -8,7 +8,8 @@ into the SwiftUI environment. ``Theme`` exposes its definition, color scheme, an
 components can make decisions that depend on the active appearance.
 
 Create Pareto chart categories with ``ParetoChart/RawDataPoint/init(name:value:)`` and pass
-them to the chart initializer.
+them to the chart initializer. The chart plots categories in descending order of value, keeping
+the input order for ties, and clamps negative values to zero.
 
 Vertical bar and Pareto charts support empty and all-zero data with a zero axis mark.
 Tick counts below one use one interval, and tick spacing is always positive. Pareto
