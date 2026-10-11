@@ -12,7 +12,8 @@
             import AppKit
         #endif
 
-        public enum BarcodeGenerator {
+        /// A barcode symbology that Core Image can generate.
+        public enum BarcodeGenerator: Sendable {
             case qr
             case code128
             case pdf417

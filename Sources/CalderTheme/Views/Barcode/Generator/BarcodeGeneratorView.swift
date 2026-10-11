@@ -9,11 +9,15 @@
         import SwiftUI
 
         /// A SwiftUI view that displays a barcode (Code128, QR, PDF417) generated from a given string.
-        /// The barcode image is generated asynchronously.
+        ///
+        /// The barcode image is generated off the main thread the first time the view appears and is kept
+        /// across parent view updates. A new image is generated only when `code` or `type` changes.
         public struct BarcodeGeneratorView: View {
 
             /// The observable model for `BarcodeGeneratorView` responsible for barcode image generation.
-            @Observable public class Model: @unchecked Sendable {
+            ///
+            /// The model is main-actor isolated; image generation itself runs off the main thread.
+            @MainActor @Observable public class Model {
 
                 /// The generated barcode image, if available.
                 public var image: Image?
@@ -33,33 +37,61 @@
                     self.generator = generator
                 }
 
-                /// Generates the barcode image asynchronously on the main actor.
-                /// If successful, the `image` property will be updated.
-                @MainActor public func generate() async {
-                    image = generator.createImage(barcode: code)
+                /// Generates the barcode image off the main thread and stores it in `image`.
+                ///
+                /// Does nothing when an image is already available.
+                public func generate() async {
+                    guard image == nil else {
+                        return
+                    }
+                    image = await Self.makeImage(code: code, generator: generator)
+                }
+
+                @concurrent private nonisolated static func makeImage(code: String, generator: BarcodeGenerator) async -> Image? {
+                    generator.createImage(barcode: code)
                 }
             }
 
-            /// The bindable model for the `BarcodeGeneratorView`.
-            @Bindable var model: Model
+            private struct GenerationKey: Equatable {
+                let code: String
+                let generator: BarcodeGenerator
+
+                init(_ model: Model) {
+                    code = model.code
+                    generator = model.generator
+                }
+            }
+
+            @State private var model: Model
+            private let latestModel: Model
 
             /// Initializes a new `BarcodeGeneratorView` with the given code string and barcode type.
             /// - Parameters:
             ///   - code: The string value to encode into the barcode.
             ///   - type: The `BarcodeGenerator` type (e.g., .code128, .qr, .pdf417) for the barcode.
             public init(code: String, type: BarcodeGenerator) {
-                self.model = Model(code: code, generator: type)
+                self.init(model: Model(code: code, generator: type))
+            }
+
+            init(model: Model) {
+                _model = State(initialValue: model)
+                latestModel = model
             }
 
             /// The body of the `BarcodeGeneratorView` displaying either the generated image or a progress indicator.
             public var body: some View {
-                if let image = model.image {
-                    image
-                } else {
-                    ProgressView()
-                        .task {
-                            await model.generate()
-                        }
+                Group {
+                    if let image = model.image {
+                        image
+                    } else {
+                        ProgressView()
+                    }
+                }
+                .task(id: GenerationKey(latestModel)) {
+                    if GenerationKey(model) != GenerationKey(latestModel) {
+                        model = latestModel
+                    }
+                    await model.generate()
                 }
             }
 
@@ -94,11 +126,11 @@
 
                 private static func preview(type: BarcodeGenerator) -> some View {
                     let barcode = "http://google.ca"
-                    let view = BarcodeGeneratorView(code: barcode, type: type)
-                    view.model.image = type.createImage(barcode: barcode)
+                    let model = BarcodeGeneratorView.Model(code: barcode, generator: type)
+                    model.image = type.createImage(barcode: barcode)
 
                     return VStack {
-                        view
+                        BarcodeGeneratorView(model: model)
                         Spacer()
                     }
                 }
