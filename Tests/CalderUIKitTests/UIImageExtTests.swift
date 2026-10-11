@@ -90,6 +90,33 @@
                 #expect(urlString.contains("image/jpeg"))
             }
 
+            // MARK: - Data URL payload Tests
+
+            /// The decoded payload of a `data:<mimeType>;base64,` URL, decoded strictly so any line break fails.
+            private func payload(of url: URL?, mimeType: String) throws -> Data {
+                let string = try #require(url?.absoluteString)
+                let prefix = "data:\(mimeType);base64,"
+                #expect(string.hasPrefix(prefix))
+                return try #require(Data(base64Encoded: String(string.dropFirst(prefix.count))))
+            }
+
+            @Test func `base 64 URL png encodes PNG bytes without line breaks`() throws {
+                let url = createTestImage().base64URLPng()
+
+                #expect(url?.absoluteString.contains(where: \.isNewline) == false)
+                let data = try payload(of: url, mimeType: "image/png")
+                #expect(Array(data.prefix(8)) == [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+            }
+
+            @Test func `base 64 URL jpg encodes JPEG bytes without line breaks`() throws {
+                let url = createTestImage().base64URLJpg()
+
+                #expect(url?.absoluteString.contains(where: \.isNewline) == false)
+                let data = try payload(of: url, mimeType: "image/jpeg")
+                #expect(Array(data.prefix(3)) == [0xFF, 0xD8, 0xFF])
+                #expect(UIImage(data: data) != nil)
+            }
+
             #if !os(visionOS)
                 // MARK: - resize Tests
 

@@ -21,21 +21,26 @@
             }
 
             /// Returns a URL representing this picture as a Base64 encoded PNG data URL.
-            /// - Returns: A `URL` with a `data:` scheme representing this picture as a Base64 encoded PNG, or `nil` if the Base64 string cannot be generated.
+            ///
+            /// The Base64 payload contains no line breaks.
+            /// - Returns: A `URL` with a `data:` scheme representing this picture as a Base64 encoded PNG, or `nil` if the PNG data cannot be generated.
             func base64URLPng() -> URL? {
-                guard let base64 = base64String() else {
+                guard let data = pngData() else {
                     return nil
                 }
-                return URL(string: "data:image/png;base64,\(base64)")
+                return URL(string: "data:image/png;base64,\(data.base64EncodedString())")
             }
 
             /// Returns a URL representing this picture as a Base64 encoded JPEG data URL.
-            /// - Returns: A `URL` with a `data:` scheme representing this picture as a Base64 encoded JPEG, or `nil` if the Base64 string cannot be generated.
+            ///
+            /// The image is encoded as JPEG at maximum quality (compression quality `1.0`). The Base64 payload
+            /// contains no line breaks.
+            /// - Returns: A `URL` with a `data:` scheme representing this picture as a Base64 encoded JPEG, or `nil` if the JPEG data cannot be generated.
             func base64URLJpg() -> URL? {
-                guard let base64 = base64String() else {
+                guard let data = jpegData(compressionQuality: 1.0) else {
                     return nil
                 }
-                return URL(string: "data:image/jpeg;base64,\(base64)")
+                return URL(string: "data:image/jpeg;base64,\(data.base64EncodedString())")
             }
         }
 
