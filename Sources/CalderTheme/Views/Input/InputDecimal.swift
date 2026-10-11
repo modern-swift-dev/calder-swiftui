@@ -19,7 +19,7 @@
         @State var textValue: String
 
         /// The placeholder text displayed when the input field is empty.
-        let placeholder: String
+        let placeholder: LocalizableText
         /// A boolean indicating whether to display a border around the text view.
         let displayTextViewBorder: Bool
         /// The maximum number of fraction digits allowed for the decimal input.
@@ -31,7 +31,7 @@
         /// A boolean indicating if the current input is considered invalid.
         let invalid: Bool
         /// An optional message to display when the input is invalid.
-        let invalidMessage: String?
+        let invalidMessage: LocalizableText?
 
         /// Initializes an `InputDecimal` view.
         /// - Parameters:
@@ -49,6 +49,53 @@
             displayTextViewBorder: Bool = true,
             invalid: Bool = false,
             invalidMessage: String? = nil
+        ) {
+            self.init(
+                value: value,
+                placeholder: .verbatim(placeholder),
+                maxFractionDigits: maxFractionDigits,
+                displayTextViewBorder: displayTextViewBorder,
+                invalid: invalid,
+                invalidMessage: invalidMessage.map(LocalizableText.verbatim)
+            )
+        }
+
+        /// Initializes an `InputDecimal` view with a localized placeholder and invalid message.
+        ///
+        /// SwiftUI looks up each resource in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - value: A binding to an optional `Double` value that will be displayed and updated by the input.
+        ///   - placeholder: The localized placeholder text to display when the field is empty.
+        ///   - maxFractionDigits: The maximum number of digits allowed after the decimal point. Defaults to 15.
+        ///     Negative values are treated as `0`.
+        ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text field. Defaults to `true`.
+        ///   - invalid: A boolean indicating if the input is currently in an invalid state, which affects styling. Defaults to `false`.
+        ///   - invalidMessage: An optional localized message to display when the input is invalid. Defaults to `nil`.
+        public init(
+            value: Binding<Double?>,
+            placeholder: LocalizedStringResource,
+            maxFractionDigits: Int = 15,
+            displayTextViewBorder: Bool = true,
+            invalid: Bool = false,
+            invalidMessage: LocalizedStringResource? = nil
+        ) {
+            self.init(
+                value: value,
+                placeholder: .localized(placeholder),
+                maxFractionDigits: maxFractionDigits,
+                displayTextViewBorder: displayTextViewBorder,
+                invalid: invalid,
+                invalidMessage: invalidMessage.map(LocalizableText.localized)
+            )
+        }
+
+        private init(
+            value: Binding<Double?>,
+            placeholder: LocalizableText,
+            maxFractionDigits: Int,
+            displayTextViewBorder: Bool,
+            invalid: Bool,
+            invalidMessage: LocalizableText?
         ) {
             self._value = value
             self.placeholder = placeholder
@@ -73,10 +120,10 @@
         public var body: some View {
             InputText(
                 text: $textValue,
-                placeholder: placeholder,
+                placeholderText: placeholder,
                 displayTextViewBorder: displayTextViewBorder,
                 invalid: invalid,
-                invalidMessage: invalidMessage
+                invalidMessageText: invalidMessage
             )
             #if !os(macOS) && !os(watchOS)
             .keyboardType(.numbersAndPunctuation)

@@ -13,8 +13,15 @@
     public struct FormFieldResponsive<Content: View>: View {
         /// The theme
         @Environment(\.theme) private var theme
+        private let nameText: LocalizableText
+
         /// The name or label for the form field.
-        public let name: String
+        ///
+        /// A name created from a `LocalizedStringResource` is resolved for the current locale.
+        public var name: String {
+            nameText.resolved
+        }
+
         /// A boolean indicating if the field is mandatory, displaying an asterisk if `true`.
         public let mandatory: Bool
         /// The custom content to be displayed within the form field. It receives the current
@@ -28,7 +35,7 @@
         /// Initializes a new `FormFieldResponsive` view.
         ///
         /// - Parameters:
-        ///   - name: The label text for the form field.
+        ///   - name: The label text for the form field, displayed unchanged.
         ///   - mandatory: A boolean value indicating if the field is required. Defaults to `false`.
         ///   - accessory: An optional `Image` to display as an accessory. Defaults to `nil`.
         ///   - content: A `ViewBuilder` that provides the content (e.g., a `Text` view, an `InputText`)
@@ -40,7 +47,36 @@
             accessory: Image? = nil,
             @ViewBuilder content: @escaping @MainActor (UserInterfaceSizeClass?) -> Content
         ) {
-            self.name = name
+            self.init(nameText: .verbatim(name), mandatory: mandatory, accessory: accessory, content: content)
+        }
+
+        /// Initializes a new `FormFieldResponsive` view with a localized name.
+        ///
+        /// SwiftUI looks up the name in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - name: The localized label for the form field.
+        ///   - mandatory: A boolean value indicating if the field is required. Defaults to `false`.
+        ///   - accessory: An optional `Image` to display as an accessory. Defaults to `nil`.
+        ///   - content: A `ViewBuilder` that provides the content (e.g., a `Text` view, an `InputText`)
+        ///              to be displayed alongside the field name. The `UserInterfaceSizeClass`
+        ///              is passed to the content closure for adaptive layout.
+        public init(
+            name: LocalizedStringResource,
+            mandatory: Bool = false,
+            accessory: Image? = nil,
+            @ViewBuilder content: @escaping @MainActor (UserInterfaceSizeClass?) -> Content
+        ) {
+            self.init(nameText: .localized(name), mandatory: mandatory, accessory: accessory, content: content)
+        }
+
+        private init(
+            nameText: LocalizableText,
+            mandatory: Bool,
+            accessory: Image?,
+            @ViewBuilder content: @escaping @MainActor (UserInterfaceSizeClass?) -> Content
+        ) {
+            self.nameText = nameText
             self.mandatory = mandatory
             self.content = content
             self.accessory = accessory
@@ -86,7 +122,7 @@
 
         private func createFieldName() -> some View {
             HStack(alignment: .center, spacing: 0) {
-                Text(verbatim: name)
+                nameText.text
                     .font(.headline)
                     .foregroundStyle(theme.text1)
 
@@ -106,7 +142,7 @@
         /// where the content is implicitly handled by the navigation action.
         ///
         /// - Parameters:
-        ///   - name: The label text for the form field.
+        ///   - name: The label text for the form field, displayed unchanged.
         ///   - mandatory: A boolean value indicating if the field is required. Defaults to `false`.
         ///   - accessory: An optional `Image` to display as an accessory. Defaults to a right chevron.
         init(
@@ -114,10 +150,23 @@
             mandatory: Bool = false,
             accessory: Image = Image(systemSymbol: .chevronRight)
         ) {
-            self.name = name
-            self.mandatory = mandatory
-            self.content = { _ in EmptyView() }
-            self.accessory = accessory
+            self.init(nameText: .verbatim(name), mandatory: mandatory, accessory: accessory) { _ in EmptyView() }
+        }
+
+        /// Initializes a new `FormFieldResponsive` view with a localized name and an `EmptyView` as content.
+        ///
+        /// SwiftUI looks up the name in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - name: The localized label for the form field.
+        ///   - mandatory: A boolean value indicating if the field is required. Defaults to `false`.
+        ///   - accessory: An optional `Image` to display as an accessory. Defaults to a right chevron.
+        init(
+            name: LocalizedStringResource,
+            mandatory: Bool = false,
+            accessory: Image = Image(systemSymbol: .chevronRight)
+        ) {
+            self.init(nameText: .localized(name), mandatory: mandatory, accessory: accessory) { _ in EmptyView() }
         }
     }
 

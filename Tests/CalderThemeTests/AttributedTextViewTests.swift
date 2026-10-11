@@ -20,8 +20,8 @@
 
                 #expect(view.text == AttributedString(""))
                 #expect(view.invalid)
-                #expect(view.invalidMessage == "Invalid")
-                #expect(view.placeholder == "Placeholder")
+                #expect(view.invalidMessage == .verbatim("Invalid"))
+                #expect(view.placeholder == .verbatim("Placeholder"))
                 #expect(view.displayTextViewBorder)
                 #expect(view.maxLength == 10)
                 _ = view.body

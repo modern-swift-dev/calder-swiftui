@@ -1,6 +1,30 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "inputPassword.hidePassword" : {
+      "comment" : "Accessibility label of the password field button that hides the revealed password.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide password"
+          }
+        }
+      }
+    },
+    "inputPassword.showPassword" : {
+      "comment" : "Accessibility label of the password field button that reveals the hidden password.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show password"
+          }
+        }
+      }
+    },
     "messageBox.severity.error" : {
       "comment" : "Accessibility label announced for the icon of an error message box.",
       "extractionState" : "manual",
@@ -45,6 +69,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Warning"
+          }
+        }
+      }
+    },
+    "textView.characterCount %@ %@" : {
+      "comment" : "Character counter below a text area. %1$@ is the number of characters entered and %2$@ the maximum allowed, both already formatted for the locale.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ / %2$@ characters"
           }
         }
       }

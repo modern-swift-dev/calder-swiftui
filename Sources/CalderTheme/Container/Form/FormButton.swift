@@ -13,8 +13,15 @@
 
         /// The theme
         @Environment(\.theme) private var theme
+        private let label: LocalizableText
+
         /// The text displayed on the button.
-        public let text: String
+        ///
+        /// Text created from a `LocalizedStringResource` is resolved for the current locale.
+        public var text: String {
+            label.resolved
+        }
+
         /// A boolean indicating if the button has a destructive action,
         /// which alters its visual style to indicate a potentially unrecoverable operation.
         public let destructive: Bool
@@ -27,12 +34,27 @@
         /// Initializes a new `FormButton`.
         ///
         /// - Parameters:
-        ///   - text: The text to display on the button.
+        ///   - text: The text to display unchanged on the button.
         ///   - destructive: A boolean value indicating if the button's action is destructive.
         ///                  Defaults to `false`.
         ///   - action: The closure to execute when the button is tapped.
         public init(text: String, destructive: Bool = false, action: @escaping @Sendable @MainActor () -> Void) {
-            self.text = text
+            label = .verbatim(text)
+            self.destructive = destructive
+            self.action = action
+        }
+
+        /// Initializes a new `FormButton` with localized text.
+        ///
+        /// SwiftUI looks up the text in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - text: The localized text to display on the button.
+        ///   - destructive: A boolean value indicating if the button's action is destructive.
+        ///                  Defaults to `false`.
+        ///   - action: The closure to execute when the button is tapped.
+        public init(text: LocalizedStringResource, destructive: Bool = false, action: @escaping @Sendable @MainActor () -> Void) {
+            label = .localized(text)
             self.destructive = destructive
             self.action = action
         }
@@ -43,7 +65,7 @@
             }, label: {
                 HStack(alignment: .center, spacing: 0) {
                     Spacer()
-                    Text(text)
+                    label.text
                     Spacer()
                 }
                 .padding(.vertical, .medium)

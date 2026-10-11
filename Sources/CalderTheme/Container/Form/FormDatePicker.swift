@@ -36,8 +36,15 @@
 
             /// The theme
             @Environment(\.theme) private var theme
+            private let nameText: LocalizableText
+
             /// The name or label for the date picker field.
-            public let name: String
+            ///
+            /// A name created from a `LocalizedStringResource` is resolved for the current locale.
+            public var name: String {
+                nameText.resolved
+            }
+
             /// A boolean indicating if the field is mandatory.
             public let mandatory: Bool
             /// A binding to the `Date` value selected in the date picker.
@@ -58,7 +65,7 @@
             /// Initializes a new `FormDatePicker` view.
             ///
             /// - Parameters:
-            ///   - name: The label text for the date picker. VoiceOver also reads it as the picker's label.
+            ///   - name: The label text for the date picker, displayed unchanged. VoiceOver also reads it as the picker's label.
             ///   - mandatory: A boolean indicating if the field is required. Defaults to `false`.
             ///   - mode: The display mode for the date picker (date, time, or dateAndTime). Defaults to `.dateAndTime`.
             ///   - min: The earliest selectable date. Defaults to `nil` (no minimum).
@@ -79,7 +86,70 @@
                 calendar: Calendar = .current,
                 value: Binding<Date>
             ) {
-                self.name = name
+                self.init(
+                    nameText: .verbatim(name),
+                    mandatory: mandatory,
+                    mode: mode,
+                    min: min,
+                    max: max,
+                    locale: locale,
+                    timeZone: timeZone,
+                    calendar: calendar,
+                    value: value
+                )
+            }
+
+            /// Initializes a new `FormDatePicker` view with a localized name.
+            ///
+            /// SwiftUI looks up the name in its bundle and table using the environment's locale.
+            ///
+            /// - Parameters:
+            ///   - name: The localized label for the date picker. VoiceOver also reads it as the picker's label.
+            ///   - mandatory: A boolean indicating if the field is required. Defaults to `false`.
+            ///   - mode: The display mode for the date picker (date, time, or dateAndTime). Defaults to `.dateAndTime`.
+            ///   - min: The earliest selectable date. Defaults to `nil` (no minimum).
+            ///   - max: The latest selectable date. Defaults to `nil` (no maximum). When `max` is earlier
+            ///     than the minimum, only the minimum date is selectable.
+            ///   - locale: The locale to use for date formatting. Defaults to `Locale.current`.
+            ///   - timeZone: The time zone for the date picker. Defaults to `TimeZone.current`.
+            ///   - calendar: The calendar for the date picker. Defaults to `Calendar.current`.
+            ///   - value: A binding to the `Date` property that stores the selected date.
+            public init(
+                name: LocalizedStringResource,
+                mandatory: Bool = false,
+                mode: Mode = .dateAndTime,
+                min: Date? = nil,
+                max: Date? = nil,
+                locale: Locale = .current,
+                timeZone: TimeZone = .current,
+                calendar: Calendar = .current,
+                value: Binding<Date>
+            ) {
+                self.init(
+                    nameText: .localized(name),
+                    mandatory: mandatory,
+                    mode: mode,
+                    min: min,
+                    max: max,
+                    locale: locale,
+                    timeZone: timeZone,
+                    calendar: calendar,
+                    value: value
+                )
+            }
+
+            private init(
+                nameText: LocalizableText,
+                mandatory: Bool,
+                mode: Mode,
+                min: Date?,
+                max: Date?,
+                locale: Locale,
+                timeZone: TimeZone,
+                calendar: Calendar,
+                value: Binding<Date>
+            ) {
+                self.nameText = nameText
                 self.mandatory = mandatory
                 self.min = min
                 self.max = max
@@ -98,16 +168,17 @@
 
             public var body: some View {
                 FormField(
-                    name: name,
+                    nameText: nameText,
                     mandatory: mandatory
                 ) {
                     // The row name is the picker's hidden label, so VoiceOver announces it.
                     DatePicker(
-                        name,
                         selection: $value,
                         in: selectableRange,
                         displayedComponents: mode.components
-                    )
+                    ) {
+                        nameText.text
+                    }
                     #if !os(watchOS)
                     .datePickerStyle(.compact)
                     #endif

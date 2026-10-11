@@ -11,30 +11,51 @@
 
         /// The theme
         @Environment(\.theme) private var theme
+        private let nameText: LocalizableText
+
         /// The name or label for the switch field.
-        public let name: String
+        ///
+        /// A name created from a `LocalizedStringResource` is resolved for the current locale.
+        public var name: String {
+            nameText.resolved
+        }
+
         /// A binding to the boolean value that the switch controls.
         @Binding public var value: Bool
 
         /// Initializes a new `FormSwitch` view.
         ///
         /// - Parameters:
-        ///   - name: The label text for the switch. VoiceOver also reads it as the switch's label.
+        ///   - name: The label text for the switch, displayed unchanged. VoiceOver also reads it as the switch's label.
         ///   - value: A binding to the boolean property that stores the switch's state.
         public init(name: String, value: Binding<Bool>) {
-            self.name = name
+            nameText = .verbatim(name)
+            _value = value
+        }
+
+        /// Initializes a new `FormSwitch` view with a localized name.
+        ///
+        /// SwiftUI looks up the name in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - name: The localized label for the switch. VoiceOver also reads it as the switch's label.
+        ///   - value: A binding to the boolean property that stores the switch's state.
+        public init(name: LocalizedStringResource, value: Binding<Bool>) {
+            nameText = .localized(name)
             _value = value
         }
 
         public var body: some View {
             FormField(
-                name: name,
+                nameText: nameText,
                 mandatory: false
             ) {
                 // The row name is the switch's hidden label, so VoiceOver announces it.
-                Toggle(name, isOn: $value)
-                    .tint(theme.primary)
-                    .labelsHidden()
+                Toggle(isOn: $value) {
+                    nameText.text
+                }
+                .tint(theme.primary)
+                .labelsHidden()
             }
         }
     }

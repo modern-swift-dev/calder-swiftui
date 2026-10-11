@@ -19,8 +19,14 @@
         /// The actual value of the text field, as a `String` binding.
         @Binding public var text: String
 
+        private let placeholderText: LocalizableText
+
         /// The placeholder text to display when the input field is empty.
-        public let placeholder: String
+        ///
+        /// A placeholder created from a `LocalizedStringResource` is resolved for the current locale.
+        public var placeholder: String {
+            placeholderText.resolved
+        }
 
         /// An optional `Image` to display as a leading accessory in the text field.
         public let leftAccessory: Image?
@@ -28,10 +34,17 @@
         /// A boolean indicating if the current input is considered invalid.
         public var invalid: Bool
 
+        private var invalidMessageText: LocalizableText?
+
         /// An optional message to display when the input is invalid.
         ///
-        /// VoiceOver reads the message as the text field's hint.
-        public var invalidMessage: String?
+        /// VoiceOver reads the message as the text field's hint. A message created from a
+        /// `LocalizedStringResource` is resolved for the current locale. Assigning a string
+        /// replaces it with a message displayed unchanged.
+        public var invalidMessage: String? {
+            get { invalidMessageText?.resolved }
+            set { invalidMessageText = newValue.map(LocalizableText.verbatim) }
+        }
 
         /// Focus state for the text field, allowing programmatic control of focus.
         @FocusState public var focused: Bool
@@ -67,12 +80,60 @@
             invalid: Bool = false,
             invalidMessage: String? = nil
         ) {
+            self.init(
+                text: text,
+                placeholderText: .verbatim(placeholder),
+                leftAccessory: leftAccessory,
+                displayTextViewBorder: displayTextViewBorder,
+                invalid: invalid,
+                invalidMessageText: invalidMessage.map(LocalizableText.verbatim)
+            )
+        }
+
+        /// Initializes an `InputText` view with a localized placeholder and invalid message.
+        ///
+        /// SwiftUI looks up each resource in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - text: A binding to the `String` value of the text field.
+        ///   - placeholder: The localized placeholder text.
+        ///   - leftAccessory: An optional leading image. Defaults to `nil`.
+        ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text field. Defaults to `true`.
+        ///   - invalid: A boolean indicating if the input is invalid. Defaults to `false`. An invalid input draws
+        ///     an error border even when `displayTextViewBorder` is `false`.
+        ///   - invalidMessage: An optional localized error message, also read by VoiceOver as the field's hint. Defaults to `nil`.
+        public init(
+            text: Binding<String>,
+            placeholder: LocalizedStringResource,
+            leftAccessory: Image? = nil,
+            displayTextViewBorder: Bool = true,
+            invalid: Bool = false,
+            invalidMessage: LocalizedStringResource? = nil
+        ) {
+            self.init(
+                text: text,
+                placeholderText: .localized(placeholder),
+                leftAccessory: leftAccessory,
+                displayTextViewBorder: displayTextViewBorder,
+                invalid: invalid,
+                invalidMessageText: invalidMessage.map(LocalizableText.localized)
+            )
+        }
+
+        /// Initializes a validated `InputText` view from text that's either verbatim or localized.
+        init(
+            text: Binding<String>,
+            placeholderText: LocalizableText,
+            leftAccessory: Image? = nil,
+            displayTextViewBorder: Bool,
+            invalid: Bool,
+            invalidMessageText: LocalizableText?
+        ) {
             _text = text
-            self.placeholder = placeholder
+            self.placeholderText = placeholderText
             self.leftAccessory = leftAccessory
             self.displayTextViewBorder = displayTextViewBorder
             self.invalid = invalid
-            self.invalidMessage = invalidMessage
+            self.invalidMessageText = invalidMessageText
             axis = .horizontal
             background = AnyShapeStyle(Material.regular)
             showBorder = displayTextViewBorder
@@ -88,11 +149,59 @@
             background: (any ShapeStyle)? = nil,
             showBorder: Bool = false
         ) {
+            self.init(text: text, standardPlaceholder: .verbatim(placeholder), axis: axis, background: background, showBorder: showBorder)
+        }
+
+        /// Initializes a standard themed text field with a localized placeholder.
+        ///
+        /// SwiftUI looks up the placeholder in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - text: A binding to the `String` value of the text field.
+        ///   - placeholder: The localized placeholder text.
+        ///   - axis: The axis along which the text field grows. Defaults to `.horizontal`.
+        ///   - background: The field's background. Defaults to the thick material.
+        ///   - showBorder: Whether the field displays a border. Defaults to `false`.
+        public init(
+            text: Binding<String>,
+            placeholder: LocalizedStringResource,
+            axis: Axis = .horizontal,
+            background: (any ShapeStyle)? = nil,
+            showBorder: Bool = false
+        ) {
+            self.init(text: text, standardPlaceholder: .localized(placeholder), axis: axis, background: background, showBorder: showBorder)
+        }
+
+        /// Initializes a standard themed text field with its localized placeholder first.
+        ///
+        /// SwiftUI looks up the placeholder in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - placeholder: The localized placeholder text.
+        ///   - text: A binding to the `String` value of the text field.
+        ///   - axis: The axis along which the text field grows. Defaults to `.horizontal`.
+        ///   - background: The field's background. Defaults to the thick material.
+        ///   - showBorder: Whether the field displays a border. Defaults to `false`.
+        public init(
+            _ placeholder: LocalizedStringResource,
+            text: Binding<String>,
+            axis: Axis = .horizontal,
+            background: (any ShapeStyle)? = nil,
+            showBorder: Bool = false
+        ) {
+            self.init(text: text, placeholder: placeholder, axis: axis, background: background, showBorder: showBorder)
+        }
+
+        private init(
+            text: Binding<String>,
+            standardPlaceholder: LocalizableText,
+            axis: Axis,
+            background: (any ShapeStyle)?,
+            showBorder: Bool
+        ) {
             _text = text
-            self.placeholder = placeholder
+            placeholderText = standardPlaceholder
             leftAccessory = nil
             invalid = false
-            invalidMessage = nil
+            invalidMessageText = nil
             displayTextViewBorder = showBorder
             self.axis = axis
             let shape: any ShapeStyle = background ?? Material.thick
@@ -122,10 +231,10 @@
             showBorder: Bool = false
         ) {
             _text = text
-            placeholder = ""
+            placeholderText = .verbatim("")
             leftAccessory = nil
             invalid = false
-            invalidMessage = nil
+            invalidMessageText = nil
             displayTextViewBorder = showBorder
             self.axis = axis
             let shape: any ShapeStyle = background ?? Material.thick
@@ -156,15 +265,14 @@
                             .foregroundColor(iconColor)
                     }
 
-                    TextField(
-                        placeholder,
-                        text: $text
-                    )
+                    TextField(text: $text) {
+                        placeholderText.text
+                    }
                     .focused($focused)
                     .font(.body)
                     .foregroundStyle(fgColor)
                     .textFieldStyle(.plain)
-                    .accessibilityHint(invalidMessage ?? "")
+                    .accessibilityHint(invalidMessageText?.text ?? Text(verbatim: ""))
                 }
                 .padding(.vertical, .small)
                 .padding(.horizontal, .xs)
@@ -180,11 +288,11 @@
                         )
                 )
 
-                if let invalidMessage {
+                if let invalidMessageText {
                     HStack(spacing: .small) {
                         Spacer()
 
-                        Text(verbatim: invalidMessage)
+                        invalidMessageText.text
                             .font(.caption)
                             .foregroundStyle(fgColor)
                             .lineLimit(3)
@@ -204,7 +312,9 @@
                         EmptyView()
                     }
                 } else {
-                    TextField(placeholder, text: $text, axis: axis)
+                    TextField(text: $text, axis: axis) {
+                        placeholderText.text
+                    }
                 }
             }
             .textFieldStyle(.plain)

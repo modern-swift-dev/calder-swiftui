@@ -11,8 +11,15 @@
     public struct FormField<Content: View>: View {
         /// The theme
         @Environment(\.theme) private var theme
+        private let nameText: LocalizableText
+
         /// The name or label of the form field.
-        public let name: String
+        ///
+        /// A name created from a `LocalizedStringResource` is resolved for the current locale.
+        public var name: String {
+            nameText.resolved
+        }
+
         /// A boolean indicating if the field is mandatory, displaying an asterisk if `true`.
         public let mandatory: Bool
         /// The custom content to be displayed within the form field, typically an input control.
@@ -21,7 +28,7 @@
         /// Initializes a new `FormField` view.
         ///
         /// - Parameters:
-        ///   - name: The label text for the form field.
+        ///   - name: The label text for the form field, displayed unchanged.
         ///   - mandatory: A boolean value indicating if the field is required. Defaults to `false`.
         ///   - content: A `ViewBuilder` that provides the content (e.g., an `InputText`, `Toggle`)
         ///              to be displayed alongside the field name.
@@ -30,14 +37,40 @@
             mandatory: Bool = false,
             @ViewBuilder content: @escaping @MainActor () -> Content
         ) {
-            self.name = name
+            self.init(nameText: .verbatim(name), mandatory: mandatory, content: content)
+        }
+
+        /// Initializes a new `FormField` view with a localized name.
+        ///
+        /// SwiftUI looks up the name in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - name: The localized label for the form field.
+        ///   - mandatory: A boolean value indicating if the field is required. Defaults to `false`.
+        ///   - content: A `ViewBuilder` that provides the content (e.g., an `InputText`, `Toggle`)
+        ///              to be displayed alongside the field name.
+        public init(
+            name: LocalizedStringResource,
+            mandatory: Bool = false,
+            @ViewBuilder content: @escaping @MainActor () -> Content
+        ) {
+            self.init(nameText: .localized(name), mandatory: mandatory, content: content)
+        }
+
+        /// Initializes a new `FormField` view from a name that's either verbatim or localized.
+        init(
+            nameText: LocalizableText,
+            mandatory: Bool,
+            @ViewBuilder content: @escaping @MainActor () -> Content
+        ) {
+            self.nameText = nameText
             self.mandatory = mandatory
             self.content = content
         }
 
         public var body: some View {
             HStack(alignment: .center, spacing: 0) {
-                Text(name)
+                nameText.text
                     .font(.headline)
                     .foregroundStyle(theme.text1)
 

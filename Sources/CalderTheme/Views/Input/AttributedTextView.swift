@@ -21,9 +21,9 @@
             /// A boolean indicating if the current input is considered invalid.
             let invalid: Bool
             /// An optional message to display when the input is invalid.
-            let invalidMessage: String?
+            let invalidMessage: LocalizableText?
             /// The placeholder text displayed when the text area is empty.
-            let placeholder: String?
+            let placeholder: LocalizableText?
             /// A boolean indicating whether to display a border around the text area.
             let displayTextViewBorder: Bool
             /// The maximum length of text allowed in the text area.
@@ -44,6 +44,52 @@
                 placeholder: String? = nil,
                 displayTextViewBorder: Bool = true,
                 maxLength: Int? = nil
+            ) {
+                self.init(
+                    text: text,
+                    invalid: invalid,
+                    invalidMessage: invalidMessage.map(LocalizableText.verbatim),
+                    placeholder: placeholder.map(LocalizableText.verbatim),
+                    displayTextViewBorder: displayTextViewBorder,
+                    maxLength: maxLength
+                )
+            }
+
+            /// Initializes an `AttributedTextView` view with a localized placeholder and invalid message.
+            ///
+            /// SwiftUI looks up each resource in its bundle and table using the environment's locale.
+            /// - Parameters:
+            ///   - text: A binding to the `AttributedString` value of the text area.
+            ///   - invalid: A boolean indicating if the input is invalid. Defaults to `false`.
+            ///   - invalidMessage: An optional localized error message. Defaults to `nil`.
+            ///   - placeholder: The localized placeholder text.
+            ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text area. Defaults to `true`.
+            ///   - maxLength: The maximum length of text allowed. Defaults to `nil`.
+            public init(
+                text: Binding<AttributedString>,
+                invalid: Bool = false,
+                invalidMessage: LocalizedStringResource? = nil,
+                placeholder: LocalizedStringResource,
+                displayTextViewBorder: Bool = true,
+                maxLength: Int? = nil
+            ) {
+                self.init(
+                    text: text,
+                    invalid: invalid,
+                    invalidMessage: invalidMessage.map(LocalizableText.localized),
+                    placeholder: .localized(placeholder),
+                    displayTextViewBorder: displayTextViewBorder,
+                    maxLength: maxLength
+                )
+            }
+
+            private init(
+                text: Binding<AttributedString>,
+                invalid: Bool,
+                invalidMessage: LocalizableText?,
+                placeholder: LocalizableText?,
+                displayTextViewBorder: Bool,
+                maxLength: Int?
             ) {
                 _text = text
                 self.invalid = invalid
@@ -73,7 +119,7 @@
                                 }
 
                             if !isFocused, let placeholder, text.characters.isEmpty {
-                                Text(verbatim: placeholder)
+                                placeholder.text
                                     .font(.body)
                                     .foregroundStyle(theme.textFieldPlaceholder)
                                     .offset(x: .xxs, y: .xs)
@@ -97,7 +143,7 @@
                         HStack(spacing: .small) {
                             Spacer()
 
-                            Text(verbatim: invalidMessage)
+                            invalidMessage.text
                                 .font(.caption)
                                 .foregroundStyle(theme.text1)
                                 .lineLimit(3)

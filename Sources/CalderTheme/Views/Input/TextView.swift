@@ -21,9 +21,11 @@
             /// A boolean indicating if the current input is considered invalid.
             let invalid: Bool
             /// An optional message to display when the input is invalid.
-            let invalidMessage: String?
+            let invalidMessage: LocalizableText?
             /// The placeholder text displayed when the text area is empty.
-            let placeholder: String?
+            let placeholder: LocalizableText?
+            /// The locale used to format the character counter.
+            @Environment(\.locale) private var locale
             /// A boolean indicating whether to display a border around the text area.
             let displayTextViewBorder: Bool
             /// The maximum length of text allowed in the text area.
@@ -48,6 +50,57 @@
                 displayTextViewBorder: Bool = true,
                 maxLength: Int? = nil,
                 height: CGFloat? = nil
+            ) {
+                self.init(
+                    text: text,
+                    invalid: invalid,
+                    invalidMessage: invalidMessage.map(LocalizableText.verbatim),
+                    placeholder: placeholder.map(LocalizableText.verbatim),
+                    displayTextViewBorder: displayTextViewBorder,
+                    maxLength: maxLength,
+                    height: height
+                )
+            }
+
+            /// Initializes a `TextView` view with a localized placeholder and invalid message.
+            ///
+            /// SwiftUI looks up each resource in its bundle and table using the environment's locale.
+            /// - Parameters:
+            ///   - text: A binding to the `String` value of the text area.
+            ///   - invalid: A boolean indicating if the input is invalid. Defaults to `false`.
+            ///   - invalidMessage: An optional localized error message. Defaults to `nil`.
+            ///   - placeholder: The localized placeholder text.
+            ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text area. Defaults to `true`.
+            ///   - maxLength: The maximum length of text allowed. Defaults to `nil`.
+            ///   - height: The fixed height of the text area. Defaults to `nil`.
+            public init(
+                text: Binding<String>,
+                invalid: Bool = false,
+                invalidMessage: LocalizedStringResource? = nil,
+                placeholder: LocalizedStringResource,
+                displayTextViewBorder: Bool = true,
+                maxLength: Int? = nil,
+                height: CGFloat? = nil
+            ) {
+                self.init(
+                    text: text,
+                    invalid: invalid,
+                    invalidMessage: invalidMessage.map(LocalizableText.localized),
+                    placeholder: .localized(placeholder),
+                    displayTextViewBorder: displayTextViewBorder,
+                    maxLength: maxLength,
+                    height: height
+                )
+            }
+
+            private init(
+                text: Binding<String>,
+                invalid: Bool,
+                invalidMessage: LocalizableText?,
+                placeholder: LocalizableText?,
+                displayTextViewBorder: Bool,
+                maxLength: Int?,
+                height: CGFloat?
             ) {
                 _text = text
                 self.invalid = invalid
@@ -78,7 +131,7 @@
                                 }
 
                             if !isFocused, let placeholder, text.isEmpty {
-                                Text(verbatim: placeholder)
+                                placeholder.text
                                     .font(.body)
                                     .foregroundStyle(theme.textFieldPlaceholder)
                                     .offset(x: .xxs, y: .xs)
@@ -102,7 +155,7 @@
                         HStack(spacing: .small) {
                             Spacer()
 
-                            Text(verbatim: invalidMessage)
+                            invalidMessage.text
                                 .font(.caption)
                                 .foregroundStyle(theme.text1)
                                 .lineLimit(3)
@@ -114,12 +167,26 @@
                         HStack(spacing: 0) {
                             Spacer()
 
-                            Text(verbatim: "\(text.count) / \(maxLength) characters")
+                            Text(Self.characterCount(text.count, maxLength: maxLength, locale: locale))
                                 .font(.caption)
                                 .foregroundStyle(theme.text2)
                         }
                     }
                 }
+            }
+
+            /// The character counter shown below the text area, such as "12 / 100 characters".
+            /// - Parameters:
+            ///   - count: The number of characters entered.
+            ///   - maxLength: The maximum number of characters allowed.
+            ///   - locale: The locale used to format both numbers.
+            /// - Returns: The counter, looked up in the package's string catalog.
+            static func characterCount(_ count: Int, maxLength: Int, locale: Locale) -> LocalizedStringResource {
+                let count = count.formatted(.number.locale(locale))
+                let maxLength = maxLength.formatted(.number.locale(locale))
+                var resource = LocalizedStringResource("textView.characterCount \(count) \(maxLength)", bundle: .module)
+                resource.locale = locale
+                return resource
             }
 
             /// The border color of the text area, changing based on focus and invalid state.

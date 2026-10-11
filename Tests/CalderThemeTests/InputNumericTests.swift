@@ -18,11 +18,11 @@
             )
 
             #expect(input.textValue == "12.34")
-            #expect(input.placeholder == "Amount")
+            #expect(input.placeholder == .verbatim("Amount"))
             #expect(input.maxFractionDigits == 2)
             #expect(!input.displayTextViewBorder)
             #expect(input.invalid)
-            #expect(input.invalidMessage == "Invalid")
+            #expect(input.invalidMessage == .verbatim("Invalid"))
             _ = input.body
         }
 
@@ -75,11 +75,11 @@
             )
 
             #expect(input.textValue == "123")
-            #expect(input.placeholder == "Count")
+            #expect(input.placeholder == .verbatim("Count"))
             #expect(input.maxIntegerDigits == 4)
             #expect(!input.displayTextViewBorder)
             #expect(input.invalid)
-            #expect(input.invalidMessage == "Invalid")
+            #expect(input.invalidMessage == .verbatim("Invalid"))
             _ = input.body
         }
 

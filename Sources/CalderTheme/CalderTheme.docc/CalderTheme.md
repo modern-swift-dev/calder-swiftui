@@ -16,6 +16,11 @@ Properties that return a component's text as a `String` resolve localized text f
 locale. Built-in text, such as the severity VoiceOver announces for a message box, comes from the
 string catalog bundled with CalderTheme, which provides English.
 
+Form and input components follow the same rule for their labels, placeholders, and invalid
+messages. Their `LocalizedStringResource` initializers require a placeholder. `TextView` formats
+its character counter for the environment's locale, for example "1,200 / 5,000 characters" in
+English.
+
 Create Pareto chart categories with ``ParetoChart/RawDataPoint/init(name:value:)`` and pass
 them to the chart initializer. The chart plots categories in descending order of value, keeping
 the input order for ties, and clamps negative values to zero.

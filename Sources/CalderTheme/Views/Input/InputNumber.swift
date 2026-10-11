@@ -23,7 +23,7 @@
         @State var textValue: String
 
         /// The placeholder text displayed when the input field is empty.
-        let placeholder: String
+        let placeholder: LocalizableText
         /// A boolean indicating whether to display a border around the text view.
         let displayTextViewBorder: Bool
         /// The maximum number of integer digits allowed for the number input.
@@ -35,7 +35,7 @@
         /// A boolean indicating if the current input is considered invalid.
         let invalid: Bool
         /// An optional message to display when the input is invalid.
-        let invalidMessage: String?
+        let invalidMessage: LocalizableText?
 
         #if canImport(UIKit) && !os(watchOS)
             /// The locale used to parse decimal input.
@@ -66,6 +66,53 @@
             displayTextViewBorder: Bool = true,
             invalid: Bool = false,
             invalidMessage: String? = nil
+        ) {
+            self.init(
+                value: value,
+                placeholder: .verbatim(placeholder),
+                maxIntegerDigits: maxIntegerDigits,
+                displayTextViewBorder: displayTextViewBorder,
+                invalid: invalid,
+                invalidMessage: invalidMessage.map(LocalizableText.verbatim)
+            )
+        }
+
+        /// Initializes an `InputNumber` view with a localized placeholder and invalid message.
+        ///
+        /// SwiftUI looks up each resource in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - value: A binding to an optional `Int64` value that will be displayed and updated by the input.
+        ///   - placeholder: The localized placeholder text to display when the field is empty.
+        ///   - maxIntegerDigits: The maximum number of integer digits allowed. Defaults to 15. Values are clamped
+        ///     to `1...18` so every accepted number fits in `Int64`.
+        ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text field. Defaults to `true`.
+        ///   - invalid: A boolean indicating if the input is currently in an invalid state, which affects styling. Defaults to `false`.
+        ///   - invalidMessage: An optional localized message to display when the input is invalid. Defaults to `nil`.
+        public init(
+            value: Binding<Int64?>,
+            placeholder: LocalizedStringResource,
+            maxIntegerDigits: Int = 15,
+            displayTextViewBorder: Bool = true,
+            invalid: Bool = false,
+            invalidMessage: LocalizedStringResource? = nil
+        ) {
+            self.init(
+                value: value,
+                placeholder: .localized(placeholder),
+                maxIntegerDigits: maxIntegerDigits,
+                displayTextViewBorder: displayTextViewBorder,
+                invalid: invalid,
+                invalidMessage: invalidMessage.map(LocalizableText.localized)
+            )
+        }
+
+        private init(
+            value: Binding<Int64?>,
+            placeholder: LocalizableText,
+            maxIntegerDigits: Int,
+            displayTextViewBorder: Bool,
+            invalid: Bool,
+            invalidMessage: LocalizableText?
         ) {
             self._value = value
             self.placeholder = placeholder
@@ -115,9 +162,52 @@
                 showBorder: Bool = false,
                 isValid: @escaping (Double) -> Bool = { _ in true }
             ) {
+                self.init(
+                    value: value,
+                    placeholderText: .verbatim(placeholder),
+                    keyboardType: keyboardType,
+                    showBorder: showBorder,
+                    isValid: isValid
+                )
+            }
+
+            /// Initializes a themed decimal input field with a localized placeholder.
+            ///
+            /// SwiftUI looks up the placeholder in its bundle and table using the environment's locale.
+            /// The field parses and displays numbers like the initializer that takes a `String` placeholder.
+            ///
+            /// - Parameters:
+            ///   - value: A binding to the decimal value that the field displays and updates.
+            ///   - placeholder: The localized placeholder text displayed when the field is empty.
+            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
+            ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
+            ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
+            public init(
+                value: Binding<Double>,
+                placeholder: LocalizedStringResource,
+                keyboardType: UIKeyboardType = .decimalPad,
+                showBorder: Bool = false,
+                isValid: @escaping (Double) -> Bool = { _ in true }
+            ) {
+                self.init(
+                    value: value,
+                    placeholderText: .localized(placeholder),
+                    keyboardType: keyboardType,
+                    showBorder: showBorder,
+                    isValid: isValid
+                )
+            }
+
+            private init(
+                value: Binding<Double>,
+                placeholderText: LocalizableText,
+                keyboardType: UIKeyboardType,
+                showBorder: Bool,
+                isValid: @escaping (Double) -> Bool
+            ) {
                 _value = .constant(nil)
                 _textValue = State(initialValue: Self.formatDecimal(value.wrappedValue, locale: .current))
-                self.placeholder = placeholder
+                placeholder = placeholderText
                 displayTextViewBorder = showBorder
                 maxIntegerDigits = 15
                 numberFormatter = Self.numberFormatter(maxIntegerDigits: 15)
@@ -156,6 +246,33 @@
                     isValid: isValid
                 )
             }
+
+            /// Initializes a themed decimal input field with its localized placeholder first.
+            ///
+            /// SwiftUI looks up the placeholder in its bundle and table using the environment's locale.
+            /// The field parses and displays numbers like the initializer that takes a `String` placeholder.
+            ///
+            /// - Parameters:
+            ///   - placeholder: The localized placeholder text displayed when the field is empty.
+            ///   - value: A binding to the decimal value that the field displays and updates.
+            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
+            ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
+            ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
+            public init(
+                _ placeholder: LocalizedStringResource,
+                value: Binding<Double>,
+                keyboardType: UIKeyboardType = .decimalPad,
+                showBorder: Bool = false,
+                isValid: @escaping (Double) -> Bool = { _ in true }
+            ) {
+                self.init(
+                    value: value,
+                    placeholder: placeholder,
+                    keyboardType: keyboardType,
+                    showBorder: showBorder,
+                    isValid: isValid
+                )
+            }
         #endif
 
         /// The content and behavior of the view.
@@ -174,10 +291,10 @@
         private var integerBody: some View {
             InputText(
                 text: $textValue,
-                placeholder: placeholder,
+                placeholderText: placeholder,
                 displayTextViewBorder: displayTextViewBorder,
                 invalid: invalid,
-                invalidMessage: invalidMessage
+                invalidMessageText: invalidMessage
             )
             #if !os(macOS) && !os(watchOS)
             .keyboardType(.numbersAndPunctuation)
@@ -208,41 +325,43 @@
 
         #if canImport(UIKit) && !os(watchOS)
             private func decimalBody(value: Binding<Double>) -> some View {
-                TextField(placeholder, text: $textValue)
-                    .keyboardType(keyboardType)
-                    .textFieldStyle(.plain)
-                    .foregroundStyle(decimalIsValid(value.wrappedValue) ? theme.text1 : theme.error)
-                    .padding(.small)
-                    .background(Material.thick)
-                    .contentShape(RoundedRectangle(cornerRadius: .small))
-                    .clipShape(RoundedRectangle(cornerRadius: .small))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: .small)
-                            .stroke(decimalShowBorder ? theme.text3 : theme.transparent, lineWidth: 1)
+                TextField(text: $textValue) {
+                    placeholder.text
+                }
+                .keyboardType(keyboardType)
+                .textFieldStyle(.plain)
+                .foregroundStyle(decimalIsValid(value.wrappedValue) ? theme.text1 : theme.error)
+                .padding(.small)
+                .background(Material.thick)
+                .contentShape(RoundedRectangle(cornerRadius: .small))
+                .clipShape(RoundedRectangle(cornerRadius: .small))
+                .overlay {
+                    RoundedRectangle(cornerRadius: .small)
+                        .stroke(decimalShowBorder ? theme.text3 : theme.transparent, lineWidth: 1)
+                }
+                .onChange(of: textValue, initial: false) { oldValue, newValue in
+                    // A formatted binding update must not round the source value.
+                    guard oldValue != newValue, newValue != Self.formatDecimal(value.wrappedValue, locale: locale) else {
+                        return
                     }
-                    .onChange(of: textValue, initial: false) { oldValue, newValue in
-                        // A formatted binding update must not round the source value.
-                        guard oldValue != newValue, newValue != Self.formatDecimal(value.wrappedValue, locale: locale) else {
-                            return
-                        }
-                        // Reject text that isn't a number in the current locale instead of storing a stale or zero value.
-                        guard Self.acceptsDecimalText(newValue, locale: locale) else {
-                            textValue = oldValue
-                            return
-                        }
-                        // A lone minus sign starts a negative number and leaves the binding unchanged.
-                        guard let parsedValue = Self.parseDecimal(newValue, locale: locale) else {
-                            return
-                        }
+                    // Reject text that isn't a number in the current locale instead of storing a stale or zero value.
+                    guard Self.acceptsDecimalText(newValue, locale: locale) else {
+                        textValue = oldValue
+                        return
+                    }
+                    // A lone minus sign starts a negative number and leaves the binding unchanged.
+                    guard let parsedValue = Self.parseDecimal(newValue, locale: locale) else {
+                        return
+                    }
 
-                        value.wrappedValue = parsedValue
+                    value.wrappedValue = parsedValue
+                }
+                // The initial update reformats text created before the environment locale was available.
+                .onChange(of: value.wrappedValue, initial: true) { _, newValue in
+                    if Self.parseDecimal(textValue, locale: locale) != newValue {
+                        textValue = Self.formatDecimal(newValue, locale: locale)
                     }
-                    // The initial update reformats text created before the environment locale was available.
-                    .onChange(of: value.wrappedValue, initial: true) { _, newValue in
-                        if Self.parseDecimal(textValue, locale: locale) != newValue {
-                            textValue = Self.formatDecimal(newValue, locale: locale)
-                        }
-                    }
+                }
             }
         #endif
 
