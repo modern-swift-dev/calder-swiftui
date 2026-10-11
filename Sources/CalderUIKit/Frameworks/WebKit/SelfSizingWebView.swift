@@ -1,7 +1,6 @@
 #if canImport(Darwin)
     #if canImport(UIKit) && canImport(WebKit)
 
-        import Combine
         import Foundation
         import UIKit
         import WebKit
@@ -20,8 +19,11 @@
                 }
             }
 
-            /// The cancellables
-            private var cancellables = Set<AnyCancellable>()
+            /// Observes the scroll view's content size.
+            private var contentSizeObservation: NSKeyValueObservation?
+
+            /// The pending trailing update that applies the latest content size after a throttling interval.
+            private var pendingContentSizeUpdate: Task<Void, Never>?
 
             /// The callback for the parent, in case they need to do something when the size changes
             public var contentSizeChanged: (CGSize) -> Void = { _ in }
@@ -44,14 +46,32 @@
 
             private func configure() {
                 lastContentSize = scrollView.contentSize
-                publisher(for: \.scrollView.contentSize, options: .new)
-                    .removeDuplicates()
-                    .throttle(for: 0.5, scheduler: DispatchQueue.main, latest: true)
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] size in
-                        self?.lastContentSize = size
+                contentSizeObservation = scrollView.observe(\.contentSize, options: .new) { [weak self] _, _ in
+                    // UIKit changes scroll view content sizes on the main thread.
+                    MainActor.assumeIsolated {
+                        self?.contentSizeDidChange()
                     }
-                    .store(in: &cancellables)
+                }
+            }
+
+            /// Applies content size changes at most once every half second, ending with the latest size.
+            private func contentSizeDidChange() {
+                guard pendingContentSizeUpdate == nil else {
+                    return
+                }
+                applyContentSize()
+                pendingContentSizeUpdate = Task { [weak self] in
+                    try? await Task.sleep(for: .milliseconds(500))
+                    self?.pendingContentSizeUpdate = nil
+                    self?.applyContentSize()
+                }
+            }
+
+            private func applyContentSize() {
+                let size = scrollView.contentSize
+                if size != lastContentSize {
+                    lastContentSize = size
+                }
             }
 
         }

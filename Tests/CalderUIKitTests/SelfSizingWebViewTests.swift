@@ -73,6 +73,25 @@
                 #expect(receivedSize.height == 300)
             }
 
+            @Test func `loaded content size updates the last content size`() async throws {
+                let webView = SelfSizingWebView(frame: CGRect(x: 0, y: 0, width: 320, height: 480), configuration: WKWebViewConfiguration())
+                var reportedSizes: [CGSize] = []
+                webView.contentSizeChanged = { reportedSizes.append($0) }
+
+                webView.loadHTMLString(
+                    "<html><head><meta name='viewport' content='width=device-width'></head><body style='margin:0'><div style='height:2000px'></div></body></html>",
+                    baseURL: nil
+                )
+                let deadline = ContinuousClock.now + .seconds(10)
+                while webView.lastContentSize.height < 2000, ContinuousClock.now < deadline {
+                    try await Task.sleep(for: .milliseconds(100))
+                }
+
+                #expect(webView.lastContentSize.height == 2000)
+                #expect(webView.intrinsicContentSize == webView.lastContentSize)
+                #expect(reportedSizes.last == webView.lastContentSize)
+            }
+
         }
     #endif
 

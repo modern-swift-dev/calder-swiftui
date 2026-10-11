@@ -49,9 +49,6 @@
             }
         }
 
-        extension WKWebsiteDataStore: @unchecked @retroactive Sendable {}
-        extension WKHTTPCookieStore: @unchecked @retroactive Sendable {}
-
     #endif
 
 #endif
