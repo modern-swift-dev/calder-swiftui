@@ -55,6 +55,37 @@
             #expect(dist > 0)
         }
 
+        @Test(arguments: [0.0, 30.0, 45.0, 60.0, 75.0])
+        func `distance in meters matches CLLocation distance`(latitude: Double) {
+            let origin = CLLocationCoordinate2D(latitude, 10.0)
+            let destinations = [
+                CLLocationCoordinate2D(latitude, 10.1), // East
+                CLLocationCoordinate2D(latitude + 0.1, 10.0), // North
+                CLLocationCoordinate2D(latitude + 0.05, 10.05) // North-east
+            ]
+            for destination in destinations {
+                let expected = origin.toCLLocation().distance(from: destination.toCLLocation())
+                let actual = origin.distanceInMeters(from: destination)
+                #expect(abs(actual - expected) / expected < 0.01, "at \(destination): \(actual) vs \(expected)")
+            }
+        }
+
+        @Test(arguments: [0.0, 60.0])
+        func `distance in meters across the antimeridian matches CLLocation distance`(latitude: Double) {
+            let west = CLLocationCoordinate2D(latitude, 179.95)
+            let east = CLLocationCoordinate2D(latitude, -179.95)
+            let expected = west.toCLLocation().distance(from: east.toCLLocation())
+            let actual = west.distanceInMeters(from: east)
+            #expect(abs(actual - expected) / expected < 0.01)
+        }
+
+        @Test func `is near meters accounts for latitude`() {
+            // 0.01 degrees of longitude at 60 degrees north is about 557 m.
+            let coord1 = CLLocationCoordinate2D(60.0, 10.0)
+            let coord2 = CLLocationCoordinate2D(60.0, 10.01)
+            #expect(coord1.isNear(coord2, thresholdInMeters: 600))
+        }
+
         // MARK: - isNear (degrees) Tests
 
         @Test func `is near degrees within threshold`() {

@@ -35,11 +35,19 @@
             }
 
             /// Calculates the less precise planar distance in meters between two coordinates.
-            /// This method is computationally less intensive and suitable for rough estimates.
+            ///
+            /// This method uses an equirectangular approximation: the longitude difference is measured the shorter
+            /// way around the globe, including across the antimeridian, and scaled by the cosine of the mean
+            /// latitude, so east-west distances shrink toward the poles. It is computationally
+            /// less intensive than `CLLocation.distance(from:)` and suitable for rough estimates over short distances.
             /// - Parameter otherLocation: The other `CLLocationCoordinate2D` to calculate the distance to.
             /// - Returns: The distance in meters.
             func distanceInMeters(from otherLocation: CLLocationCoordinate2D) -> CLLocationDistance {
-                distance(from: otherLocation).degreesToMeters
+                let meanLatitude = ((latitude + otherLocation.latitude) / 2).degreesToRadians
+                let deltaLat: CLLocationDegrees = latitude - otherLocation.latitude
+                // Take the shorter way around so coordinates either side of the antimeridian are close.
+                let deltaLon: CLLocationDegrees = remainder(longitude - otherLocation.longitude, 360) * cos(meanLatitude)
+                return sqrt(deltaLat * deltaLat + deltaLon * deltaLon).degreesToMeters
             }
         }
 
