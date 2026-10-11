@@ -51,6 +51,11 @@ undetermined. When access is denied or restricted, they show a message, themed w
 environment's `themeDefinition`, with a button that opens Settings, and they start scanning
 when the app becomes active with access granted.
 
+On devices that cannot scan, such as Simulator, the scanner and selector show an unavailable
+message instead of a blank view. Check `BarcodeScannerViewController.isSupported`,
+`BarcodeSelectoViewController.isSupported`, and `BarcodeSelectoViewController.isAvailable` to
+hide scanning entry points.
+
 Optional numeric inputs update their displayed text when the bound value changes, including
 clearing it when the value becomes `nil`. Display formatting does not round or truncate the
 source binding.

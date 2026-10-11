@@ -47,6 +47,7 @@
                 let vc = BarcodeSelectoViewController()
                 vc.recognizedTypes = recognizedTypes
                 vc.highlightColor = UIColor(highlightColor)
+                vc.themeDefinition = context.environment.themeDefinition
                 vc.scanDelegate = context.coordinator
                 return vc
             }
@@ -57,6 +58,7 @@
             ///   - context: The context for updating the view controller.
             public func updateUIViewController(_ vc: BarcodeSelectoViewController, context: Context) {
                 vc.highlightColor = UIColor(highlightColor)
+                vc.themeDefinition = context.environment.themeDefinition
                 vc.scanDelegate = context.coordinator
                 // It's a `let` constant in the UIViewController so it cannot be updated
                 // dynamically, so we would need to recreate the VC or adjust how

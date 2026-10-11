@@ -24,6 +24,16 @@
                 _ = BarcodeSelectoViewController.isAvailable
             }
 
+            @Test func `unsupported device shows the unsupported message instead of the scanner`() {
+                let controller = BarcodeSelectoViewController()
+                controller.isScannerSupported = false
+
+                controller.loadViewIfNeeded()
+
+                #expect(controller.unavailableReason == .unsupported)
+                #expect(!controller.children.contains { $0 is DataScannerViewController })
+            }
+
             @Test func `selector passes recognized types to its view controller`() throws {
                 let types: Set<DataScannerViewController.RecognizedDataType> = [.barcode(symbologies: [.ean13])]
                 let selector = BarcodeSelector(recognizedTypes: types, scannedCode: .constant(nil))

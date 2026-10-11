@@ -72,6 +72,18 @@
                 window.isHidden = true
             }
 
+            @Test func `missing camera shows the unsupported message without prompting`() {
+                let access = FakeCameraAccess(status: .notDetermined, grantsAccess: true, hasCamera: false)
+                let controller = BarcodeScannerViewController()
+                controller.cameraAccess = access.access
+
+                let window = present(controller)
+
+                #expect(controller.unavailableReason == .unsupported)
+                #expect(access.requestCount == 0)
+                window.isHidden = true
+            }
+
             private func present(_ controller: UIViewController) -> UIWindow {
                 let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
                 window.rootViewController = controller
@@ -86,28 +98,31 @@
                 }
                 try #require(condition())
             }
-        }
 
-        /// A camera-access fake whose authorization status the test controls.
-        @MainActor private final class FakeCameraAccess {
-            var status: AVAuthorizationStatus
-            let grantsAccess: Bool
-            private(set) var requestCount = 0
+            /// A camera-access fake whose authorization status the test controls.
+            @MainActor private final class FakeCameraAccess {
+                var status: AVAuthorizationStatus
+                let grantsAccess: Bool
+                let hasCamera: Bool
+                private(set) var requestCount = 0
 
-            init(status: AVAuthorizationStatus, grantsAccess: Bool) {
-                self.status = status
-                self.grantsAccess = grantsAccess
-            }
+                init(status: AVAuthorizationStatus, grantsAccess: Bool, hasCamera: Bool = true) {
+                    self.status = status
+                    self.grantsAccess = grantsAccess
+                    self.hasCamera = hasCamera
+                }
 
-            var access: BarcodeScannerCameraAccess {
-                BarcodeScannerCameraAccess(
-                    authorizationStatus: { self.status },
-                    requestAccess: {
-                        self.requestCount += 1
-                        self.status = self.grantsAccess ? .authorized : .denied
-                        return self.grantsAccess
-                    }
-                )
+                var access: BarcodeScannerCameraAccess {
+                    BarcodeScannerCameraAccess(
+                        isCameraAvailable: { self.hasCamera },
+                        authorizationStatus: { self.status },
+                        requestAccess: {
+                            self.requestCount += 1
+                            self.status = self.grantsAccess ? .authorized : .denied
+                            return self.grantsAccess
+                        }
+                    )
+                }
             }
         }
     #endif

@@ -4,6 +4,9 @@
 
         /// The camera-permission checks that ``BarcodeScannerViewController`` performs before it starts the camera.
         struct BarcodeScannerCameraAccess: Sendable {
+            /// Returns whether the device has a camera the scanner can use.
+            var isCameraAvailable: @MainActor @Sendable () -> Bool
+
             /// Returns the app's current camera authorization status.
             var authorizationStatus: @MainActor @Sendable () -> AVAuthorizationStatus
 
@@ -12,6 +15,7 @@
 
             /// Camera access backed by `AVCaptureDevice`.
             static let live = BarcodeScannerCameraAccess(
+                isCameraAvailable: { BarcodeScannerViewController.isSupported },
                 authorizationStatus: { AVCaptureDevice.authorizationStatus(for: .video) },
                 requestAccess: { await AVCaptureDevice.requestAccess(for: .video) }
             )

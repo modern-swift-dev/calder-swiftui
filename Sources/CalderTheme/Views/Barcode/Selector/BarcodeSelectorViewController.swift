@@ -3,6 +3,7 @@
         import CalderUIKit
         import Combine
         import os
+        import SwiftUI
         import Vision
         import VisionKit
 
@@ -36,14 +37,39 @@
                 nil
             }
 
-            /// A boolean indicating whether the `DataScannerViewController` is supported on the current device.
-            static var isSupported: Bool {
+            /// Whether the device supports VisionKit's `DataScannerViewController`.
+            ///
+            /// The selector shows an unavailable message instead of the scanner when this is `false`, for example in
+            /// Simulator or on a Mac. Check it to hide scanning entry points on such devices.
+            public static var isSupported: Bool {
                 DataScannerViewController.isSupported
             }
 
-            /// A boolean indicating whether the `DataScannerViewController` is available for use (e.g., camera access granted).
-            static var isAvailable: Bool {
+            /// Whether the data scanner can be used now: the device supports it, camera access is granted, and no
+            /// restrictions apply.
+            public static var isAvailable: Bool {
                 DataScannerViewController.isAvailable
+            }
+
+            /// The theme used by the message shown when the device cannot scan.
+            public var themeDefinition = ThemeDefinition() {
+                didSet {
+                    unavailableHost?.rootView = unavailableMessage
+                }
+            }
+
+            /// Whether the device supports the data scanner. Read once, when the view loads.
+            var isScannerSupported = BarcodeSelectoViewController.isSupported
+
+            /// Why the selector shows a message instead of the scanner, if it does.
+            private(set) var unavailableReason: BarcodeScannerUnavailableView.Reason?
+
+            /// The hosting controller that displays the unsupported message.
+            private var unavailableHost: UIHostingController<AnyView>?
+
+            /// The themed unsupported message.
+            private var unavailableMessage: AnyView {
+                AnyView(BarcodeScannerUnavailableView(reason: .unsupported).environment(\.themeDefinition, themeDefinition))
             }
 
             /// A dictionary to keep track of highlight views by their `RecognizedItem` UUID.
@@ -73,13 +99,23 @@
             ]
 
             /// Called after the controller's view is loaded into memory.
-            /// Configures the layout of the scanner view within the controller's view.
+            /// Configures the layout of the scanner view within the controller's view, or shows an unsupported message
+            /// when the device cannot run the data scanner.
             override public func viewDidLoad() {
                 super.viewDidLoad()
-                addChildViewController(scanner, toContainerView: view)
-                scanner.view.translatesAutoresizingMaskIntoConstraints = false
+                let child: UIViewController
+                if isScannerSupported {
+                    child = scanner
+                } else {
+                    let host = UIHostingController(rootView: unavailableMessage)
+                    unavailableReason = .unsupported
+                    unavailableHost = host
+                    child = host
+                }
+                addChildViewController(child, toContainerView: view)
+                child.view.translatesAutoresizingMaskIntoConstraints = false
                 NSLayoutConstraint.activate {
-                    scanner.view.pinned(to: view)
+                    child.view.pinned(to: view)
                 }
             }
 
@@ -97,13 +133,19 @@
                 stop()
             }
 
-            /// Stops the barcode scanning session.
+            /// Stops the barcode scanning session. Does nothing on devices without data scanner support.
             public func stop() {
+                guard isScannerSupported else {
+                    return
+                }
                 scanner.stopScanning()
             }
 
-            /// Starts the barcode scanning session.
+            /// Starts the barcode scanning session. Does nothing on devices without data scanner support.
             public func start() {
+                guard isScannerSupported else {
+                    return
+                }
                 do {
                     try scanner.startScanning()
                 } catch {

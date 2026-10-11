@@ -138,9 +138,22 @@
         // MARK: Camera Access
 
         extension BarcodeScannerViewController {
+            /// Whether the device has a back camera the scanner can use.
+            ///
+            /// The scanner shows an unavailable message when this is `false`, for example in Simulator or on a Mac without a
+            /// back camera. Check it to hide scanning entry points on such devices.
+            public static var isSupported: Bool {
+                AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) != nil
+            }
+
             /// Starts the camera when access is granted, prompts when it is undetermined, and otherwise shows the
-            /// permission-denied message.
+            /// permission-denied message. Shows the unsupported message when the device has no usable camera.
             private func startCameraIfPermitted() {
+                guard cameraAccess.isCameraAvailable() else {
+                    showUnavailableMessage(.unsupported)
+                    return
+                }
+
                 switch cameraAccess.authorizationStatus() {
                     case .authorized:
                         showUnavailableMessage(nil)
