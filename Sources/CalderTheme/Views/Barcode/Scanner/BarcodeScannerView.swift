@@ -4,7 +4,6 @@
         import AVKit
         import CalderStdLib
         import CalderUIKit
-        import Combine
         import Foundation
         import os
         import SFSafeSymbols
@@ -133,6 +132,8 @@
 
             /// The serial queue that runs every configuration, start, and stop step of this view's capture sessions.
             private let sessionQueue = DispatchQueue(label: "dev.modern-swift.calder.barcode-scanner.session")
+            /// The serial queue on which the metadata output delivers detected codes, kept apart from the blocking session work.
+            private let metadataQueue = DispatchQueue(label: "dev.modern-swift.calder.barcode-scanner.metadata")
             /// The controller that owns the running `AVCaptureSession`, or `nil` when the scanner is stopped.
             private var sessionController: BarcodeScannerSessionController<AVCaptureSession>?
             /// The `AVCaptureDevice` representing the camera.
@@ -153,8 +154,8 @@
             /// The `CAShapeLayer` used for the transparent overlay around the scan region.
             private var scanRegionImageShape: CAShapeLayer?
 
-            /// A set of `AnyCancellable` to store Combine subscriptions.
-            private var cancellables = Set<AnyCancellable>()
+            /// The main-actor task that updates the `rectOfInterest` when the input format changes while the scanner runs.
+            private var inputFormatObservation: Task<Void, Never>?
 
             /// Initializes a new `BarcodeScannerView` with the specified model.
             /// - Parameter model: The view model containing configuration for the scanner.
@@ -163,13 +164,6 @@
                 super.init(frame: .zero)
                 buildSubviews()
                 buildConstraints()
-
-                NotificationCenter.default.publisher(for: AVCaptureInput.Port.formatDescriptionDidChangeNotification)
-                    .receive(on: DispatchQueue.main)
-                    .sink(receiveValue: { [weak self] _ in
-                        self?.onInputFormatChanged()
-                    })
-                    .store(in: &cancellables)
             }
 
             override public func willMove(toWindow newWindow: UIWindow?) {
@@ -189,9 +183,14 @@
                 fatalError()
             }
 
-            /// Called when the input format description changes, updating the `rectOfInterest`.
-            @objc private func onInputFormatChanged() {
-                updateRectOfInterest()
+            /// Updates the `rectOfInterest` on the main actor each time an input format description changes, until cancelled.
+            private func observeInputFormatChanges() {
+                inputFormatObservation?.cancel()
+                inputFormatObservation = Task { [weak self] in
+                    for await _ in NotificationCenter.default.notifications(named: AVCaptureInput.Port.formatDescriptionDidChangeNotification) {
+                        self?.updateRectOfInterest()
+                    }
+                }
             }
 
             /// Updates the `rectOfInterest` for the `AVCaptureMetadataOutput` based on the scan region.
@@ -314,15 +313,23 @@
 
                 let deviceID = device.uniqueID
                 let typesProvider = delegate
+                let metadataQueue = metadataQueue
                 controller.perform { [weak self] session in
                     guard let self else {
                         return
                     }
-                    Self.configure(session, deviceID: deviceID, metadataObjectsDelegate: self, typesProvider: typesProvider)
+                    Self.configure(
+                        session,
+                        deviceID: deviceID,
+                        metadataObjectsDelegate: self,
+                        metadataQueue: metadataQueue,
+                        typesProvider: typesProvider
+                    )
                 }
 
                 self.layer.insertSublayer(layer, at: 0)
                 self.updateRectOfInterest()
+                observeInputFormatChanges()
 
                 controller.startRunning()
             }
@@ -343,6 +350,8 @@
             /// The session stops on the view's serial session queue after any pending configuration or start,
             /// so this method never blocks the main thread.
             func stop() {
+                inputFormatObservation?.cancel()
+                inputFormatObservation = nil
                 avVideoPreviewLayer?.removeFromSuperlayer()
                 avVideoPreviewLayer = nil
                 sessionController?.stopRunning()
@@ -359,11 +368,13 @@
             ///   - session: The session to configure.
             ///   - deviceID: The unique identifier of the camera to capture from.
             ///   - metadataObjectsDelegate: The object that receives detected metadata objects.
+            ///   - metadataQueue: The serial queue on which `metadataObjectsDelegate` receives metadata objects.
             ///   - typesProvider: The delegate that selects the metadata object types to detect, if any.
             private nonisolated static func configure(
                 _ session: AVCaptureSession,
                 deviceID: String,
                 metadataObjectsDelegate: any AVCaptureMetadataOutputObjectsDelegate,
+                metadataQueue: DispatchQueue,
                 typesProvider: (any BarcodeScannerViewDelegate)?
             ) {
                 guard let device = AVCaptureDevice(uniqueID: deviceID) else {
@@ -405,7 +416,7 @@
                     return
                 }
                 session.addOutput(output)
-                output.setMetadataObjectsDelegate(metadataObjectsDelegate, queue: DispatchQueue.main)
+                output.setMetadataObjectsDelegate(metadataObjectsDelegate, queue: metadataQueue)
 
                 let available = output.availableMetadataObjectTypes
                 let requested = typesProvider?.supportedObjectTypes(output) ?? available
@@ -556,44 +567,55 @@
 
         // MARK: - AVCaptureMetadataOutputObjectsDelegate
 
-        extension BarcodeScannerView: @preconcurrency AVCaptureMetadataOutputObjectsDelegate {
-            /// Called when the capture output receives new metadata objects.
+        extension BarcodeScannerView: AVCaptureMetadataOutputObjectsDelegate {
+            /// Called on the scanner's metadata queue when the capture output receives new metadata objects.
+            ///
+            /// The first machine-readable code is reduced to sendable values and handed to the main actor.
             /// - Parameters:
             ///   - output: The metadata output object that produced the new metadata objects.
             ///   - metadataObjects: An array of `AVMetadataObject` instances.
             ///   - connection: The `AVCaptureConnection` from which the metadata objects were captured.
-            public func metadataOutput(
+            public nonisolated func metadataOutput(
                 _ output: AVCaptureMetadataOutput,
                 didOutput metadataObjects: [AVMetadataObject],
                 from _: AVCaptureConnection
             ) {
+                guard let codeObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
+                      let code = codeObject.stringValue else {
+                    return
+                }
+
+                let type = codeObject.type
+                let corners = codeObject.corners
+                Task { @MainActor [weak self] in
+                    self?.handleDetectedCode(code, type: type, corners: corners)
+                }
+            }
+
+            /// Handles a code detected by the capture session.
+            /// - Parameters:
+            ///   - code: The string value of the detected code.
+            ///   - type: The type of the detected code.
+            ///   - corners: The corners of the detected code in capture-device coordinates.
+            private func handleDetectedCode(_ code: String, type: AVMetadataObject.ObjectType, corners: [CGPoint]) {
                 guard !isSuspended else {
                     return
                 }
 
-                if let codeObject = metadataObjects.first {
+                scanRegionImageView.tintColor = model.scanRegionImageActiveTint
 
-                    self.scanRegionImageView.tintColor = self.model.scanRegionImageActiveTint
-
-                    guard let avVideoPreviewLayer = self.avVideoPreviewLayer,
-                          let transformedObject = avVideoPreviewLayer.transformedMetadataObject(for: codeObject) as? AVMetadataMachineReadableCodeObject,
-                          let code = transformedObject.stringValue else {
-                        return
-                    }
-
-                    let type = transformedObject.type
-                    if self.lastScanValue != code {
-                        let rect = transformedObject.rect(in: avVideoPreviewLayer)
-                        let path = transformedObject.path(for: avVideoPreviewLayer)
-                        self.lastScanValue = code
-
-                        DispatchQueue.main.async { [weak self] in
-                            self?.deliverScannedCode(code, type: type, rect: rect, path: path)
-                        }
-                    }
+                if let avVideoPreviewLayer, lastScanValue != code {
+                    let points = corners.map { avVideoPreviewLayer.layerPointConverted(fromCaptureDevicePoint: $0) }
+                    lastScanValue = code
+                    deliverScannedCode(
+                        code,
+                        type: type,
+                        rect: Self.boundingRect(of: points),
+                        path: Self.cutOutPath(in: avVideoPreviewLayer.bounds, around: points)
+                    )
                 }
 
-                self.scanRegionImageView.tintColor = self.model.scanRegionImageTint
+                scanRegionImageView.tintColor = model.scanRegionImageTint
             }
 
             /// Delivers a recognized code only while scanning is active, including queued callbacks.
@@ -611,7 +633,24 @@
             /// - Parameter layer: The `AVCaptureVideoPreviewLayer` displaying the video.
             /// - Returns: The `CGRect` of the detected object in the preview layer's coordinates.
             func rect(in layer: AVCaptureVideoPreviewLayer) -> CGRect {
-                let points = corners.map { layer.layerPointConverted(fromCaptureDevicePoint: $0) }
+                BarcodeScannerView.boundingRect(of: corners.map { layer.layerPointConverted(fromCaptureDevicePoint: $0) })
+            }
+
+            /// Returns a `UIBezierPath` representing the boundaries of the detected object within the given preview layer.
+            /// - Parameter layer: The `AVCaptureVideoPreviewLayer` displaying the video.
+            /// - Returns: The `UIBezierPath` of the detected object.
+            func path(for layer: AVCaptureVideoPreviewLayer) -> UIBezierPath {
+                BarcodeScannerView.cutOutPath(in: layer.bounds, around: corners.map { layer.layerPointConverted(fromCaptureDevicePoint: $0) })
+            }
+        }
+
+        // MARK: - Code Geometry
+
+        extension BarcodeScannerView {
+            /// Returns the smallest rectangle that contains `points`, or `.zero` when there are none.
+            /// - Parameter points: The corners of a detected code in layer coordinates.
+            /// - Returns: The bounding rectangle of `points`.
+            nonisolated static func boundingRect(of points: [CGPoint]) -> CGRect {
                 let minX: CGFloat = points.min { param1, param2 in param1.x < param2.x }.map(\.x) ?? 0.0
                 let minY: CGFloat = points.min { param1, param2 in param1.y < param2.y }.map(\.y) ?? 0.0
                 let maxX: CGFloat = points.max { param1, param2 in param1.x < param2.x }.map(\.x) ?? 0.0
@@ -619,12 +658,13 @@
                 return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
             }
 
-            /// Returns a `UIBezierPath` representing the boundaries of the detected object within the given preview layer.
-            /// - Parameter layer: The `AVCaptureVideoPreviewLayer` displaying the video.
-            /// - Returns: The `UIBezierPath` of the detected object.
-            func path(for layer: AVCaptureVideoPreviewLayer) -> UIBezierPath {
-                let points = corners.map { layer.layerPointConverted(fromCaptureDevicePoint: $0) }
-                let path = UIBezierPath(rect: layer.bounds)
+            /// Returns a path made of `bounds` followed by the closed polygon through `points`.
+            /// - Parameters:
+            ///   - bounds: The bounds of the preview layer.
+            ///   - points: The corners of a detected code in layer coordinates.
+            /// - Returns: The combined path.
+            nonisolated static func cutOutPath(in bounds: CGRect, around points: [CGPoint]) -> UIBezierPath {
+                let path = UIBezierPath(rect: bounds)
                 for (x, point) in points.enumerated() {
                     if x == 0 {
                         path.move(to: point)
@@ -692,8 +732,6 @@
             }
         }
 
-        extension AVCaptureSession: @unchecked @retroactive Sendable {}
-        extension AVCaptureVideoPreviewLayer: @unchecked @retroactive Sendable {}
     #endif
 
 #endif

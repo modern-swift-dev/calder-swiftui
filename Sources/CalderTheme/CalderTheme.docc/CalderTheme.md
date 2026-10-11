@@ -31,6 +31,11 @@ after an earlier start. `BarcodeScannerViewDelegate` is main-actor isolated and 
 `supportedObjectTypes(_:)` requirement is `nonisolated` because the scanner calls it on the
 session queue while configuring the session.
 
+The scanner's metadata output delivers to a background metadata queue: the nonisolated
+`metadataOutput(_:didOutput:from:)` hands each detected code to the main actor, which reports it
+to `onCodeScanned(_:type:rect:path:)`. CalderTheme no longer declares retroactive `Sendable`
+conformances on `AVCaptureSession` or `AVCaptureVideoPreviewLayer`.
+
 Optional numeric inputs update their displayed text when the bound value changes, including
 clearing it when the value becomes `nil`. Display formatting does not round or truncate the
 source binding.
