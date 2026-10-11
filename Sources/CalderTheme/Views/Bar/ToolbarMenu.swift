@@ -210,7 +210,7 @@
     #endif
 #endif
 
-#if canImport(SwiftUI)
+#if DEBUG && canImport(SwiftUI)
     #if os(iOS)
         import SnapshotPreviews
         import SwiftUI

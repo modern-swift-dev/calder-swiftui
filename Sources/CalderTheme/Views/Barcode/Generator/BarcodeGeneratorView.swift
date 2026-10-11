@@ -120,10 +120,11 @@
 #if canImport(SwiftUI)
     #if !os(watchOS)
         import CalderUIKit
-        import SnapshotPreviews
         import SwiftUI
 
         #if DEBUG
+            import SnapshotPreviews
+
             @MainActor enum BarcodeGeneratorViewPreviews: PreviewProvider, SnapshotProvider {
                 static let defaultLayout: PreviewSnapshotLayout = .device
 

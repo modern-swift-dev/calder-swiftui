@@ -30,6 +30,9 @@ let snapshotTestingDependency: [Target.Dependency] = [
     .product(name: "SnapshotTesting", package: "swift-snapshot-testing", condition: .when(platforms: [.iOS, .macOS, .tvOS, .macCatalyst]))
 ]
 
+/// CalderTheme imports SnapshotPreviews only inside `#if DEBUG`, so release builds compile the preview
+/// providers out and don't autolink SnapshotPreviews. The dependency itself stays because SwiftPM can't make
+/// a target dependency conditional on the build configuration.
 let snapshotPreviewsDependency: [Target.Dependency] = [
     .product(name: "SnapshotPreviews", package: "swift-snapshot-testing")
 ]

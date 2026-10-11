@@ -3,7 +3,6 @@
     import CalderUIKit
     import Foundation
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     /// A reusable list row view that supports displaying an icon, a title, a subtitle,
@@ -279,6 +278,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum ListRowPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

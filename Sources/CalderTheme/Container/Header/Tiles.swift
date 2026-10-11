@@ -3,7 +3,6 @@
     import CalderSwiftUI
     import CalderUIKit
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     /// A SwiftUI view that arranges a primary `Tile` and a collection of secondary `Tile` views
@@ -61,6 +60,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum TilesPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

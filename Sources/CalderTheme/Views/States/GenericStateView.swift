@@ -117,10 +117,11 @@
 
 #if canImport(SwiftUI)
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     #if DEBUG
+        import SnapshotPreviews
+
         @MainActor enum GenericStateViewPreviews: PreviewProvider, SnapshotProvider {
             static let defaultLayout: PreviewSnapshotLayout = .device
 

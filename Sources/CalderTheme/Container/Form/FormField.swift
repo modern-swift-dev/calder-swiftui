@@ -1,7 +1,6 @@
 #if canImport(SwiftUI)
     import CalderSwiftUI
     import CalderUIKit
-    import SnapshotPreviews
     import SwiftUI
 
     /// A generic form field container that displays a name/label and hosts custom content.
@@ -95,6 +94,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum FormFieldPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

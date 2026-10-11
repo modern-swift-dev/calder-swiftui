@@ -58,7 +58,7 @@
 
 #endif
 
-#if canImport(SwiftUI)
+#if DEBUG && canImport(SwiftUI)
     import CalderStdLib
     import Foundation
     import SnapshotPreviews

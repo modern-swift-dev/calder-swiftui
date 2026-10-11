@@ -2,7 +2,6 @@
     import CalderSwiftUI
     import CalderUIKit
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     /// A styled button designed for use within forms, adhering to the application's theme.
@@ -83,6 +82,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum FormButtonPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

@@ -87,10 +87,11 @@
 #if canImport(SwiftUI)
     import CalderUIKit
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     #if DEBUG
+        import SnapshotPreviews
+
         @MainActor enum ThemedButtonStylePreviews: PreviewProvider, SnapshotProvider {
             static let defaultLayout: PreviewSnapshotLayout = .device
 

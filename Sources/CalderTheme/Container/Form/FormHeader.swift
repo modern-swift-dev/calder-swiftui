@@ -2,7 +2,6 @@
     import CalderSwiftUI
     import CalderUIKit
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     /// A styled header for sections within forms or lists.
@@ -67,6 +66,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum FormHeaderPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

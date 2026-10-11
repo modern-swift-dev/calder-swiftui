@@ -1,7 +1,6 @@
 #if canImport(SwiftUI)
     import CalderStdLib
     import Foundation
-    import SnapshotPreviews
     import SwiftUI
 
     public extension PaginatedList {
@@ -218,6 +217,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum PaginatedListSelectionPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

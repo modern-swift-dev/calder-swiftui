@@ -145,10 +145,11 @@
 #if canImport(SwiftUI)
     import CalderStdLib
     import CalderUIKit
-    import SnapshotPreviews
     import SwiftUI
 
     #if DEBUG
+        import SnapshotPreviews
+
         @MainActor enum MarkdownViewPreviews: PreviewProvider, SnapshotProvider {
             static let defaultLayout: PreviewSnapshotLayout = .device
 

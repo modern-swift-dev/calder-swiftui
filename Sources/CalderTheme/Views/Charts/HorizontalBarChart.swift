@@ -116,10 +116,11 @@
 #endif
 
 #if canImport(SwiftUI)
-    import SnapshotPreviews
     import SwiftUI
 
     #if DEBUG
+        import SnapshotPreviews
+
         @MainActor enum HorizontalBarChartPreviews: PreviewProvider, SnapshotProvider {
             static let defaultLayout: PreviewSnapshotLayout = .device
 

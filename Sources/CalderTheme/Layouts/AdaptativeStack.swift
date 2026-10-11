@@ -2,7 +2,6 @@
     import CalderUIKit
     import Foundation
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     /// An adaptive stack container that switches between a `VStack` for compact horizontal size classes
@@ -66,6 +65,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum AdaptativeStackPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

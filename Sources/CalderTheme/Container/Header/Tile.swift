@@ -4,7 +4,6 @@
     import CalderUIKit
     import Foundation
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     /// A customizable tile view used within headers or other container views.
@@ -302,6 +301,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum TilePreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

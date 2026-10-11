@@ -3,7 +3,6 @@
         import CalderStdLib
         import CalderSwiftUI
         import Foundation
-        import SnapshotPreviews
         import SwiftUI
 
         /// A form field component that allows users to select a date and/or time.
@@ -197,10 +196,11 @@
 #if !os(tvOS)
     import CalderStdLib
     import Foundation
-    import SnapshotPreviews
     import SwiftUI
 
     #if DEBUG
+        import SnapshotPreviews
+
         @MainActor enum FormDatePickerPreviews: PreviewProvider, SnapshotProvider {
             static let defaultLayout: PreviewSnapshotLayout = .device
             private static let calendar = Calendar(identifier: .gregorian)

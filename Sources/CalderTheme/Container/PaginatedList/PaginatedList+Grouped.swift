@@ -5,7 +5,6 @@
     import Observation
     import OrderedCollections
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     public extension PaginatedList {
@@ -155,6 +154,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum PaginatedListGroupedPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
         static var snapshots: [PreviewSnapshot] {

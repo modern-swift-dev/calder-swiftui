@@ -1,6 +1,5 @@
 #if canImport(SwiftUI)
     import CalderSwiftUI
-    import SnapshotPreviews
     import SwiftUI
 
     /// A view that arranges its subviews in horizontal line and wraps them to the next lines if necessary.
@@ -309,6 +308,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum WrappingHStackLayoutPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

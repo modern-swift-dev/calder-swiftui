@@ -129,10 +129,11 @@
 
 #if canImport(SwiftUI)
     import CalderStdLib
-    import SnapshotPreviews
     import SwiftUI
 
     #if DEBUG
+        import SnapshotPreviews
+
         @MainActor enum PercentBarPreviews: PreviewProvider, SnapshotProvider {
             static let defaultLayout: PreviewSnapshotLayout = .device
 

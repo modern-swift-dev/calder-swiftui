@@ -1,6 +1,5 @@
 #if canImport(SwiftUI)
     import CalderSwiftUI
-    import SnapshotPreviews
     import SwiftUI
 
     /// A form field component that provides a toggle switch.
@@ -63,6 +62,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum FormSwitchPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

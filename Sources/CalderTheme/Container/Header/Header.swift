@@ -4,7 +4,6 @@
     import CalderUIKit
     import Foundation
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     /// A customizable header view that adapts its appearance based on the `Mode` and
@@ -74,6 +73,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum HeaderPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

@@ -2,7 +2,6 @@
     import CalderSwiftUI
     import CalderUIKit
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     /// A form field component that adapts its layout based on the horizontal size class.
@@ -173,6 +172,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum FormFieldResponsivePreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
 

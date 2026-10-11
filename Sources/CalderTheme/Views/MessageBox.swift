@@ -185,7 +185,7 @@
 
 #endif
 
-#if canImport(SwiftUI)
+#if DEBUG && canImport(SwiftUI)
     import CalderStdLib
     import CalderSwiftUI
     import SFSafeSymbols

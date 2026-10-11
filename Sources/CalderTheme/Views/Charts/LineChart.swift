@@ -228,10 +228,11 @@
 #if canImport(SwiftUI)
     import CalderStdLib
     import Foundation
-    import SnapshotPreviews
     import SwiftUI
 
     #if DEBUG
+        import SnapshotPreviews
+
         @MainActor enum LineChartPreviews: PreviewProvider, SnapshotProvider {
             static let defaultLayout: PreviewSnapshotLayout = .device
             private static let date = Date(timeIntervalSince1970: 1_746_378_919)

@@ -4,7 +4,6 @@
     import CalderUIKit
     import Observation
     import SFSafeSymbols
-    import SnapshotPreviews
     import SwiftUI
 
     public extension PaginatedList {
@@ -183,6 +182,8 @@
 #endif
 
 #if DEBUG
+    import SnapshotPreviews
+
     @MainActor enum PaginatedListContinuousPreviews: PreviewProvider, SnapshotProvider {
         static let defaultLayout: PreviewSnapshotLayout = .device
         static var snapshots: [PreviewSnapshot] {

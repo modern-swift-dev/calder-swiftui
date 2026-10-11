@@ -46,7 +46,7 @@
     #endif
 #endif
 
-#if canImport(SwiftUI)
+#if DEBUG && canImport(SwiftUI)
     #if !os(watchOS)
         import SnapshotPreviews
         import SwiftUI
