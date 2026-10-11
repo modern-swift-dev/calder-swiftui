@@ -8,6 +8,8 @@
     /// A toggle style that renders a checkbox icon alongside the label.
     /// The checkbox is filled when the toggle is on, and outlined when off.
     /// - Leading placement and full-width layout can be configured.
+    ///
+    /// VoiceOver announces the control as a toggle with its on or off value.
     public struct CheckboxToggleButtonStyle: ToggleStyle {
         /// Injected theme for color and font styles.
         @Environment(\.theme) private var theme
@@ -74,6 +76,7 @@
                 )
             }
             .buttonStyle(.plain)
+            .toggleAccessibility(isOn: configuration.isOn)
         }
     }
 

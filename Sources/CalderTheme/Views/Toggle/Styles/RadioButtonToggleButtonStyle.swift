@@ -7,6 +7,8 @@
 
     /// A toggle style that renders a radio button icon alongside the label.
     /// The radio button is filled when on, and hollow when off.
+    ///
+    /// VoiceOver announces the control as a toggle with its on or off value.
     public struct RadioButtonToggleButtonStyle: ToggleStyle {
         /// Injected theme for colors and fonts.
         @Environment(\.theme) private var theme
@@ -61,6 +63,7 @@
                 )
             }
             .buttonStyle(.plain)
+            .toggleAccessibility(isOn: configuration.isOn)
         }
     }
 

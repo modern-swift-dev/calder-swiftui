@@ -3,6 +3,8 @@
     import SwiftUI
 
     /// A customizable toggle style supporting multiple visual variants (primary, secondary, tertiary, pill, link, round).
+    ///
+    /// VoiceOver announces the control as a toggle with its on or off value.
     public struct ThemedToggleButtonStyle: ToggleStyle {
         /// Injected theme for color and font definitions.
         @Environment(\.theme) private var theme
@@ -56,6 +58,7 @@
                     )
             }
             .buttonStyle(.plain)
+            .toggleAccessibility(isOn: configuration.isOn)
         }
     }
 
