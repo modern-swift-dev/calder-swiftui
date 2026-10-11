@@ -340,6 +340,13 @@
                 Color(nsColor: .separatorColor)
             }
 
+            /// An opaque separator color that adapts to the current appearance.
+            ///
+            /// AppKit has no opaque separator color, so this uses UIKit's light (`#C6C6C8`) and dark (`#38383A`) values.
+            static var opaqueSeparator: Color {
+                adaptive(light: srgb(0xC6, 0xC6, 0xC8), dark: srgb(0x38, 0x38, 0x3A))
+            }
+
             // MARK: - Background Colors
 
             /// The primary system background color that adapts to the current appearance.
@@ -374,6 +381,52 @@
                 Color(nsColor: .textBackgroundColor)
             }
 
+            // MARK: - Fill Colors
+
+            /// The primary system fill color that adapts to the current appearance.
+            /// Use for thin and small shapes.
+            /// Equivalent to NSColor.systemFill
+            static var systemFill: Color {
+                Color(nsColor: .systemFill)
+            }
+
+            /// The secondary system fill color that adapts to the current appearance.
+            /// Use for medium-size shapes.
+            /// Equivalent to NSColor.secondarySystemFill
+            static var secondarySystemFill: Color {
+                Color(nsColor: .secondarySystemFill)
+            }
+
+            /// The tertiary system fill color that adapts to the current appearance.
+            /// Use for large shapes.
+            /// Equivalent to NSColor.tertiarySystemFill
+            static var tertiarySystemFill: Color {
+                Color(nsColor: .tertiarySystemFill)
+            }
+
+            /// The quaternary system fill color that adapts to the current appearance.
+            /// Use for large areas containing complex content.
+            /// Equivalent to NSColor.quaternarySystemFill
+            static var quaternarySystemFill: Color {
+                Color(nsColor: .quaternarySystemFill)
+            }
+
+            // MARK: - Static Text Colors
+
+            /// A light text color for use on dark backgrounds.
+            /// This color does not adapt to appearance changes.
+            /// AppKit has no equivalent, so this matches UIKit's `lightText`: white at 60% opacity.
+            static var lightText: Color {
+                Color(nsColor: NSColor.white.withAlphaComponent(0.6))
+            }
+
+            /// A dark text color for use on light backgrounds.
+            /// This color does not adapt to appearance changes.
+            /// AppKit has no equivalent, so this matches UIKit's `darkText`: opaque black.
+            static var darkText: Color {
+                Color(nsColor: .black)
+            }
+
             // MARK: - System Gray Colors
 
             /// A gray color that adapts to the current appearance.
@@ -385,44 +438,47 @@
             ///
             /// AppKit has no `systemGray2`, so this uses UIKit's light (`#AEAEB2`) and dark (`#636366`) values.
             static var systemGray2: Color {
-                adaptiveGray(light: (0xAE, 0xAE, 0xB2), dark: (0x63, 0x63, 0x66))
+                adaptive(light: srgb(0xAE, 0xAE, 0xB2), dark: srgb(0x63, 0x63, 0x66))
             }
 
             /// A tertiary gray color that adapts to the current appearance.
             ///
             /// AppKit has no `systemGray3`, so this uses UIKit's light (`#C7C7CC`) and dark (`#48484A`) values.
             static var systemGray3: Color {
-                adaptiveGray(light: (0xC7, 0xC7, 0xCC), dark: (0x48, 0x48, 0x4A))
+                adaptive(light: srgb(0xC7, 0xC7, 0xCC), dark: srgb(0x48, 0x48, 0x4A))
             }
 
             /// A quaternary gray color that adapts to the current appearance.
             ///
             /// AppKit has no `systemGray4`, so this uses UIKit's light (`#D1D1D6`) and dark (`#3A3A3C`) values.
             static var systemGray4: Color {
-                adaptiveGray(light: (0xD1, 0xD1, 0xD6), dark: (0x3A, 0x3A, 0x3C))
+                adaptive(light: srgb(0xD1, 0xD1, 0xD6), dark: srgb(0x3A, 0x3A, 0x3C))
             }
 
             /// A quinary gray color that adapts to the current appearance.
             ///
             /// AppKit has no `systemGray5`, so this uses UIKit's light (`#E5E5EA`) and dark (`#2C2C2E`) values.
             static var systemGray5: Color {
-                adaptiveGray(light: (0xE5, 0xE5, 0xEA), dark: (0x2C, 0x2C, 0x2E))
+                adaptive(light: srgb(0xE5, 0xE5, 0xEA), dark: srgb(0x2C, 0x2C, 0x2E))
             }
 
             /// A senary gray color that adapts to the current appearance.
             ///
             /// AppKit has no `systemGray6`, so this uses UIKit's light (`#F2F2F7`) and dark (`#1C1C1E`) values.
             static var systemGray6: Color {
-                adaptiveGray(light: (0xF2, 0xF2, 0xF7), dark: (0x1C, 0x1C, 0x1E))
+                adaptive(light: srgb(0xF2, 0xF2, 0xF7), dark: srgb(0x1C, 0x1C, 0x1E))
             }
 
             /// Returns a color that uses `dark` under a dark appearance and `light` otherwise.
-            private static func adaptiveGray(light: (Int, Int, Int), dark: (Int, Int, Int)) -> Color {
+            private static func adaptive(light: NSColor, dark: NSColor) -> Color {
                 Color(nsColor: NSColor(name: nil) { appearance in
-                    let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-                    let (red, green, blue) = isDark ? dark : light
-                    return NSColor(srgbRed: CGFloat(red) / 255, green: CGFloat(green) / 255, blue: CGFloat(blue) / 255, alpha: 1)
+                    appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
                 })
+            }
+
+            /// Returns an opaque sRGB color from 8-bit channel values.
+            private static func srgb(_ red: Int, _ green: Int, _ blue: Int) -> NSColor {
+                NSColor(srgbRed: CGFloat(red) / 255, green: CGFloat(green) / 255, blue: CGFloat(blue) / 255, alpha: 1)
             }
         }
 

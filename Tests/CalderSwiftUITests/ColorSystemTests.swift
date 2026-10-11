@@ -52,14 +52,6 @@
             func `system gray levels follow the appearance`(_ gray: Color) {
                 #expect(resolve(gray, in: .light) != resolve(gray, in: .dark))
             }
-
-            /// Resolves on the main actor because AppKit-backed colors resolve against `NSAppearance`.
-            @MainActor
-            private func resolve(_ color: Color, in scheme: ColorScheme) -> Color.Resolved {
-                var environment = EnvironmentValues()
-                environment.colorScheme = scheme
-                return color.resolve(in: environment)
-            }
         #endif
 
         // MARK: - Label Colors
@@ -103,18 +95,11 @@
             #expect(type(of: color) == Color.self)
         }
 
-        #if canImport(UIKit) && !os(watchOS)
-            @Test func `opaque separator exists`() {
-                let color = Color.opaqueSeparator
-                #expect(type(of: color) == Color.self)
-            }
-
-        #elseif os(watchOS)
-            @Test func `opaque separator exists watch OS`() {
-                let color = Color.opaqueSeparator
-                #expect(type(of: color) == Color.self)
-            }
-        #endif
+        @MainActor
+        @Test(arguments: [ColorScheme.light, .dark])
+        func `opaque separator is opaque`(_ scheme: ColorScheme) {
+            #expect(resolve(.opaqueSeparator, in: scheme).opacity == 1)
+        }
 
         // MARK: - Background Colors
 
@@ -150,43 +135,49 @@
             #expect(type(of: color) == Color.self)
         }
 
-        // MARK: - Fill Colors (UIKit and watchOS only)
+        // MARK: - Fill Colors
 
-        #if (canImport(UIKit) && !os(watchOS)) || os(watchOS)
-            @Test func `system fill exists`() {
-                let color = Color.systemFill
-                #expect(type(of: color) == Color.self)
-            }
+        @Test func `system fill exists`() {
+            let color = Color.systemFill
+            #expect(type(of: color) == Color.self)
+        }
 
-            @Test func `secondary system fill exists`() {
-                let color = Color.secondarySystemFill
-                #expect(type(of: color) == Color.self)
-            }
+        @Test func `secondary system fill exists`() {
+            let color = Color.secondarySystemFill
+            #expect(type(of: color) == Color.self)
+        }
 
-            @Test func `tertiary system fill exists`() {
-                let color = Color.tertiarySystemFill
-                #expect(type(of: color) == Color.self)
-            }
+        @Test func `tertiary system fill exists`() {
+            let color = Color.tertiarySystemFill
+            #expect(type(of: color) == Color.self)
+        }
 
-            @Test func `quaternary system fill exists`() {
-                let color = Color.quaternarySystemFill
-                #expect(type(of: color) == Color.self)
-            }
-        #endif
+        @Test func `quaternary system fill exists`() {
+            let color = Color.quaternarySystemFill
+            #expect(type(of: color) == Color.self)
+        }
 
-        // MARK: - Static Text Colors (UIKit and watchOS only)
+        // MARK: - Static Text Colors
 
-        #if (canImport(UIKit) && !os(watchOS)) || os(watchOS)
-            @Test func `light text exists`() {
-                let color = Color.lightText
-                #expect(type(of: color) == Color.self)
-            }
+        @Test func `light text exists`() {
+            let color = Color.lightText
+            #expect(type(of: color) == Color.self)
+        }
 
-            @Test func `dark text exists`() {
-                let color = Color.darkText
-                #expect(type(of: color) == Color.self)
-            }
-        #endif
+        @Test func `dark text exists`() {
+            let color = Color.darkText
+            #expect(type(of: color) == Color.self)
+        }
+
+        // MARK: - Helpers
+
+        /// Resolves on the main actor because AppKit-backed colors resolve against `NSAppearance`.
+        @MainActor
+        private func resolve(_ color: Color, in scheme: ColorScheme) -> Color.Resolved {
+            var environment = EnvironmentValues()
+            environment.colorScheme = scheme
+            return color.resolve(in: environment)
+        }
 
         // MARK: - Color Usage in Views
 
