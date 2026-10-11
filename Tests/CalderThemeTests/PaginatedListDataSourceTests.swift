@@ -69,6 +69,27 @@
             expectDisplaying(source.state)
         }
 
+        @Test func `append after moves an existing item instead of duplicating it`() {
+            let source = PaginatedList.DataSource(items: [
+                item(1),
+                item(2),
+                item(3)
+            ])
+
+            source.append(item: item(1, title: "one moved"), after: 3)
+            #expect(ids(source) == [2, 3, 1])
+            #expect(source.items[2].title == "one moved")
+
+            source.append(item: item(2, title: "two moved"), after: item(3))
+            #expect(ids(source) == [3, 2, 1])
+            #expect(source.items[1].title == "two moved")
+
+            source.append(item: item(3, title: "three updated"), after: 3)
+            #expect(ids(source) == [3, 2, 1])
+            #expect(source.items[0].title == "three updated")
+            expectDisplaying(source.state)
+        }
+
         @Test func `append all replace all and remove all update items and state`() {
             let source = PaginatedList.DataSource(items: [
                 item(1)

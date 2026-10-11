@@ -150,35 +150,39 @@
                 }
             }
 
-            /// Appends a new item after a specified existing item.
+            /// Inserts an item after a specified existing item.
+            ///
+            /// If an item with the same ID is already loaded, it is moved after `after` and updated
+            /// rather than duplicated. If `item` has the same ID as `after`, it is updated in place.
+            /// Nothing changes when `after` is not loaded.
             /// - Parameters:
-            ///   - item: The new item to append.
-            ///   - after: The existing item after which the new item should be appended.
+            ///   - item: The item to insert, move, or update.
+            ///   - after: The existing item after which `item` is placed.
             public func append(item: DataType, after: DataType) {
-                if let index = items.firstIndex(where: { $0.id == after.id }) {
-                    if index == items.endIndex {
-                        upsert(item, computeState: false)
-                    } else {
-                        items.insert(item, at: items.index(after: index))
-                    }
-                }
-                calculateViewState()
-
+                append(item: item, after: after.id)
             }
 
-            /// Appends a new item after an item identified by its ID.
+            /// Inserts an item after an item identified by its ID.
+            ///
+            /// If an item with the same ID is already loaded, it is moved after the item identified by
+            /// `id` and updated rather than duplicated. If `item` has the ID `id`, it is updated in place.
+            /// Nothing changes when no loaded item has the ID `id`.
             /// - Parameters:
-            ///   - item: The new item to append.
-            ///   - after id: The ID of the existing item after which the new item should be appended.
+            ///   - item: The item to insert, move, or update.
+            ///   - id: The ID of the existing item after which `item` is placed.
             public func append(item: DataType, after id: DataType.ID) {
-                if let index = items.firstIndex(where: { $0.id == id }) {
-                    if index == items.endIndex {
-                        upsert(item, computeState: false)
-                    } else {
-                        items.insert(item, at: items.index(after: index))
-                        calculateViewState()
-                    }
+                guard items.contains(where: { $0.id == id }) else {
+                    return
                 }
+                if item.id == id {
+                    upsert(item)
+                    return
+                }
+                items.removeAll { $0.id == item.id }
+                if let index = items.firstIndex(where: { $0.id == id }) {
+                    items.insert(item, at: items.index(after: index))
+                }
+                calculateViewState()
             }
 
             /// Appends all items from a `Results` page to the current list of items.

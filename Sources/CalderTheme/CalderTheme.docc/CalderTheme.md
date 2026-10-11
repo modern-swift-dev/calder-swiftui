@@ -34,3 +34,6 @@ from before loading, so pagination continues and the load can be retried.
 
 `PaginatedList.DataSource.replaceAll` discards results from requests started before it. Replacing
 with a `Results` page makes it the current page; replacing with values ends pagination.
+
+`PaginatedList.DataSource.append(item:after:)` moves and updates an item that is already
+loaded instead of inserting a duplicate ID.
