@@ -10,41 +10,73 @@
 
         @Environment(\.theme) var theme
 
-        /// The primary title text for the row.
-        public let title: String
-        /// An optional secondary subtitle text for the row.
-        public let subtitle: String?
-        /// An optional caption text, usually smaller and less prominent, for the row.
-        public let caption: String?
+        private let titleText: LocalizableText
+        private let subtitleText: LocalizableText?
+        private let captionText: LocalizableText?
 
-        /// Initializes a new `ListRowBody` view.
+        /// The primary title text for the row.
+        ///
+        /// A title created from a `LocalizedStringResource` is resolved for the current locale.
+        public var title: String {
+            titleText.resolved
+        }
+
+        /// An optional secondary subtitle text for the row.
+        ///
+        /// A subtitle created from a `LocalizedStringResource` is resolved for the current locale.
+        public var subtitle: String? {
+            subtitleText?.resolved
+        }
+
+        /// An optional caption text, usually smaller and less prominent, for the row.
+        ///
+        /// A caption created from a `LocalizedStringResource` is resolved for the current locale.
+        public var caption: String? {
+            captionText?.resolved
+        }
+
+        /// Initializes a new `ListRowBody` view that displays its text verbatim.
         ///
         /// - Parameters:
         ///   - title: The main title text.
         ///   - subtitle: An optional subtitle text. Defaults to `nil`.
         ///   - caption: An optional caption text. Defaults to `nil`.
         public init(title: String, subtitle: String? = nil, caption: String? = nil) {
-            self.title = title
-            self.subtitle = subtitle
-            self.caption = caption
+            titleText = .verbatim(title)
+            subtitleText = subtitle.map(LocalizableText.verbatim)
+            captionText = caption.map(LocalizableText.verbatim)
+        }
+
+        /// Initializes a new `ListRowBody` view with localized text.
+        ///
+        /// SwiftUI looks up each resource in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - title: The localized main title.
+        ///   - subtitle: An optional localized subtitle. Defaults to `nil`.
+        ///   - caption: An optional localized caption. Defaults to `nil`.
+        public init(title: LocalizedStringResource, subtitle: LocalizedStringResource? = nil, caption: LocalizedStringResource? = nil) {
+            titleText = .localized(title)
+            subtitleText = subtitle.map(LocalizableText.localized)
+            captionText = caption.map(LocalizableText.localized)
         }
 
         public var body: some View {
             VStack(alignment: .leading, spacing: .xxxs) {
-                Text(title)
+                titleText.text
                     .font(.headline)
                     .foregroundStyle(theme.text1)
                     .lineLimit(2)
 
-                if let subtitle {
-                    Text(subtitle)
+                if let subtitleText {
+                    subtitleText.text
                         .font(.subheadline)
                         .foregroundStyle(theme.text2)
                         .lineLimit(2)
                 }
 
-                if let caption {
-                    Text(caption)
+                if let captionText {
+                    captionText.text
                         .font(.caption)
                         .foregroundStyle(theme.text3)
                         .lineLimit(2)

@@ -78,31 +78,64 @@
         }
 
         @Environment(\.theme) var theme
-        public let text: String
+        private let label: LocalizableText
+
+        /// The label text displayed within the pill.
+        ///
+        /// Text created from a `LocalizedStringResource` is resolved for the current locale.
+        public var text: String {
+            label.resolved
+        }
+
+        /// The style variant of the pill.
         public let variant: Variant
 
         /// Creates a custom-status pill with specified background and foreground colors.
         /// - Parameters:
-        ///   - text: The label text displayed within the pill.
+        ///   - text: The label text displayed unchanged within the pill.
         ///   - background: Custom background color.
         ///   - foreground: Custom foreground color for the text.
         public init(text: String, background: Color, foreground: Color) {
-            self.text = text
-            self.variant = .custom(background: background, foreground: foreground)
+            self.init(label: .verbatim(text), variant: .custom(background: background, foreground: foreground))
+        }
+
+        /// Creates a custom-status pill with localized text and specified background and foreground colors.
+        ///
+        /// SwiftUI looks up the resource in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - text: The localized label displayed within the pill.
+        ///   - background: Custom background color.
+        ///   - foreground: Custom foreground color for the text.
+        public init(text: LocalizedStringResource, background: Color, foreground: Color) {
+            self.init(label: .localized(text), variant: .custom(background: background, foreground: foreground))
         }
 
         /// Creates a status pill with a predefined variant.
         /// - Parameters:
-        ///   - text: The label text displayed within the pill.
+        ///   - text: The label text displayed unchanged within the pill.
         ///   - variant: The predefined style variant.
         public init(text: String, variant: Variant) {
-            self.text = text
+            self.init(label: .verbatim(text), variant: variant)
+        }
+
+        /// Creates a status pill with localized text and a predefined variant.
+        ///
+        /// SwiftUI looks up the resource in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - text: The localized label displayed within the pill.
+        ///   - variant: The predefined style variant.
+        public init(text: LocalizedStringResource, variant: Variant) {
+            self.init(label: .localized(text), variant: variant)
+        }
+
+        private init(label: LocalizableText, variant: Variant) {
+            self.label = label
             self.variant = variant
         }
 
         /// The content and behavior of the `StatusPill`.
         public var body: some View {
-            Text(verbatim: text)
+            label.text
                 .padding(EdgeInsets(vertical: .xxs, horizontal: .small))
                 .font(.caption)
                 .foregroundStyle(variant.foregroundColor(for: theme))

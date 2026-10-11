@@ -11,16 +11,35 @@
         public struct Item: Identifiable {
             /// Unique identifier.
             public let id: Int64
+            fileprivate var label: LocalizableText
+
             /// Display text for this item.
-            public var text: String
+            ///
+            /// Text created from a `LocalizedStringResource` is resolved for the current locale.
+            /// Assigning a string replaces it with text displayed unchanged.
+            public var text: String {
+                get { label.resolved }
+                set { label = .verbatim(newValue) }
+            }
 
             /// Creates a new item.
             /// - Parameters:
             ///   - id: Unique integer ID.
-            ///   - text: Label text.
+            ///   - text: Label text, displayed unchanged.
             public init(id: Int64, text: String) {
                 self.id = id
-                self.text = text
+                label = .verbatim(text)
+            }
+
+            /// Creates a new item with localized text.
+            ///
+            /// SwiftUI looks up the text in its bundle and table using the environment's locale.
+            /// - Parameters:
+            ///   - id: Unique integer ID.
+            ///   - text: Localized label text.
+            public init(id: Int64, text: LocalizedStringResource) {
+                self.id = id
+                label = .localized(text)
             }
         }
 
@@ -52,7 +71,7 @@
                             selection.append(choice.id)
                         }
                     }), label: {
-                        Text(verbatim: choice.text)
+                        choice.label.text
                     })
                     .applyCheckboxToggleStyle(fullWidth: true)
                 }

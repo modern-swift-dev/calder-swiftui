@@ -52,12 +52,12 @@
 
             /// The severity announced by assistive technologies in place of the icon's symbol name,
             /// or `nil` for `.custom` variants, whose icon is treated as decorative.
-            var accessibilitySeverity: LocalizedStringKey? {
+            var accessibilitySeverity: LocalizedStringResource? {
                 switch self {
-                    case .success: "Success"
-                    case .info: "Information"
-                    case .warn: "Warning"
-                    case .error: "Error"
+                    case .success: LocalizedStringResource("messageBox.severity.success", bundle: .module)
+                    case .info: LocalizedStringResource("messageBox.severity.info", bundle: .module)
+                    case .warn: LocalizedStringResource("messageBox.severity.warning", bundle: .module)
+                    case .error: LocalizedStringResource("messageBox.severity.error", bundle: .module)
                     case .custom: nil
                 }
             }
@@ -101,22 +101,50 @@
         public let variant: Variant
         /// The icon displayed next to the title and message.
         public let icon: Image
-        /// The title text to display in the message box.
-        public let title: String
-        /// The main body text to display in the message box.
-        public let message: String
+        private let titleText: LocalizableText
+        private let messageText: LocalizableText
 
-        /// Creates a new message box.
+        /// The title text to display in the message box.
+        ///
+        /// A title created from a `LocalizedStringResource` is resolved for the current locale.
+        public var title: String {
+            titleText.resolved
+        }
+
+        /// The main body text to display in the message box.
+        ///
+        /// A message created from a `LocalizedStringResource` is resolved for the current locale.
+        public var message: String {
+            messageText.resolved
+        }
+
+        /// Creates a new message box that displays its title and message verbatim.
         /// - Parameters:
         ///   - variant: The style variant to use.
         ///   - icon: Optional override icon (defaults to the variant’s default).
-        ///   - title: Title text to display.
-        ///   - message: Body text to display.
+        ///   - title: Title text to display unchanged. An empty title isn't displayed.
+        ///   - message: Body text to display unchanged. An empty message isn't displayed.
         public init(variant: Variant, icon: Image? = nil, title: String, message: String) {
+            self.init(variant: variant, icon: icon, titleText: .verbatim(title), messageText: .verbatim(message))
+        }
+
+        /// Creates a new message box with a localized title and message.
+        ///
+        /// SwiftUI looks up each resource in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - variant: The style variant to use.
+        ///   - icon: Optional override icon (defaults to the variant’s default).
+        ///   - title: Localized title to display. A title that resolves to an empty string isn't displayed.
+        ///   - message: Localized body text to display. A message that resolves to an empty string isn't displayed.
+        public init(variant: Variant, icon: Image? = nil, title: LocalizedStringResource, message: LocalizedStringResource) {
+            self.init(variant: variant, icon: icon, titleText: .localized(title), messageText: .localized(message))
+        }
+
+        private init(variant: Variant, icon: Image?, titleText: LocalizableText, messageText: LocalizableText) {
             self.variant = variant
             self.icon = icon ?? variant.defaultIcon
-            self.title = title
-            self.message = message
+            self.titleText = titleText
+            self.messageText = messageText
         }
 
         /// The content and behavior of the `MessageBox`.
@@ -125,18 +153,18 @@
                 icon
                     .font(.title3)
                     .foregroundStyle(variant.iconColor(theme: theme))
-                    .accessibilityLabel(Text(variant.accessibilitySeverity ?? ""))
+                    .accessibilityLabel(variant.accessibilitySeverity.map { Text($0) } ?? Text(verbatim: ""))
                     .accessibilityHidden(variant.accessibilitySeverity == nil)
 
                 VStack(alignment: .leading, spacing: .xxxs) {
                     if !title.isEmpty {
-                        Text(verbatim: title)
+                        titleText.text
                             .font(.headline)
                             .multilineTextAlignment(.leading)
                     }
 
                     if !message.isEmpty {
-                        Text(verbatim: message)
+                        messageText.text
                             .font(.subheadline)
                             .multilineTextAlignment(.leading)
                     }

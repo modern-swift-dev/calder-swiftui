@@ -8,18 +8,34 @@
         public struct ToolbarTitle: ToolbarContent {
 
             @Environment(\.theme) var theme
-            public let title: String
+            private let titleText: LocalizableText
+
+            /// The toolbar's title.
+            ///
+            /// A title created from a `LocalizedStringResource` is resolved for the current locale.
+            public var title: String {
+                titleText.resolved
+            }
 
             /// Initializes a `ToolbarTitle` with the specified title string.
             ///
-            /// - Parameter title: The string to display as the toolbar's title.
+            /// - Parameter title: The string to display unchanged as the toolbar's title.
             public init(title: String) {
-                self.title = title
+                titleText = .verbatim(title)
+            }
+
+            /// Initializes a `ToolbarTitle` with a localized title.
+            ///
+            /// SwiftUI looks up the resource in its bundle and table using the environment's locale.
+            ///
+            /// - Parameter title: The localized string to display as the toolbar's title.
+            public init(title: LocalizedStringResource) {
+                titleText = .localized(title)
             }
 
             public var body: some ToolbarContent {
                 ToolbarItem(placement: .principal) {
-                    Text(verbatim: title)
+                    titleText.text
                         .foregroundStyle(theme.text1)
                         .font(.headline)
                 }

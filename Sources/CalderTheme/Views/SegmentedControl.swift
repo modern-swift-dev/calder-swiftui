@@ -21,16 +21,33 @@
         public struct Item: Identifiable, Equatable, Hashable, Sendable {
             /// The unique identifier for this segment.
             public let id: IDType
+            fileprivate let label: LocalizableText
+
             /// The display text for this segment.
-            public let title: String
+            ///
+            /// A title created from a `LocalizedStringResource` is resolved for the current locale.
+            public var title: String {
+                label.resolved
+            }
 
             /// Creates a new segment item.
             /// - Parameters:
             ///   - id: Unique identifier for this segment.
-            ///   - title: Display text.
+            ///   - title: Display text, shown unchanged.
             public init(id: IDType, title: String) {
                 self.id = id
-                self.title = title
+                label = .verbatim(title)
+            }
+
+            /// Creates a new segment item with a localized title.
+            ///
+            /// SwiftUI looks up the title in its bundle and table using the environment's locale.
+            /// - Parameters:
+            ///   - id: Unique identifier for this segment.
+            ///   - title: Localized display text.
+            public init(id: IDType, title: LocalizedStringResource) {
+                self.id = id
+                label = .localized(title)
             }
         }
 
@@ -64,7 +81,7 @@
                         }
                     }, label: {
                         HStack(alignment: .center, spacing: 0) {
-                            Text(item.title)
+                            item.label.text
                                 .multilineTextAlignment(.center)
                         }
                     })

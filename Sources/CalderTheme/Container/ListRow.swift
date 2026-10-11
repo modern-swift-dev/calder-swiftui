@@ -240,6 +240,40 @@
             presentation = .card
             cardBackground = background.map { AnyShapeStyle($0) }
         }
+
+        /// Initializes a compact, card-styled list row with localized text.
+        ///
+        /// SwiftUI looks up each resource in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - icon: An optional SF Symbol shown before the text. Defaults to `nil`.
+        ///   - title: The localized main title.
+        ///   - subtitle: An optional localized subtitle. Defaults to `nil`.
+        ///   - caption: An optional localized caption. Defaults to `nil`.
+        ///   - detail: An optional localized detail shown at the trailing edge. Defaults to `nil`.
+        ///   - background: An optional card background. Defaults to the thin material.
+        ///   - showChevron: Whether the row shows a trailing chevron. Defaults to `true`.
+        init(
+            icon: SFSymbol? = nil,
+            title: LocalizedStringResource,
+            subtitle: LocalizedStringResource? = nil,
+            caption: LocalizedStringResource? = nil,
+            detail: LocalizedStringResource? = nil,
+            background: (any ShapeStyle)? = nil,
+            showChevron: Bool = true
+        ) {
+            content = { ListRowBody(title: title, subtitle: subtitle, caption: caption) }
+            header = {
+                icon.map {
+                    Image(systemSymbol: $0)
+                        .resizable()
+                }
+            }
+            self.detail = { detail.map { Text($0) } }
+            accessory = showChevron ? Image(systemSymbol: .chevronRight) : nil
+            compactDetailPositioning = .trailing
+            presentation = .card
+            cardBackground = background.map { AnyShapeStyle($0) }
+        }
     }
 
 #endif

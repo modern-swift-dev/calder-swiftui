@@ -68,6 +68,25 @@
                 self.init(placement: placement, variant: variant, enabled: enabled, content: content, text: text)
             }
 
+            /// Initializes a menu with a localized text label using the original argument ordering.
+            ///
+            /// SwiftUI looks up the resource in its bundle and table using the environment's locale.
+            /// - Parameters:
+            ///   - placement: The placement of the toolbar item within the navigation bar.
+            ///   - enabled: A boolean value indicating whether the menu is enabled.
+            ///   - variant: The bar button style variant.
+            ///   - content: A `ViewBuilder` that creates the content of the menu.
+            ///   - text: The localized string to display as the menu's label.
+            init(
+                placement: ToolbarItemPlacement,
+                enabled: Bool,
+                variant: BarButtonStyle.Variant,
+                @ViewBuilder content: @escaping () -> Content,
+                text: LocalizedStringResource
+            ) {
+                self.init(placement: placement, variant: variant, enabled: enabled, content: content, text: text)
+            }
+
             /// Initializes a `ToolbarMenu` with a plain text label.
             ///
             /// - Parameters:
@@ -88,6 +107,32 @@
                 self.content = content
                 self.label = {
                     Text(verbatim: text)
+                }
+            }
+
+            /// Initializes a `ToolbarMenu` with a localized text label.
+            ///
+            /// SwiftUI looks up the resource in its bundle and table using the environment's locale.
+            ///
+            /// - Parameters:
+            ///   - placement: The placement of the toolbar item within the navigation bar.
+            ///   - variant: The bar button style variant. Defaults to `.regular`.
+            ///   - enabled: A boolean value indicating whether the menu is enabled. Defaults to `true`.
+            ///   - content: A `ViewBuilder` that creates the content of the menu.
+            ///   - text: The localized string to display as the menu's label.
+            init(
+                placement: ToolbarItemPlacement,
+                variant: BarButtonStyle.Variant = .regular,
+                enabled: Bool = true,
+                @ViewBuilder content: @escaping () -> Content,
+                text: LocalizedStringResource
+            ) {
+                self.placement = placement
+                self.enabled = enabled
+                self.variant = variant
+                self.content = content
+                self.label = {
+                    Text(text)
                 }
             }
         }

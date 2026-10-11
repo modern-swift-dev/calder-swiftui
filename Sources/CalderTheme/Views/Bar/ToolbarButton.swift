@@ -70,6 +70,32 @@
                 Text(text)
             }
         }
+
+        /// Initializes a `ToolbarButton` with a localized text label.
+        ///
+        /// SwiftUI looks up the resource in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - placement: The placement of the toolbar item within the navigation bar.
+        ///   - variant: The bar button style variant. Defaults to `.regular`.
+        ///   - text: The localized string to display as the button's label.
+        ///   - enabled: A Boolean value that indicates whether the button is enabled. Defaults to `true`.
+        ///   - action: The action to perform when the button is tapped.
+        init(
+            placement: ToolbarItemPlacement,
+            variant: BarButtonStyle.Variant = .regular,
+            text: LocalizedStringResource,
+            enabled: Bool = true,
+            action: @escaping @Sendable @MainActor () -> Void
+        ) {
+            self.placement = placement
+            self.variant = variant
+            self.enabled = enabled
+            self.action = action
+            self.label = {
+                Text(text)
+            }
+        }
     }
 
     public extension ToolbarButton where Label == Image {

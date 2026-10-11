@@ -7,6 +7,15 @@ default definition with ``ThemeDefinition/init()`` or customize its colors befor
 into the SwiftUI environment. ``Theme`` exposes its definition, color scheme, and contrast so
 components can make decisions that depend on the active appearance.
 
+Components that display caller-provided text, such as ``MessageBox``, ``ListRowBody``, and
+``StatusPill``, accept either a `String` or a `LocalizedStringResource`. A `String`, including a
+string literal, is displayed unchanged. A `LocalizedStringResource` is looked up in its own bundle
+and table using the environment's locale, for example
+`MessageBox(variant: .warn, title: LocalizedStringResource("upload.failed"), message: LocalizedStringResource("upload.retry"))`.
+Properties that return a component's text as a `String` resolve localized text for the current
+locale. Built-in text, such as the severity VoiceOver announces for a message box, comes from the
+string catalog bundled with CalderTheme, which provides English.
+
 Create Pareto chart categories with ``ParetoChart/RawDataPoint/init(name:value:)`` and pass
 them to the chart initializer. The chart plots categories in descending order of value, keeping
 the input order for ties, and clamps negative values to zero.

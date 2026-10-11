@@ -74,6 +74,7 @@ let package = Package(
                 "CalderUIKit",
                 .product(name: "Collections", package: "swift-collections")
             ] + markdownUIDependency + sfSafeSymbolsDependency + snapshotPreviewsDependency,
+            resources: [.process("Resources")],
             swiftSettings: swiftSettings
         ),
         .testTarget(

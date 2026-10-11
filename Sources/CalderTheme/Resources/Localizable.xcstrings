@@ -1,0 +1,54 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "messageBox.severity.error" : {
+      "comment" : "Accessibility label announced for the icon of an error message box.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        }
+      }
+    },
+    "messageBox.severity.info" : {
+      "comment" : "Accessibility label announced for the icon of an informational message box.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Information"
+          }
+        }
+      }
+    },
+    "messageBox.severity.success" : {
+      "comment" : "Accessibility label announced for the icon of a success message box.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Success"
+          }
+        }
+      }
+    },
+    "messageBox.severity.warning" : {
+      "comment" : "Accessibility label announced for the icon of a warning message box.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warning"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

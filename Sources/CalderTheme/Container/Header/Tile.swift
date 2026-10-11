@@ -20,7 +20,7 @@
         let icon: Image
 
         /// The main label text for the tile.
-        let label: String
+        let label: LocalizableText
 
         /// The primary text value displayed on the tile, often a count.
         let text: String
@@ -38,7 +38,7 @@
         ///
         /// - Parameters:
         ///   - icon: The SF Symbol image to display.
-        ///   - label: The main label text.
+        ///   - label: The main label text, displayed unchanged.
         ///   - text: The primary text value.
         ///   - variant: The visual style variant.
         ///   - expand: If `true`, the tile expands vertically. Defaults to `false`.
@@ -49,6 +49,39 @@
             text: String,
             variant: Variant,
             expand: Bool = false,
+            action: @escaping @MainActor @Sendable () -> Void
+        ) {
+            self.init(icon: icon, label: .verbatim(label), text: text, variant: variant, expand: expand, action: action)
+        }
+
+        /// Initializes a new `Tile` view with a localized label.
+        ///
+        /// SwiftUI looks up the label in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - icon: The SF Symbol image to display.
+        ///   - label: The localized main label.
+        ///   - text: The primary text value, displayed unchanged.
+        ///   - variant: The visual style variant.
+        ///   - expand: If `true`, the tile expands vertically. Defaults to `false`.
+        ///   - action: The closure to execute when the tile is tapped.
+        public init(
+            icon: Image,
+            label: LocalizedStringResource,
+            text: String,
+            variant: Variant,
+            expand: Bool = false,
+            action: @escaping @MainActor @Sendable () -> Void
+        ) {
+            self.init(icon: icon, label: .localized(label), text: text, variant: variant, expand: expand, action: action)
+        }
+
+        private init(
+            icon: Image,
+            label: LocalizableText,
+            text: String,
+            variant: Variant,
+            expand: Bool,
             action: @escaping @MainActor @Sendable () -> Void
         ) {
             self.icon = icon
@@ -75,7 +108,7 @@
                                 .font(.title3)
                                 .foregroundColor(variant.foregroundColor(theme: theme))
 
-                            Text(variant.text(candidate: label, length: 10))
+                            variant.label(candidate: label, length: 10)
                                 .font(.title3)
                                 .foregroundStyle(variant.labelForeground(theme: theme))
 
@@ -250,6 +283,18 @@
                     return .lorem(length)
                 }
                 return candidate
+            }
+
+            /// Provides the label view for the tile based on its variant.
+            /// - Parameters:
+            ///   - candidate: The tile's label.
+            ///   - length: The desired length for lorem ipsum text in loading state.
+            /// - Returns: The label, or placeholder text while loading.
+            func label(candidate: LocalizableText, length: Int) -> Text {
+                if self == .loading {
+                    return Text(verbatim: .lorem(length))
+                }
+                return candidate.text
             }
         }
     }
