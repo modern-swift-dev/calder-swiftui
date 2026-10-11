@@ -13,3 +13,5 @@ On platforms that support keyboard observation, `KeyboardObserver` and the `keyb
 `KeyboardObserver.isHardwardKeyboard` is deprecated. Use `isHardwareKeyboard` instead; the deprecated property returns the same value.
 
 `KeyboardObserver` no longer debounces keyboard notifications by 150 milliseconds. It applies show, frame-change, and hide notifications on the main actor one at a time, in the order they are posted.
+
+`KeyboardObserver` ignores frame-change notifications from non-local keyboards and frame changes received while the keyboard is hidden, so `keyboardSize` stays zero while `visible` is false.

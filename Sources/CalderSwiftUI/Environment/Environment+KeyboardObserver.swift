@@ -26,7 +26,9 @@
                 isHardwareKeyboard
             }
 
-            /// The size reported by the most recent keyboard frame notification, or zero after hiding.
+            /// The size reported by the most recent local keyboard frame notification while visible, or zero while hidden.
+            ///
+            /// Frame changes from non-local keyboards, and frame changes received while the keyboard is hidden, are ignored.
             public private(set) var keyboardSize: CGSize = .zero
             private let events: AsyncStream<KeyboardEvent>.Continuation
             private let subscription: AnyCancellable
@@ -59,6 +61,9 @@
             }
 
             private func apply(_ event: KeyboardEvent) {
+                if case .frameChange = event, !visible {
+                    return
+                }
                 objectWillChange.send()
                 switch event {
                     case let .show(size):
@@ -97,7 +102,7 @@
                             }
                             self = .show(size: size)
                         case UIResponder.keyboardDidChangeFrameNotification:
-                            guard let size else {
+                            guard isLocal, let size else {
                                 return nil
                             }
                             self = .frameChange(size: size)

@@ -26,7 +26,10 @@
             NotificationCenter.default.post(
                 name: UIResponder.keyboardDidChangeFrameNotification,
                 object: nil,
-                userInfo: [UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(origin: .zero, size: hardwareSize))]
+                userInfo: [
+                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
+                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(origin: .zero, size: hardwareSize))
+                ]
             )
             try await waitUntil { observer.keyboardSize == hardwareSize }
             #expect(observer.isHardwareKeyboard)
@@ -59,6 +62,36 @@
             postFrameChange(size: CGSize(width: 320, height: 300))
             postHide()
             try await waitUntil { !observer.visible }
+            #expect(observer.keyboardSize == .zero)
+            #expect(!observer.isHardwareKeyboard)
+        }
+
+        @Test func `frame changes from a non-local keyboard are ignored`() async throws {
+            let observer = KeyboardObserver()
+            let localSize = CGSize(width: 320, height: 300)
+            postShow(size: localSize)
+            try await waitUntil { observer.visible && observer.keyboardSize == localSize }
+
+            var changeCount = 0
+            let subscription = observer.objectWillChange.sink { changeCount += 1 }
+            postFrameChange(size: CGSize(width: 320, height: 55), isLocal: false)
+            // A later local show without a frame is the first change applied when the remote frame change is ignored.
+            postShow(size: nil)
+            try await waitUntil { changeCount > 0 }
+            #expect(observer.keyboardSize == localSize)
+            #expect(!observer.isHardwareKeyboard)
+            subscription.cancel()
+        }
+
+        @Test func `size stays zero while the keyboard is hidden`() async throws {
+            let observer = KeyboardObserver()
+            postFrameChange(size: CGSize(width: 320, height: 300))
+            postShow(size: CGSize(width: 320, height: 280))
+            postHide()
+            postFrameChange(size: CGSize(width: 320, height: 55))
+            // A later local show without a frame proves the hidden frame change was processed first.
+            postShow(size: nil)
+            try await waitUntil { observer.visible }
             #expect(observer.keyboardSize == .zero)
             #expect(!observer.isHardwareKeyboard)
         }
@@ -112,23 +145,20 @@
             subscription.cancel()
         }
 
-        private func postShow(size: CGSize) {
-            NotificationCenter.default.post(
-                name: UIResponder.keyboardDidShowNotification,
-                object: nil,
-                userInfo: [
-                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
-                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(origin: .zero, size: size))
-                ]
-            )
+        private func postShow(size: CGSize?) {
+            var userInfo: [AnyHashable: Any] = [UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true)]
+            if let size {
+                userInfo[UIResponder.keyboardFrameEndUserInfoKey] = NSValue(cgRect: CGRect(origin: .zero, size: size))
+            }
+            NotificationCenter.default.post(name: UIResponder.keyboardDidShowNotification, object: nil, userInfo: userInfo)
         }
 
-        private func postFrameChange(size: CGSize) {
+        private func postFrameChange(size: CGSize, isLocal: Bool = true) {
             NotificationCenter.default.post(
                 name: UIResponder.keyboardDidChangeFrameNotification,
                 object: nil,
                 userInfo: [
-                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
+                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: isLocal),
                     UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(origin: .zero, size: size))
                 ]
             )
