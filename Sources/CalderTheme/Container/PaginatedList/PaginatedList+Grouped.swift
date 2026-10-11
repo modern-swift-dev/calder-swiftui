@@ -13,8 +13,9 @@
         /// A SwiftUI view that displays a paginated list with items grouped into sections based on a discriminator.
         ///
         /// Each group of items with the same discriminator will be laid out in a `SwiftUI.Section`.
-        /// When a next-page request fails, the loading indicator is replaced by a row that retries
-        /// the failed page.
+        /// A loading row after the last section requests the next page, regardless of which sections
+        /// that page fills. When a next-page request fails, the loading row is replaced by a row that
+        /// retries the failed page.
         struct Grouped<DataType: Identifiable & Codable & Sendable, Content: View>: View {
             @Environment(\.theme) var theme
             /// The data source responsible for fetching and managing the paginated data.
@@ -53,23 +54,6 @@
                                 #if !os(macOS) && !os(watchOS) && !os(tvOS)
                                     .listRowSpacing(0)
                                 #endif
-
-                                if dataSource.hasNext,
-                                   let lastSection = sections.last,
-                                   lastSection.discriminator == section.discriminator,
-                                   let lastItem = lastSection.values.last,
-                                   lastItem.id == item.id {
-                                    if dataSource.nextPageError != nil {
-                                        RetryState {
-                                            Task { await dataSource.next() }
-                                        }
-                                    } else {
-                                        LoadingState()
-                                            .task {
-                                                await dataSource.next()
-                                            }
-                                    }
-                                }
                             }
                         }, header: {
                             Text(verbatim: section.discriminator)
@@ -77,6 +61,21 @@
                                 .foregroundStyle(theme.text1)
                                 .textCase(.none)
                         })
+                    }
+
+                    // A page can fill any section, or add no new items, so the trigger follows all
+                    // sections and restarts after every loaded page.
+                    if dataSource.hasNext {
+                        if dataSource.nextPageError != nil {
+                            RetryState {
+                                Task { await dataSource.next() }
+                            }
+                        } else {
+                            LoadingState()
+                                .task(id: dataSource.loadedNextPageCount) {
+                                    await dataSource.next()
+                                }
+                        }
                     }
 
                     Color.clear.frame(height: .xxxl)

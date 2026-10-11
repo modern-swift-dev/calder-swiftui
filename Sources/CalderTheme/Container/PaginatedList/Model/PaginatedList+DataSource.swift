@@ -43,6 +43,9 @@
             /// starts, and when the source reloads or is cleared. Cancellation does not set it.
             public private(set) var nextPageError: (any Error)?
 
+            /// The number of next pages loaded, which lists use to request another page after each one.
+            private(set) var loadedNextPageCount = 0
+
             /// The most recently loaded page of data.
             private var currentPage: Results<DataType>?
             /// The ID of the current data loading request, used to cancel outdated requests.
@@ -327,6 +330,7 @@
                     guard requestId == currentRequestId, !Task.isCancelled else {
                         return
                     }
+                    loadedNextPageCount += 1
                     currentPage = newPage
                     appendAll(newPage)
                 } catch {
