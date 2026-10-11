@@ -135,19 +135,25 @@
             // MARK: - Background Colors
 
             #if os(tvOS)
-                /// The primary background fallback for tvOS.
+                /// The primary system background color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.systemBackground`, so this uses iOS's light (`#FFFFFF`) and dark (`#000000`) values.
                 static var systemBackground: Color {
-                    .black
+                    adaptive(light: srgb(0xFF, 0xFF, 0xFF, 1), dark: srgb(0x00, 0x00, 0x00, 1))
                 }
 
-                /// The secondary background fallback for tvOS.
+                /// The secondary system background color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.secondarySystemBackground`, so this uses iOS's light (`#F2F2F7`) and dark (`#1C1C1E`) values.
                 static var secondarySystemBackground: Color {
-                    .black
+                    adaptive(light: srgb(0xF2, 0xF2, 0xF7, 1), dark: srgb(0x1C, 0x1C, 0x1E, 1))
                 }
 
-                /// The tertiary background fallback for tvOS.
+                /// The tertiary system background color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.tertiarySystemBackground`, so this uses iOS's light (`#FFFFFF`) and dark (`#2C2C2E`) values.
                 static var tertiarySystemBackground: Color {
-                    .black
+                    adaptive(light: srgb(0xFF, 0xFF, 0xFF, 1), dark: srgb(0x2C, 0x2C, 0x2E, 1))
                 }
             #else
                 /// The primary system background color that adapts to the current appearance.
@@ -175,19 +181,25 @@
             // MARK: - Grouped Background Colors
 
             #if os(tvOS)
-                /// The primary grouped background fallback for tvOS.
+                /// The primary grouped background color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.systemGroupedBackground`, so this uses iOS's light (`#F2F2F7`) and dark (`#000000`) values.
                 static var systemGroupedBackground: Color {
-                    .black
+                    adaptive(light: srgb(0xF2, 0xF2, 0xF7, 1), dark: srgb(0x00, 0x00, 0x00, 1))
                 }
 
-                /// The secondary grouped background fallback for tvOS.
+                /// The secondary grouped background color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.secondarySystemGroupedBackground`, so this uses iOS's light (`#FFFFFF`) and dark (`#1C1C1E`) values.
                 static var secondarySystemGroupedBackground: Color {
-                    .black
+                    adaptive(light: srgb(0xFF, 0xFF, 0xFF, 1), dark: srgb(0x1C, 0x1C, 0x1E, 1))
                 }
 
-                /// The tertiary grouped background fallback for tvOS.
+                /// The tertiary grouped background color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.tertiarySystemGroupedBackground`, so this uses iOS's light (`#F2F2F7`) and dark (`#2C2C2E`) values.
                 static var tertiarySystemGroupedBackground: Color {
-                    .black
+                    adaptive(light: srgb(0xF2, 0xF2, 0xF7, 1), dark: srgb(0x2C, 0x2C, 0x2E, 1))
                 }
             #else
                 /// The primary grouped background color that adapts to the current appearance.
@@ -215,24 +227,36 @@
             // MARK: - Fill Colors
 
             #if os(tvOS)
-                /// The primary fill fallback for tvOS.
+                /// The primary system fill color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.systemFill`, so this uses iOS's light (`rgb(120, 120, 128)` at 20% opacity)
+                /// and dark (`rgb(120, 120, 128)` at 36% opacity) values.
                 static var systemFill: Color {
-                    .gray
+                    adaptive(light: srgb(120, 120, 128, 0.2), dark: srgb(120, 120, 128, 0.36))
                 }
 
-                /// The secondary fill fallback for tvOS.
+                /// The secondary system fill color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.secondarySystemFill`, so this uses iOS's light (`rgb(120, 120, 128)` at 16% opacity)
+                /// and dark (`rgb(120, 120, 128)` at 32% opacity) values.
                 static var secondarySystemFill: Color {
-                    .gray
+                    adaptive(light: srgb(120, 120, 128, 0.16), dark: srgb(120, 120, 128, 0.32))
                 }
 
-                /// The tertiary fill fallback for tvOS.
+                /// The tertiary system fill color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.tertiarySystemFill`, so this uses iOS's light (`rgb(118, 118, 128)` at 12% opacity)
+                /// and dark (`rgb(118, 118, 128)` at 24% opacity) values.
                 static var tertiarySystemFill: Color {
-                    .gray
+                    adaptive(light: srgb(118, 118, 128, 0.12), dark: srgb(118, 118, 128, 0.24))
                 }
 
-                /// The quaternary fill fallback for tvOS.
+                /// The quaternary system fill color that adapts to the current appearance.
+                ///
+                /// tvOS has no `UIColor.quaternarySystemFill`, so this uses iOS's light (`rgb(116, 116, 128)` at 8% opacity)
+                /// and dark (`rgb(118, 118, 128)` at 18% opacity) values.
                 static var quaternarySystemFill: Color {
-                    .gray
+                    adaptive(light: srgb(116, 116, 128, 0.08), dark: srgb(118, 118, 128, 0.18))
                 }
             #else
                 /// The primary system fill color that adapts to the current appearance.
@@ -267,12 +291,18 @@
             // MARK: - Static Text Colors
 
             #if os(tvOS)
-                /// A light text fallback for tvOS.
+                /// A light text color for use on dark backgrounds.
+                ///
+                /// tvOS has no `UIColor.lightText`, so this is opaque white.
+                /// It does not adapt to appearance changes.
                 static var lightText: Color {
                     .white
                 }
 
-                /// A dark text fallback for tvOS.
+                /// A dark text color for use on light backgrounds.
+                ///
+                /// tvOS has no `UIColor.darkText`, so this matches iOS: opaque black.
+                /// It does not adapt to appearance changes; use ``label`` for text that should.
                 static var darkText: Color {
                     .black
                 }
@@ -289,6 +319,20 @@
                 /// Equivalent to UIColor.darkText
                 static var darkText: Color {
                     Color(uiColor: .darkText)
+                }
+            #endif
+
+            #if os(tvOS)
+                /// Returns a color that uses `dark` under a dark appearance and `light` otherwise.
+                private static func adaptive(light: UIColor, dark: UIColor) -> Color {
+                    Color(uiColor: UIColor { traits in
+                        traits.userInterfaceStyle == .dark ? dark : light
+                    })
+                }
+
+                /// Returns an sRGB color from 8-bit channel values and an opacity.
+                private static func srgb(_ red: Int, _ green: Int, _ blue: Int, _ alpha: CGFloat) -> UIColor {
+                    UIColor(red: CGFloat(red) / 255, green: CGFloat(green) / 255, blue: CGFloat(blue) / 255, alpha: alpha)
                 }
             #endif
         }

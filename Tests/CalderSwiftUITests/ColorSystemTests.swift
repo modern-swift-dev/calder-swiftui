@@ -169,6 +169,20 @@
             #expect(type(of: color) == Color.self)
         }
 
+        // MARK: - Appearance
+
+        #if os(iOS) || os(tvOS) || os(macOS)
+            @MainActor
+            @Test(arguments: [
+                Color.systemBackground, .secondarySystemBackground, .tertiarySystemBackground,
+                .systemGroupedBackground, .secondarySystemGroupedBackground, .tertiarySystemGroupedBackground,
+                .systemFill, .secondarySystemFill, .tertiarySystemFill, .quaternarySystemFill
+            ])
+            func `backgrounds and fills follow the appearance`(_ color: Color) {
+                #expect(resolve(color, in: .light) != resolve(color, in: .dark))
+            }
+        #endif
+
         // MARK: - Helpers
 
         /// Resolves on the main actor because AppKit-backed colors resolve against `NSAppearance`.
