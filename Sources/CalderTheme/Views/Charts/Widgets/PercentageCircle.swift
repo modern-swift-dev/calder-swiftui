@@ -3,9 +3,15 @@
     import SwiftUI
 
     /// A SwiftUI view that displays a percentage value within a circular progress indicator.
+    ///
+    /// The view is a single accessibility element whose value is the percentage, formatted for the
+    /// environment's locale. Zero or negative values are announced as zero percent rather than "-".
     public struct PercentageCircle: View {
         /// The theme of the environment.
         @Environment(\.theme) private var theme
+
+        /// The user's locale, used to format the accessibility value.
+        @Environment(\.locale) private var locale
 
         /// The percentage value, from 0.0 to 1.0.
         public let percent: Double
@@ -54,7 +60,15 @@
                         )
 
                 )
+                .accessibilityElement(children: .ignore)
+                .accessibilityValue(Text(verbatim: accessibilityPercent(locale: locale)))
+        }
 
+        /// Formats the percentage for assistive technologies, using zero in place of the visible "-".
+        /// - Parameter locale: The locale used to format the percentage.
+        /// - Returns: The localised percentage, such as "0%" or "25%".
+        func accessibilityPercent(locale: Locale) -> String {
+            max(0, percent).formatted(.percent.locale(locale))
         }
     }
 
