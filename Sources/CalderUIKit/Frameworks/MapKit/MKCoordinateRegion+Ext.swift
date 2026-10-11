@@ -1,6 +1,5 @@
 #if canImport(Darwin)
     #if canImport(MapKit)
-        import CalderStdLib
         import Foundation
         import MapKit
 
@@ -19,16 +18,24 @@
 
             /// Calculates an `MKCoordinateRegion` that encompasses all coordinates in the sequence,
             /// with an optional padding.
-            /// - Parameter padding: The additional distance in meters to add to the calculated span, ensuring content fits with a margin. Defaults to 0.
-            /// - Returns: An `MKCoordinateRegion` covering all coordinates, or a default region if the sequence is empty.
+            ///
+            /// The region is centered on the midpoint of the coordinates' bounding box. Its latitude delta
+            /// spans the coordinates' latitudes and its longitude delta spans their longitudes.
+            ///
+            /// - Parameter padding: The additional distance in meters to add to each axis of the calculated span,
+            ///   ensuring content fits with a margin. Defaults to 0.
+            /// - Returns: An `MKCoordinateRegion` covering all coordinates, or `MKCoordinateRegion()`, which has a
+            ///   zero center and a zero span, if the sequence is empty.
             func coordinateRegion(padding: CLLocationDistance = 0) -> MKCoordinateRegion {
                 var furthestNorth = -90.0
                 var furthestSouth = 90.0
                 var furthestEast = -180.0
                 var furthestWest = 180.0
+                var hasCoordinates = false
 
                 // Calculate center position
                 for location in self {
+                    hasCoordinates = true
                     if location.latitude > furthestNorth {
                         furthestNorth = location.latitude
                     }
@@ -46,16 +53,20 @@
                     }
                 }
 
+                guard hasCoordinates else {
+                    return MKCoordinateRegion()
+                }
+
                 let centerLocation = CLLocationCoordinate2D(
                     (furthestNorth + furthestSouth) / 2.0,
                     (furthestWest + furthestEast) / 2.0
                 )
-                let diffLat: CLLocationDegrees = fabs(furthestWest - furthestEast)
-                let diffLon: CLLocationDegrees = fabs(furthestNorth - furthestSouth)
-                let latDist: CLLocationDistance = diffLat.degreesToMeters
-                let lonDist: CLLocationDistance = diffLon.degreesToMeters
-                let distance = Swift.max(latDist, lonDist) + padding
-                return MKCoordinateRegion(center: centerLocation, distance: distance)
+                let paddingSpan = MKCoordinateRegion(center: centerLocation, distance: padding).span
+                let span = MKCoordinateSpan(
+                    latitudeDelta: furthestNorth - furthestSouth + paddingSpan.latitudeDelta,
+                    longitudeDelta: furthestEast - furthestWest + paddingSpan.longitudeDelta
+                )
+                return MKCoordinateRegion(center: centerLocation, span: span)
             }
         }
 
@@ -63,8 +74,9 @@
 
             /// Calculates an `MKCoordinateRegion` that encompasses all `CLLocation` objects in the sequence,
             /// with an optional padding.
-            /// - Parameter padding: The additional distance in meters to add to the calculated span, ensuring content fits with a margin. Defaults to 0.
-            /// - Returns: An `MKCoordinateRegion` covering all locations.
+            /// - Parameter padding: The additional distance in meters to add to each axis of the calculated span,
+            ///   ensuring content fits with a margin. Defaults to 0.
+            /// - Returns: An `MKCoordinateRegion` covering all locations, or `MKCoordinateRegion()` if the sequence is empty.
             func coordinateRegion(padding: CLLocationDistance = 0) -> MKCoordinateRegion {
                 map(\.coordinate).coordinateRegion(padding: padding)
             }
@@ -74,8 +86,9 @@
 
             /// Calculates an `MKCoordinateRegion` that encompasses all `MKAnnotation` objects in the sequence,
             /// with an optional padding.
-            /// - Parameter padding: The additional distance in meters to add to the calculated span, ensuring content fits with a margin. Defaults to 0.
-            /// - Returns: An `MKCoordinateRegion` covering all annotations.
+            /// - Parameter padding: The additional distance in meters to add to each axis of the calculated span,
+            ///   ensuring content fits with a margin. Defaults to 0.
+            /// - Returns: An `MKCoordinateRegion` covering all annotations, or `MKCoordinateRegion()` if the sequence is empty.
             func coordinateRegion(padding: CLLocationDistance = 0) -> MKCoordinateRegion {
                 map(\.coordinate).coordinateRegion(padding: padding)
             }

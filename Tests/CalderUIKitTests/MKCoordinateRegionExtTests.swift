@@ -81,6 +81,38 @@
             #expect(abs(region.center.longitude - -100.0) < 0.0001)
         }
 
+        @Test func `coordinate region spans map to their axes`() {
+            let coords = [
+                CLLocationCoordinate2D(-1.0, -5.0),
+                CLLocationCoordinate2D(1.0, 5.0)
+            ]
+            let region = coords.coordinateRegion()
+
+            #expect(abs(region.span.latitudeDelta - 2.0) < 0.0001)
+            #expect(abs(region.span.longitudeDelta - 10.0) < 0.0001)
+        }
+
+        @Test func `coordinate region padding is added to each axis`() {
+            let coords = [
+                CLLocationCoordinate2D(-1.0, -5.0),
+                CLLocationCoordinate2D(1.0, 5.0)
+            ]
+            let region = coords.coordinateRegion(padding: 1000)
+
+            // 1 km is about 0.009 degrees of latitude, and of longitude at the equator.
+            #expect(abs(region.span.latitudeDelta - 2.009) < 0.001)
+            #expect(abs(region.span.longitudeDelta - 10.009) < 0.001)
+        }
+
+        @Test func `coordinate region of empty sequence is the default region`() {
+            let region = [CLLocationCoordinate2D]().coordinateRegion()
+
+            #expect(region.center.latitude == 0)
+            #expect(region.center.longitude == 0)
+            #expect(region.span.latitudeDelta == 0)
+            #expect(region.span.longitudeDelta == 0)
+        }
+
         // MARK: - Sequence<CLLocation> coordinateRegion Tests
 
         @Test func `coordinate region locations`() {
