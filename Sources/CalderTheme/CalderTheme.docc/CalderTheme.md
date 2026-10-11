@@ -41,6 +41,11 @@ conformances on `AVCaptureSession` or `AVCaptureVideoPreviewLayer`.
 camera. The scanner pauses after it writes a result; set the `result` binding back to `nil` to
 scan the next code without recreating the view.
 
+`BarcodeScannerViewController.onCodeScanned(_:type:rect:path:)` is main-actor isolated and
+suspends detection before reporting the code, so only one code is delivered per scan even when
+several are in frame. The scan region shows its active tint while codes are detected and
+returns to its inactive tint shortly after detection stops.
+
 Optional numeric inputs update their displayed text when the bound value changes, including
 clearing it when the value becomes `nil`. Display formatting does not round or truncate the
 source binding.

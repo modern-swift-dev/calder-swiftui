@@ -141,17 +141,15 @@
             }
 
             /// Called when a QR code is successfully scanned.
-            /// Suspends the scanner and processes the scanned code.
+            /// Suspends the scanner before processing the scanned code, so only one code is delivered per scan.
             /// - Parameters:
             ///   - code: The string value of the scanned code.
             ///   - type: The `AVMetadataObject.ObjectType` of the scanned code.
             ///   - rect: The `CGRect` in the preview layer that encloses the scanned code.
             ///   - path: The `UIBezierPath` representing the boundaries of the scanned code.
-            public nonisolated func onCodeScanned(_ code: String, type: AVMetadataObject.ObjectType, rect: CGRect, path: UIBezierPath) {
-                Task { @MainActor [weak self] in
-                    self?.barcodeScanner.suspend()
-                    self?.handle((code, type))
-                }
+            public func onCodeScanned(_ code: String, type: AVMetadataObject.ObjectType, rect: CGRect, path: UIBezierPath) {
+                barcodeScanner.suspend()
+                handle((code, type))
             }
 
         }

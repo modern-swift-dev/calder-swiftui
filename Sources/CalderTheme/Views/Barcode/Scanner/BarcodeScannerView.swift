@@ -157,6 +157,12 @@
             /// The main-actor task that updates the `rectOfInterest` when the input format changes while the scanner runs.
             private var inputFormatObservation: Task<Void, Never>?
 
+            /// How long the active scan-region tint stays visible after the latest detection.
+            static let activeTintDuration: Duration = .milliseconds(300)
+
+            /// The pending task that restores the inactive scan-region tint.
+            private var tintReset: Task<Void, Never>?
+
             /// Initializes a new `BarcodeScannerView` with the specified model.
             /// - Parameter model: The view model containing configuration for the scanner.
             public init(model: Model) {
@@ -597,25 +603,38 @@
             ///   - code: The string value of the detected code.
             ///   - type: The type of the detected code.
             ///   - corners: The corners of the detected code in capture-device coordinates.
-            private func handleDetectedCode(_ code: String, type: AVMetadataObject.ObjectType, corners: [CGPoint]) {
+            func handleDetectedCode(_ code: String, type: AVMetadataObject.ObjectType, corners: [CGPoint]) {
                 guard !isSuspended else {
                     return
                 }
 
-                scanRegionImageView.tintColor = model.scanRegionImageActiveTint
+                showActiveTint()
 
-                if let avVideoPreviewLayer, lastScanValue != code {
-                    let points = corners.map { avVideoPreviewLayer.layerPointConverted(fromCaptureDevicePoint: $0) }
-                    lastScanValue = code
-                    deliverScannedCode(
-                        code,
-                        type: type,
-                        rect: Self.boundingRect(of: points),
-                        path: Self.cutOutPath(in: avVideoPreviewLayer.bounds, around: points)
-                    )
+                guard let avVideoPreviewLayer, lastScanValue != code else {
+                    return
                 }
+                let points = corners.map { avVideoPreviewLayer.layerPointConverted(fromCaptureDevicePoint: $0) }
+                lastScanValue = code
+                deliverScannedCode(
+                    code,
+                    type: type,
+                    rect: Self.boundingRect(of: points),
+                    path: Self.cutOutPath(in: avVideoPreviewLayer.bounds, around: points)
+                )
+            }
 
-                scanRegionImageView.tintColor = model.scanRegionImageTint
+            /// Shows the active scan-region tint, then restores the inactive tint once no code has been detected
+            /// for ``activeTintDuration``.
+            private func showActiveTint() {
+                scanRegionImageView.tintColor = model.scanRegionImageActiveTint
+                tintReset?.cancel()
+                tintReset = Task { [weak self] in
+                    try? await Task.sleep(for: Self.activeTintDuration)
+                    guard !Task.isCancelled, let self else {
+                        return
+                    }
+                    scanRegionImageView.tintColor = model.scanRegionImageTint
+                }
             }
 
             /// Delivers a recognized code only while scanning is active, including queued callbacks.

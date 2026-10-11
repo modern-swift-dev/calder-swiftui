@@ -120,6 +120,18 @@
                 #expect(delegate.scannedCodes == ["second"])
             }
 
+            @Test func `detection shows the active tint and then resets it`() async throws {
+                let view = BarcodeScannerView(model: .init(crossHairImage: UIImage(), scanRegionImageTint: .gray, scanRegionImageActiveTint: .blue))
+
+                view.handleDetectedCode("code", type: .qr, corners: [])
+
+                #expect(view.scanRegionImageView.tintColor == .blue)
+                for _ in 0 ..< 100 where view.scanRegionImageView.tintColor != .gray {
+                    try await Task.sleep(for: .milliseconds(20))
+                }
+                #expect(view.scanRegionImageView.tintColor == .gray)
+            }
+
             @Test func `delegate default layout callback is noop`() {
                 let delegate = BarcodeScannerViewTestDelegate()
 
