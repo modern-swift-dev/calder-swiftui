@@ -31,3 +31,6 @@ The grouped list requests the next page when its end is reached, whichever secti
 
 Cancelling a first-page load or reload keeps the loaded items and restores the page and state
 from before loading, so pagination continues and the load can be retried.
+
+`PaginatedList.DataSource.replaceAll` discards results from requests started before it. Replacing
+with a `Results` page makes it the current page; replacing with values ends pagination.

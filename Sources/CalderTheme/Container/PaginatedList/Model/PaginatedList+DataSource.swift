@@ -192,14 +192,27 @@
             }
 
             /// Replaces all existing items with the items from a `Results` page.
+            ///
+            /// Outstanding page requests are invalidated, so their results are discarded.
+            /// The page becomes the current page, and ``next()`` continues from it.
             /// - Parameter page: The `Results` page containing items to replace all current items.
             public func replaceAll(_ page: Results<DataType>) {
-                replaceAll(values: page.results)
+                invalidateRequests()
+                cancellationRestorePoint = nil
+                currentPage = page
+                setItems(page.results)
             }
 
             /// Replaces all existing items with a new array of values.
+            ///
+            /// Outstanding page requests are invalidated, so their results are discarded.
+            /// The values form a final page, so there is no next page to load.
             /// - Parameter values: The new array of items to replace all current items.
             public func replaceAll(values: [DataType]) {
+                replaceAll(Results(results: values))
+            }
+
+            private func setItems(_ values: [DataType]) {
                 items = []
                 for value in values {
                     upsert(value, computeState: false)
@@ -281,7 +294,7 @@
                     }
                     currentPage = response
                     count = response.count
-                    replaceAll(response)
+                    setItems(response.results)
                 } catch {
                     guard requestId == currentRequestId else {
                         return

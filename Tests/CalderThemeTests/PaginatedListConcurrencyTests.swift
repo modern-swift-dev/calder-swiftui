@@ -172,6 +172,41 @@
             #expect(!source.hasNext)
         }
 
+        @Test(arguments: [false, true]) func `replacing invalidates outstanding first and next pages`(nextPage: Bool) async {
+            let source = PaginatedList.DataSource<Item>(items: [])
+            let loader = Loader()
+            if nextPage {
+                await source.configureAndLoad(firstPageLoader: { .init(next: nil, hasNext: true, results: [Item(id: 1)]) }, nextPageLoader: { _ in try await loader.load() })
+            }
+            let pending = Task {
+                if nextPage {
+                    await source.next()
+                } else {
+                    await source.configureAndLoad(firstPageLoader: { try await loader.load() }, nextPageLoader: { _ in .init(results: []) })
+                }
+            }
+            await loader.waitUntilStarted()
+            source.replaceAll(.init(next: nil, hasNext: true, results: [Item(id: 50)]))
+            loader.finish(id: 2)
+            await pending.value
+            #expect(source.items.map(\.id) == [50])
+            #expect(source.hasNext)
+            guard case .displaying = source.state else {
+                Issue.record("A request started before replaceAll changed the state to \(source.state)")
+                return
+            }
+        }
+
+        @Test func `replacing with values ends pagination`() async {
+            let source = PaginatedList.DataSource<Item>(items: [])
+            await source.configureAndLoad(firstPageLoader: { .init(next: nil, hasNext: true, results: [Item(id: 1)]) }, nextPageLoader: { _ in .init(results: [Item(id: 2)]) })
+            source.replaceAll(values: [Item(id: 50)])
+            #expect(!source.hasNext)
+            await source.next()
+            await source.load()
+            #expect(source.items.map(\.id) == [50])
+        }
+
         @Test(arguments: [false, true]) func `cancelled first page preserves existing items`(failing: Bool) async {
             let source = PaginatedList.DataSource(items: [Item(id: 100)])
             let loader = Loader()
