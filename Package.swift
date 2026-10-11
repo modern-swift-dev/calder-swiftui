@@ -64,7 +64,7 @@ let package = Package(
         ),
         .target(
             name: "CalderSwiftUI",
-            dependencies: ["CalderStdLib", "CalderUIKit"] + snapshotPreviewsDependency,
+            dependencies: ["CalderStdLib", "CalderUIKit"],
             swiftSettings: swiftSettings
         ),
         .target(
