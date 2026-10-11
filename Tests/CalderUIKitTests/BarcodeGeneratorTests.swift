@@ -158,6 +158,76 @@
                 #expect(BarcodeGenerator.pdf417.createCIImage("Café") == nil)
                 #expect(BarcodeGenerator.pdf417.createImage(barcode: "Café") == nil)
             }
+
+            // MARK: - Sharpness Tests
+
+            @Test(arguments: [BarcodeGenerator.qr, .code128, .pdf417])
+            func `barcode CI image has only black and white pixels`(generator: BarcodeGenerator) throws {
+                let ciImage = try #require(generator.createCIImage("SHARP-123"))
+                let cgImage = try #require(CIContext().createCGImage(ciImage, from: ciImage.extent))
+
+                #expect(try blurredPixelCount(in: cgImage) == 0)
+            }
+
+            @Test func `code 128 bars use a whole number of pixels per module`() throws {
+                let ciImage = try #require(BarcodeGenerator.code128.createCIImage("SHARP-123"))
+                let cgImage = try #require(CIContext().createCGImage(ciImage, from: ciImage.extent))
+                let pixels = try rgbaPixels(of: cgImage)
+                let row = (cgImage.height / 2) * cgImage.width * 4
+                let isDark = (0 ..< cgImage.width).map { pixels[row + $0 * 4] < 128 }
+
+                var widths: [Int] = []
+                var start = 0
+                for x in 1 ... isDark.count where x == isDark.count || isDark[x] != isDark[start] {
+                    widths.append(x - start)
+                    start = x
+                }
+                // Code 128 bars and spaces span one to four modules; the outer runs are quiet zones.
+                let elements = widths.dropFirst().dropLast()
+                let module = try #require(elements.min())
+
+                #expect(elements.allSatisfy { $0 % module == 0 && $0 / module <= 4 })
+            }
+
+            @Test(arguments: [BarcodeGenerator.qr, .code128, .pdf417])
+            @MainActor func `displayed barcode is crisp at 2x and 3x`(generator: BarcodeGenerator) throws {
+                let image = try #require(generator.createImage(barcode: "SHARP-123"))
+                for scale in [2.0, 3.0] {
+                    let renderer = ImageRenderer(content: image)
+                    renderer.scale = scale
+                    let cgImage = try #require(renderer.cgImage)
+
+                    #expect(try blurredPixelCount(in: cgImage) == 0, "scale \(scale)")
+                }
+            }
+
+            /// Counts pixels whose channels are neither near 0 nor near 255, which only appear when bars are smoothed.
+            private func blurredPixelCount(in image: CGImage) throws -> Int {
+                let pixels = try rgbaPixels(of: image)
+                return stride(from: 0, to: pixels.count, by: 4).count { offset in
+                    pixels[offset ..< offset + 4].contains { $0 > 15 && $0 < 240 }
+                }
+            }
+
+            private func rgbaPixels(of image: CGImage) throws -> [UInt8] {
+                let colorSpace = try #require(CGColorSpace(name: CGColorSpace.sRGB))
+                let bytesPerRow = image.width * 4
+                var pixels = [UInt8](repeating: 0, count: bytesPerRow * image.height)
+                try pixels.withUnsafeMutableBytes { buffer in
+                    let context = try #require(CGContext(
+                        data: buffer.baseAddress,
+                        width: image.width,
+                        height: image.height,
+                        bitsPerComponent: 8,
+                        bytesPerRow: bytesPerRow,
+                        space: colorSpace,
+                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                    ))
+                    context.interpolationQuality = .none
+                    context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+                }
+                return pixels
+            }
         }
     #endif
 

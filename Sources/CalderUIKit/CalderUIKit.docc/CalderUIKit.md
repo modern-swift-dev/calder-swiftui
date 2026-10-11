@@ -17,3 +17,5 @@ Notification callbacks complete even when the service's weak delegate has been r
 A child transition with no previous child now inserts the new child into the supplied container and pins it to that container, matching subsequent transitions.
 
 `BarcodeGenerator.qr` encodes payloads as UTF-8, so non-ASCII text such as "Café" produces a QR code. Code 128 and PDF417 barcodes still require ASCII payloads and return `nil` otherwise.
+
+Generated barcodes use whole-number scale factors with nearest-neighbour sampling, and `BarcodeGenerator.createImage(barcode:quietSpace:)` returns an image with interpolation disabled so bars stay sharp at 2x and 3x. Code 128 barcodes now scale by 2 instead of 1.5, so they are wider than before.
