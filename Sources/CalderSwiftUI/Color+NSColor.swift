@@ -39,10 +39,16 @@
 
         public extension Color {
 
+            /// The color as a `#`-prefixed hexadecimal RGB string, such as `#AABBCC`.
+            ///
+            /// See `NSColor.toRGB(_:)` in CalderUIKit for how channels are converted.
             var rgb: String {
                 NSColor(self).toRGB("#")
             }
 
+            /// The color as a `#`-prefixed hexadecimal RGBA string, such as `#AABBCCDD`.
+            ///
+            /// See `NSColor.toRGBA(_:)` in CalderUIKit for how channels are converted.
             var rgba: String {
                 NSColor(self).toRGBA("#")
             }

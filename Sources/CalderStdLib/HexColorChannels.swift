@@ -1,4 +1,6 @@
-/// Parses hexadecimal colour strings for the `Color`, `UIColor`, and `NSColor` initialisers.
+import Foundation
+
+/// Parses and formats hexadecimal color strings for the `Color`, `UIColor`, and `NSColor` extensions.
 ///
 /// A valid string has an optional `#`, `0x`, or `0X` prefix followed by exactly two hexadecimal
 /// digits per channel. Whitespace, signs, and any other characters make the string invalid.
@@ -24,5 +26,15 @@ package enum HexColorChannels {
         return stride(from: 0, to: characters.count, by: 2).compactMap { index in
             UInt8(String(characters[index ... index + 1]), radix: 16).map { Double($0) / 255 }
         }
+    }
+
+    /// Formats channel values as two uppercase hexadecimal digits each, rounding to the nearest step.
+    ///
+    /// - Parameters:
+    ///   - channels: The channel values, from `0` to `1`.
+    ///   - prefix: The string placed before the digits, such as `#` or `0x`.
+    /// - Returns: The prefix followed by two digits per channel.
+    package static func format(_ channels: [Double], prefix: String) -> String {
+        prefix + channels.map { String(format: "%02X", min(255, Int(($0 * 255).rounded()))) }.joined()
     }
 }

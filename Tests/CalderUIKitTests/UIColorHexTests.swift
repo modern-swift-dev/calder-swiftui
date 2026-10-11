@@ -135,6 +135,25 @@
                 #expect(color == nil)
             }
 
+            // MARK: - Round trips
+
+            @Test(arguments: 0 ... 255)
+            func `rgb round trips every grey level`(_ level: Int) throws {
+                let hex = String(format: "%02X%02X%02X", level, level, level)
+                #expect(try #require(UIColor(rgb: hex)).toRGB("") == hex)
+            }
+
+            @Test(arguments: ["000000", "FFFFFF", "090909", "336699", "AB12CD", "FF5500", "0055FF", "7F8081", "123456", "FEDCBA"])
+            func `rgb round trips sample colors`(_ hex: String) throws {
+                #expect(try #require(UIColor(rgb: hex)).toRGB("") == hex)
+            }
+
+            @Test(arguments: 0 ... 255)
+            func `rgba round trips every alpha level`(_ level: Int) throws {
+                let hex = String(format: "336699%02X", level)
+                #expect(try #require(UIColor(rgba: hex)).toRGBA("") == hex)
+            }
+
             // MARK: - Invalid input
 
             @Test(arguments: ["#GGHHII", "#12345G", "0x12345Z", "+12345", "-12345", "#+1234F", "#0x1234", "##123456"])

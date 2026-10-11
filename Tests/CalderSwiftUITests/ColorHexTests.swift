@@ -227,6 +227,27 @@
             }
         }
 
+        // MARK: - Round trips
+
+        #if canImport(UIKit) || canImport(AppKit)
+            @Test(arguments: 0 ... 255)
+            func `rgb round trips every grey level`(_ level: Int) throws {
+                let hex = String(format: "#%02X%02X%02X", level, level, level)
+                #expect(try #require(Color(rgb: hex)).rgb == hex)
+            }
+
+            @Test(arguments: ["#000000", "#FFFFFF", "#090909", "#336699", "#AB12CD", "#FF5500", "#0055FF", "#7F8081", "#123456", "#FEDCBA"])
+            func `rgb round trips sample colors`(_ hex: String) throws {
+                #expect(try #require(Color(rgb: hex)).rgb == hex)
+            }
+
+            @Test(arguments: 0 ... 255)
+            func `rgba round trips every alpha level`(_ level: Int) throws {
+                let hex = String(format: "#336699%02X", level)
+                #expect(try #require(Color(rgba: hex)).rgba == hex)
+            }
+        #endif
+
         // MARK: - Specific color values
 
         @Test func `init RGB with mid gray`() {

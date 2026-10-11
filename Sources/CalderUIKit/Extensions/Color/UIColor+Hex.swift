@@ -71,19 +71,17 @@
         // MARK: String
 
         public extension UIColor {
-            /// Format a color to it's string representation RGB
+            /// Formats the color as a hexadecimal RGB string, such as `0xAABBCC`.
             ///
-            /// - parameter prefix for the string representation. Defaults to 0x
+            /// Each sRGB channel is rounded to the nearest of 256 steps, so a color created with
+            /// `init(rgb:)` formats back to the same digits.
+            ///
+            /// - Parameter prefix: The string placed before the digits. Defaults to `0x`.
+            /// - Returns: The prefix followed by six uppercase hexadecimal digits.
             func toRGB(_ prefix: String = "0x") -> String {
                 var (red, green, blue, alpha): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
                 getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-                let hex = String(
-                    format: "%02X%02X%02X",
-                    min(255, Int(255 * red)),
-                    min(255, Int(255 * green)),
-                    min(255, Int(255 * blue))
-                )
-                return "\(prefix)\(hex)"
+                return HexColorChannels.format([red, green, blue].map(\.double), prefix: prefix)
             }
 
             /// Format a color to it's string representation HSV
@@ -117,20 +115,17 @@
                 return "\(prefix)\(hex)"
             }
 
-            /// Format a color to it's string representation RGBA
+            /// Formats the color as a hexadecimal RGBA string, such as `0xAABBCCDD`.
             ///
-            /// - parameter prefix for the string representation. Defaults to 0x
+            /// Each sRGB channel is rounded to the nearest of 256 steps, so a color created with
+            /// `init(rgba:)` formats back to the same digits.
+            ///
+            /// - Parameter prefix: The string placed before the digits. Defaults to `0x`.
+            /// - Returns: The prefix followed by eight uppercase hexadecimal digits.
             func toRGBA(_ prefix: String = "0x") -> String {
                 var (red, green, blue, alpha): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
                 getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-                let hex = String(
-                    format: "%02X%02X%02X%02X",
-                    min(255, Int(255 * red)),
-                    min(255, Int(255 * green)),
-                    min(255, Int(255 * blue)),
-                    min(255, Int(255 * alpha))
-                )
-                return "\(prefix)\(hex)"
+                return HexColorChannels.format([red, green, blue, alpha].map(\.double), prefix: prefix)
             }
         }
     #endif
