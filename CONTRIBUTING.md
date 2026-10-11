@@ -33,7 +33,7 @@ make test-visionos
 
 CI and the Makefile pin iOS, tvOS, watchOS, and visionOS simulator runtimes to 27.0. Install the matching runtime before running each platform's tests.
 
-Record and verify iOS snapshots using Xcode 27.0 and the iPhone 17 Pro simulator running iOS 27.0. Newer iOS runtimes can render differently even with the same Xcode and SDK. When intentionally changing a runtime, update both `.github/workflows/ci.yml` and `Makefile`, and review and update any affected snapshots.
+Record and verify iOS snapshots using Xcode 27.0 and the iPhone 17 Pro simulator running iOS 27.0. Newer iOS runtimes can render differently even with the same Xcode and SDK. When intentionally changing a runtime, update `.github/workflows/ci.yml`, `.github/workflows/release.yml`, and `Makefile`, and review and update any affected snapshots.
 
 ## Documentation
 
@@ -49,4 +49,4 @@ The command builds the four DocC archives, one per library product, and writes `
 
 ## Publish a release
 
-The release workflow accepts semantic-version tags without a `v` prefix, such as `1.0.0`. It runs the documentation build and attaches `Calder-Documentation.zip` to the GitHub release.
+Push a `MAJOR.MINOR.PATCH` tag without a `v` prefix, such as `1.0.0`, to run the release workflow in `.github/workflows/release.yml`. It runs `make documentation` and attaches `Calder-Documentation.zip` to the GitHub release for that tag. If the release does not exist yet, the workflow creates it with generated release notes.
