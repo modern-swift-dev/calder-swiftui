@@ -19,7 +19,7 @@
         /// Initializes a new `FormSwitch` view.
         ///
         /// - Parameters:
-        ///   - name: The label text for the switch.
+        ///   - name: The label text for the switch. VoiceOver also reads it as the switch's label.
         ///   - value: A binding to the boolean property that stores the switch's state.
         public init(name: String, value: Binding<Bool>) {
             self.name = name
@@ -31,7 +31,8 @@
                 name: name,
                 mandatory: false
             ) {
-                Toggle("", isOn: $value)
+                // The row name is the switch's hidden label, so VoiceOver announces it.
+                Toggle(name, isOn: $value)
                     .tint(theme.primary)
                     .labelsHidden()
             }

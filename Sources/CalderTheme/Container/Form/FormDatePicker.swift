@@ -58,7 +58,7 @@
             /// Initializes a new `FormDatePicker` view.
             ///
             /// - Parameters:
-            ///   - name: The label text for the date picker.
+            ///   - name: The label text for the date picker. VoiceOver also reads it as the picker's label.
             ///   - mandatory: A boolean indicating if the field is required. Defaults to `false`.
             ///   - mode: The display mode for the date picker (date, time, or dateAndTime). Defaults to `.dateAndTime`.
             ///   - min: The earliest selectable date. Defaults to `nil` (no minimum).
@@ -101,8 +101,9 @@
                     name: name,
                     mandatory: mandatory
                 ) {
+                    // The row name is the picker's hidden label, so VoiceOver announces it.
                     DatePicker(
-                        "",
+                        name,
                         selection: $value,
                         in: selectableRange,
                         displayedComponents: mode.components

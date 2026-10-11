@@ -70,3 +70,6 @@ password revealed.
 
 Invalid `InputText` and `InputPassword` fields draw their error border even when
 `displayTextViewBorder` is `false`, and VoiceOver reads the invalid message as the field's hint.
+
+`FormSwitch` and `FormDatePicker` use their row name as the control's hidden label, so VoiceOver
+announces the name with the control.
