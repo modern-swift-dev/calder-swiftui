@@ -13,6 +13,8 @@
         /// A SwiftUI view that displays a paginated list with items grouped into sections based on a discriminator.
         ///
         /// Each group of items with the same discriminator will be laid out in a `SwiftUI.Section`.
+        /// When a next-page request fails, the loading indicator is replaced by a row that retries
+        /// the failed page.
         struct Grouped<DataType: Identifiable & Codable & Sendable, Content: View>: View {
             @Environment(\.theme) var theme
             /// The data source responsible for fetching and managing the paginated data.
@@ -57,10 +59,16 @@
                                    lastSection.discriminator == section.discriminator,
                                    let lastItem = lastSection.values.last,
                                    lastItem.id == item.id {
-                                    LoadingState()
-                                        .task {
-                                            await dataSource.next()
+                                    if dataSource.nextPageError != nil {
+                                        RetryState {
+                                            Task { await dataSource.next() }
                                         }
+                                    } else {
+                                        LoadingState()
+                                            .task {
+                                                await dataSource.next()
+                                            }
+                                    }
                                 }
                             }
                         }, header: {

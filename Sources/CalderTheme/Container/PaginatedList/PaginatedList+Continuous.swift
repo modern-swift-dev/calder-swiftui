@@ -12,7 +12,8 @@
         /// A SwiftUI view that displays a continuous, non-grouped list of paginated data.
         ///
         /// This view works with a `PaginatedList.DataSource` to load and display data incrementally,
-        /// showing a loading indicator at the end when more data is available.
+        /// showing a loading indicator at the end when more data is available. When a next-page
+        /// request fails, the indicator is replaced by a row that retries the failed page.
         struct Continuous<DataType: Identifiable & Codable & Sendable, Content: View, HeaderContent: View, FooterView: View>: View {
             /// The data source responsible for fetching and managing the paginated data.
             @Bindable var dataSource: DataSource<DataType>
@@ -122,17 +123,25 @@
                             #endif
 
                             if dataSource.hasNext, dataSource.isLast(item.id) {
-                                LoadingState()
-                                    .listRowInsets(.zero)
+                                Group {
+                                    if dataSource.nextPageError != nil {
+                                        RetryState {
+                                            Task { await dataSource.next() }
+                                        }
+                                    } else {
+                                        LoadingState()
+                                            .task {
+                                                await dataSource.next()
+                                            }
+                                    }
+                                }
+                                .listRowInsets(.zero)
                                 #if !os(macOS) && !os(watchOS) && !os(tvOS)
                                     .listRowSpacing(0)
                                 #endif
                                 #if !os(watchOS) && !os(tvOS)
                                 .listRowSeparator(.hidden)
                                 #endif
-                                .task {
-                                    await dataSource.next()
-                                }
                             }
                         }
                     }

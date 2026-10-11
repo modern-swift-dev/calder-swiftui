@@ -99,6 +99,33 @@
             _ = view.body
         }
 
+        @Test func `continuous and grouped construct body after a failed next page`() async {
+            let source = PaginatedList.DataSource<PaginatedListViewTestItem>(items: [])
+            await source.configureAndLoad {
+                PaginatedList.Results(
+                    next: URL(string: "https://example.com/next"),
+                    hasNext: true,
+                    results: [item(1, title: "Alpha")]
+                )
+            } nextPageLoader: { _ in
+                throw URLError(.notConnectedToInternet)
+            }
+            await source.next()
+            #expect(source.nextPageError != nil)
+
+            let continuous = PaginatedList.Continuous(dataSource: source) { item in
+                Text(item.wrappedValue.title)
+            }
+            let grouped = PaginatedList.Grouped(dataSource: source, groupBy: { item in
+                String(item.wrappedValue.title.prefix(1))
+            }, viewFactory: { item in
+                Text(item.wrappedValue.title)
+            })
+
+            _ = continuous.body
+            _ = grouped.body
+        }
+
         @Test func `selection constructs body with default header and footer`() {
             let source = PaginatedList.DataSource(items: [
                 item(1, title: "Alpha"),

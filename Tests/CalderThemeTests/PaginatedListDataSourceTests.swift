@@ -175,6 +175,45 @@
             #expect(recorder.requestedCursors == [nextURL, nextURL])
         }
 
+        @Test func `next page error is exposed until a retry loads the failed page`() async throws {
+            let nextURL = try #require(URL(string: "https://example.com/page-2"))
+            let recorder = PageRecorder()
+            let source = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
+            await source.configureAndLoad {
+                PaginatedList.Results(count: 2, next: nextURL, hasNext: true, results: [item(1)])
+            } nextPageLoader: { page in
+                recorder.requestedCursors.append(page.next)
+                if recorder.requestedCursors.count == 1 {
+                    throw PaginatedListDataSourceTestError.failed
+                }
+                return PaginatedList.Results(count: 2, next: nil, hasNext: false, results: [item(2)])
+            }
+            #expect(source.nextPageError == nil)
+
+            await source.next()
+            #expect(source.nextPageError is PaginatedListDataSourceTestError)
+
+            await source.next()
+            #expect(source.nextPageError == nil)
+            #expect(recorder.requestedCursors == [nextURL, nextURL])
+            #expect(ids(source) == [1, 2])
+        }
+
+        @Test func `reloading clears the next page error`() async throws {
+            let nextURL = try #require(URL(string: "https://example.com/page-2"))
+            let source = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
+            await source.configureAndLoad {
+                PaginatedList.Results(count: 2, next: nextURL, hasNext: true, results: [item(1)])
+            } nextPageLoader: { _ in
+                throw PaginatedListDataSourceTestError.failed
+            }
+            await source.next()
+            #expect(source.nextPageError != nil)
+
+            await source.reload()
+            #expect(source.nextPageError == nil)
+        }
+
         @Test func `loader error clears items count and sets error state`() async {
             let source = PaginatedList.DataSource(items: [
                 item(1)

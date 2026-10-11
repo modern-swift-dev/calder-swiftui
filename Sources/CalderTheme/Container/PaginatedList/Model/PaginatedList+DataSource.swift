@@ -36,6 +36,13 @@
             /// The array of currently loaded data items.
             public internal(set) var items: [DataType]
 
+            /// The error from the most recent failed next-page request, if any.
+            ///
+            /// A failure keeps the loaded items and the current page, so calling ``next()``
+            /// requests the failed page again. The error is cleared when a next-page request
+            /// starts, and when the source reloads or is cleared. Cancellation does not set it.
+            public private(set) var nextPageError: (any Error)?
+
             /// The most recently loaded page of data.
             private var currentPage: Results<DataType>?
             /// The ID of the current data loading request, used to cancel outdated requests.
@@ -273,6 +280,7 @@
                 currentRequestId = UUID()
                 isLoadingFirstPage = false
                 isLoadingNextPage = false
+                nextPageError = nil
             }
 
             /// Recalculates the current view state based on the number of loaded items.
@@ -298,7 +306,8 @@
             /// This method checks if there's a next page and uses the `nextPageLoader` to fetch it.
             /// Overlapping next-page calls are ignored. Cancellation and failure preserve the
             /// loaded items and the current page so the same page can be requested again;
-            /// results from before a reload or clear are discarded.
+            /// a failure is exposed through ``nextPageError``. Results from before a reload
+            /// or clear are discarded.
             public func next() async {
                 guard let page = currentPage, page.hasNext,
                       !isLoadingNextPage, !isLoadingFirstPage, !Task.isCancelled else {
@@ -306,6 +315,7 @@
                 }
                 let requestId = currentRequestId
                 isLoadingNextPage = true
+                nextPageError = nil
                 defer {
                     if requestId == currentRequestId {
                         isLoadingNextPage = false
@@ -325,6 +335,7 @@
                         return
                     }
                     os_log("%{public}@", log: .default, type: .error, String(describing: error))
+                    nextPageError = error
                 }
             }
 
