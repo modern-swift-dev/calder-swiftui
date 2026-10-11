@@ -35,3 +35,5 @@ The `MKMapView` overlay insertion helpers now keep overlays in the order given i
 `SwiftUISceneDelegate.createRootView(_:)` now returns `AnyView`, so subclasses can override it to supply their root view; wrap the view in `AnyView`. The default root view is SwiftUI's `EmptyView`.
 
 Child view controller helpers send each containment callback once, in the order UIKit documents. `transition(fromChild:toNewChild:inContainerView:duration:delay:completion:)` and `fadeOut(duration:delay:completion:)` remove the outgoing view controller before calling `completion`. `UIViewController.CompletionHandler` is now `@MainActor () -> Void` instead of `@Sendable () -> Void`.
+
+The system-spacing anchor helpers (`eqAfter`, `leqAfter`, `geqAfter`, `eqBelow`, `leqBelow`, and `geqBelow`) default `multiplier` to `1`, producing one system spacing. Pass `multiplier: 0` to keep the previous zero spacing.

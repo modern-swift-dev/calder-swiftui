@@ -128,6 +128,69 @@
 
                 #expect(constraint.relation == .greaterThanOrEqual)
             }
+
+            // MARK: - Default System Spacing Multiplier Tests
+
+            @Test func `eq after defaults to one system spacing`() {
+                let spacing = layOutSpacing { leading, trailing in [trailing.leadingAnchor.eqAfter(leading.trailingAnchor)] }
+
+                #expect(spacing > 0)
+                #expect(spacing == oneSystemSpacing())
+            }
+
+            @Test func `leq after defaults to one system spacing`() {
+                let spacing = layOutSpacing { leading, trailing in
+                    [
+                        trailing.leadingAnchor.leqAfter(leading.trailingAnchor),
+                        lowPriority(trailing.leadingAnchor.constraint(equalTo: leading.trailingAnchor, constant: 100))
+                    ]
+                }
+
+                #expect(spacing > 0)
+                #expect(spacing == oneSystemSpacing())
+            }
+
+            @Test func `geq after defaults to one system spacing`() {
+                let spacing = layOutSpacing { leading, trailing in
+                    [
+                        trailing.leadingAnchor.geqAfter(leading.trailingAnchor),
+                        lowPriority(trailing.leadingAnchor.constraint(equalTo: leading.trailingAnchor))
+                    ]
+                }
+
+                #expect(spacing > 0)
+                #expect(spacing == oneSystemSpacing())
+            }
+
+            // MARK: - Helpers
+
+            private func oneSystemSpacing() -> CGFloat {
+                layOutSpacing { leading, trailing in [trailing.leadingAnchor.constraint(equalToSystemSpacingAfter: leading.trailingAnchor, multiplier: 1)] }
+            }
+
+            private func lowPriority(_ constraint: NSLayoutConstraint) -> NSLayoutConstraint {
+                constraint.priority = .defaultLow
+                return constraint
+            }
+
+            /// Lays out two side-by-side views and returns the horizontal gap between them.
+            private func layOutSpacing(_ spacingConstraints: (_ leading: UIView, _ trailing: UIView) -> [NSLayoutConstraint]) -> CGFloat {
+                let container = UIView(frame: CGRect(x: 0, y: 0, width: 400, height: 200))
+                let leading = UIView()
+                let trailing = UIView()
+                for view in [leading, trailing] {
+                    view.translatesAutoresizingMaskIntoConstraints = false
+                    container.addSubview(view)
+                    NSLayoutConstraint.activate([
+                        view.topAnchor.constraint(equalTo: container.topAnchor),
+                        view.widthAnchor.constraint(equalToConstant: 50),
+                        view.heightAnchor.constraint(equalToConstant: 20)
+                    ])
+                }
+                NSLayoutConstraint.activate([leading.leadingAnchor.constraint(equalTo: container.leadingAnchor)] + spacingConstraints(leading, trailing))
+                container.layoutIfNeeded()
+                return trailing.frame.minX - leading.frame.maxX
+            }
         }
     #endif
 

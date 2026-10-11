@@ -41,27 +41,27 @@
             /// Creates a constraint that sets the anchor equal to system spacing below another Y-axis anchor with an optional multiplier.
             /// - Parameters:
             ///   - anchor: The `NSLayoutYAxisAnchor` to apply system spacing relative to.
-            ///   - multiplier: The multiplier for the system spacing. Defaults to 0.0.
+            ///   - multiplier: The multiplier for the system spacing. Defaults to 1.0.
             /// - Returns: A new `NSLayoutConstraint`.
-            func eqBelow(_ anchor: some NSLayoutYAxisAnchor, multiplier: CGFloat = 0.0) -> NSLayoutConstraint {
+            func eqBelow(_ anchor: some NSLayoutYAxisAnchor, multiplier: CGFloat = 1.0) -> NSLayoutConstraint {
                 constraint(equalToSystemSpacingBelow: anchor, multiplier: multiplier)
             }
 
             /// Creates a constraint that sets the anchor less than or equal to system spacing below another Y-axis anchor with an optional multiplier.
             /// - Parameters:
             ///   - anchor: The `NSLayoutYAxisAnchor` to apply system spacing relative to.
-            ///   - multiplier: The multiplier for the system spacing. Defaults to 0.0.
+            ///   - multiplier: The multiplier for the system spacing. Defaults to 1.0.
             /// - Returns: A new `NSLayoutConstraint`.
-            func leqBelow(_ anchor: some NSLayoutYAxisAnchor, multiplier: CGFloat = 0.0) -> NSLayoutConstraint {
+            func leqBelow(_ anchor: some NSLayoutYAxisAnchor, multiplier: CGFloat = 1.0) -> NSLayoutConstraint {
                 constraint(lessThanOrEqualToSystemSpacingBelow: anchor, multiplier: multiplier)
             }
 
             /// Creates a constraint that sets the anchor greater than or equal to system spacing below another Y-axis anchor with an optional multiplier.
             /// - Parameters:
             ///   - anchor: The `NSLayoutYAxisAnchor` to apply system spacing relative to.
-            ///   - multiplier: The multiplier for the system spacing. Defaults to 0.0.
+            ///   - multiplier: The multiplier for the system spacing. Defaults to 1.0.
             /// - Returns: A new `NSLayoutConstraint`.
-            func geqBelow(_ anchor: some NSLayoutYAxisAnchor, multiplier: CGFloat = 0.0) -> NSLayoutConstraint {
+            func geqBelow(_ anchor: some NSLayoutYAxisAnchor, multiplier: CGFloat = 1.0) -> NSLayoutConstraint {
                 constraint(greaterThanOrEqualToSystemSpacingBelow: anchor, multiplier: multiplier)
             }
         }

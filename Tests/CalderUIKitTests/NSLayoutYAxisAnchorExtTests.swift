@@ -128,6 +128,69 @@
 
                 #expect(constraint.relation == .greaterThanOrEqual)
             }
+
+            // MARK: - Default System Spacing Multiplier Tests
+
+            @Test func `eq below defaults to one system spacing`() {
+                let spacing = layOutSpacing { upper, lower in [lower.topAnchor.eqBelow(upper.bottomAnchor)] }
+
+                #expect(spacing > 0)
+                #expect(spacing == oneSystemSpacing())
+            }
+
+            @Test func `leq below defaults to one system spacing`() {
+                let spacing = layOutSpacing { upper, lower in
+                    [
+                        lower.topAnchor.leqBelow(upper.bottomAnchor),
+                        lowPriority(lower.topAnchor.constraint(equalTo: upper.bottomAnchor, constant: 100))
+                    ]
+                }
+
+                #expect(spacing > 0)
+                #expect(spacing == oneSystemSpacing())
+            }
+
+            @Test func `geq below defaults to one system spacing`() {
+                let spacing = layOutSpacing { upper, lower in
+                    [
+                        lower.topAnchor.geqBelow(upper.bottomAnchor),
+                        lowPriority(lower.topAnchor.constraint(equalTo: upper.bottomAnchor))
+                    ]
+                }
+
+                #expect(spacing > 0)
+                #expect(spacing == oneSystemSpacing())
+            }
+
+            // MARK: - Helpers
+
+            private func oneSystemSpacing() -> CGFloat {
+                layOutSpacing { upper, lower in [lower.topAnchor.constraint(equalToSystemSpacingBelow: upper.bottomAnchor, multiplier: 1)] }
+            }
+
+            private func lowPriority(_ constraint: NSLayoutConstraint) -> NSLayoutConstraint {
+                constraint.priority = .defaultLow
+                return constraint
+            }
+
+            /// Lays out two stacked views and returns the vertical gap between them.
+            private func layOutSpacing(_ spacingConstraints: (_ upper: UIView, _ lower: UIView) -> [NSLayoutConstraint]) -> CGFloat {
+                let container = UIView(frame: CGRect(x: 0, y: 0, width: 200, height: 400))
+                let upper = UIView()
+                let lower = UIView()
+                for view in [upper, lower] {
+                    view.translatesAutoresizingMaskIntoConstraints = false
+                    container.addSubview(view)
+                    NSLayoutConstraint.activate([
+                        view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                        view.widthAnchor.constraint(equalToConstant: 50),
+                        view.heightAnchor.constraint(equalToConstant: 20)
+                    ])
+                }
+                NSLayoutConstraint.activate([upper.topAnchor.constraint(equalTo: container.topAnchor)] + spacingConstraints(upper, lower))
+                container.layoutIfNeeded()
+                return lower.frame.minY - upper.frame.maxY
+            }
         }
     #endif
 
