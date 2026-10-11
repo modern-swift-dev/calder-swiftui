@@ -73,7 +73,7 @@
                     alert.addAction(photoLibraryAction)
                     alert.addAction(defaultAction)
                     alert.popoverPresentationController?.sourceView = sender
-                    alert.popoverPresentationController?.sourceRect = CGRect(x: sender.frame.width / 2, y: 0, width: sender.frame.width, height: sender.frame.height)
+                    alert.popoverPresentationController?.sourceRect = sender.bounds
                     present(alert, animated: true, completion: nil)
                 } else if isPhotoLibraryAvailable {
                     openLibrary()
