@@ -132,6 +132,13 @@
                 #expect(try #require(NSColor(rgba: hex)).toRGBA("") == hex)
             }
 
+            // MARK: - Wide gamut
+
+            @Test func `to RGB clamps display P3 colors to sRGB`() {
+                #expect(NSColor(displayP3Red: 0, green: 1, blue: 0, alpha: 1).toRGB("") == "00FF00")
+                #expect(NSColor(displayP3Red: 1, green: 0, blue: 0, alpha: 1).toRGBA("") == "FF0000FF")
+            }
+
             // MARK: - Invalid input
 
             @Test(arguments: ["#GGHHII", "#12345G", "0x12345Z", "+12345", "-12345", "#+1234F", "#0x1234", "##123456"])

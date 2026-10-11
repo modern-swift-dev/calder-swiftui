@@ -97,6 +97,11 @@
                 #expect(rgba == "#000000FF")
             }
 
+            @Test func `color RGB property clamps display P3 colors to sRGB`() {
+                #expect(Color(.displayP3, red: 0, green: 1, blue: 0).rgb == "#00FF00")
+                #expect(Color(.displayP3, red: 1, green: 0, blue: 0).rgba == "#FF0000FF")
+            }
+
             // MARK: - Color textColor
 
             @Test func `color text color for white`() {

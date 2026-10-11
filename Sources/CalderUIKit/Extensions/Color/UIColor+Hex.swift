@@ -74,7 +74,8 @@
             /// Formats the color as a hexadecimal RGB string, such as `0xAABBCC`.
             ///
             /// Each sRGB channel is rounded to the nearest of 256 steps, so a color created with
-            /// `init(rgb:)` formats back to the same digits.
+            /// `init(rgb:)` formats back to the same digits. Wide-gamut colors, such as
+            /// Display P3 colors, are read as extended-range sRGB and their channels clamped to `00`–`FF`.
             ///
             /// - Parameter prefix: The string placed before the digits. Defaults to `0x`.
             /// - Returns: The prefix followed by six uppercase hexadecimal digits.
@@ -118,7 +119,8 @@
             /// Formats the color as a hexadecimal RGBA string, such as `0xAABBCCDD`.
             ///
             /// Each sRGB channel is rounded to the nearest of 256 steps, so a color created with
-            /// `init(rgba:)` formats back to the same digits.
+            /// `init(rgba:)` formats back to the same digits. Wide-gamut colors, such as
+            /// Display P3 colors, are read as extended-range sRGB and their channels clamped to `00`–`FF`.
             ///
             /// - Parameter prefix: The string placed before the digits. Defaults to `0x`.
             /// - Returns: The prefix followed by eight uppercase hexadecimal digits.

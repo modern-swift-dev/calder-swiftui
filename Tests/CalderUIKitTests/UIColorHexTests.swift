@@ -154,6 +154,17 @@
                 #expect(try #require(UIColor(rgba: hex)).toRGBA("") == hex)
             }
 
+            // MARK: - Wide gamut
+
+            @Test func `to RGB clamps display P3 colors to sRGB`() {
+                #expect(UIColor(displayP3Red: 0, green: 1, blue: 0, alpha: 1).toRGB("") == "00FF00")
+                #expect(UIColor(displayP3Red: 1, green: 0, blue: 0, alpha: 1).toRGB("") == "FF0000")
+            }
+
+            @Test func `to RGBA clamps display P3 colors to sRGB`() {
+                #expect(UIColor(displayP3Red: 0, green: 0, blue: 1, alpha: 0.5).toRGBA("") == "0000FF80")
+            }
+
             // MARK: - Invalid input
 
             @Test(arguments: ["#GGHHII", "#12345G", "0x12345Z", "+12345", "-12345", "#+1234F", "#0x1234", "##123456"])
