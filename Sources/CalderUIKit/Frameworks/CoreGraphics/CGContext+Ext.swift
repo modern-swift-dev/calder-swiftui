@@ -80,6 +80,8 @@
                 }
 
                 /// Draws a square within a specified frame.
+                ///
+                /// The square is filled first, then stroked, so the full stroke width stays visible over the fill.
                 /// - Parameters:
                 ///   - frame: The `CGRect` defining the bounding rectangle for the square.
                 ///   - fillColor: An optional `NSUIColor` to fill the square with. If `nil`, the square will not be filled.
@@ -93,14 +95,14 @@
                 ) {
                     saveGState()
 
-                    setLineWidth(strokeWidth)
-                    setStrokeColor(strokeColor.cgColor)
-                    stroke(frame)
-
                     if let fill = fillColor {
                         setFillColor(fill.cgColor)
                         self.fill(frame)
                     }
+
+                    setLineWidth(strokeWidth)
+                    setStrokeColor(strokeColor.cgColor)
+                    stroke(frame)
                     restoreGState()
                 }
 
@@ -164,7 +166,12 @@
                     restoreGState()
                 }
 
-                /// Draws a star shape within a specified rectangle.
+                /// Draws a star shape centred within a specified rectangle.
+                ///
+                /// The star alternates `nbPoint` outer tips with inner vertices. Its outer radius is half the
+                /// shorter side of `rect`, so the star stays inside the rectangle. The first tip points toward
+                /// `rect.minY`, which is up in UIKit's flipped coordinate system. Nothing is drawn when `nbPoint`
+                /// is `0`.
                 /// - Parameters:
                 ///   - rect: The `CGRect` defining the bounding box for the star.
                 ///   - color: The `NSUIColor` to fill the star with.
@@ -174,20 +181,28 @@
                     color: NSUIColor,
                     nbPoint: UInt = 5
                 ) {
+                    guard nbPoint > 0 else {
+                        return
+                    }
+
                     saveGState()
 
-                    let rayon = rect.size.width / 2.0
-                    let flip = -1.0
-                    let theta = 2.0 * Double.pi * (2.0 / Double(nbPoint))
+                    let outerRadius = min(rect.width, rect.height) / 2.0
+                    // 0.382 gives a regular five-point star; other counts keep the same proportions.
+                    let innerRadius = outerRadius * 0.382
+                    let step = Double.pi / Double(nbPoint)
 
-                    setLineWidth(1)
                     setFillColor(color.cgColor)
 
-                    move(to: CGPoint(x: rect.origin.x, y: rayon * flip + rect.origin.y))
-                    for idx in 0 ..< nbPoint {
-                        let x = rayon * sin(Double(idx) * theta)
-                        let y = rayon * cos(Double(idx) * theta)
-                        addLine(to: CGPoint(x: x + rect.origin.x, y: y * flip + rect.origin.y))
+                    for index in 0 ..< 2 * Int(nbPoint) {
+                        let radius = index.isMultiple(of: 2) ? outerRadius : innerRadius
+                        let angle = Double(index) * step
+                        let point = CGPoint(x: rect.midX + radius * sin(angle), y: rect.midY - radius * cos(angle))
+                        if index == 0 {
+                            move(to: point)
+                        } else {
+                            addLine(to: point)
+                        }
                     }
                     closePath()
                     fillPath()

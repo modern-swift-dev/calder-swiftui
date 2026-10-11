@@ -139,38 +139,35 @@
 
             // MARK: - drawSquare Tests
 
-            @Test func `draw square with fill color`() {
-                guard let context = createContext() else {
-                    Issue.record("Failed to create context")
-                    return
-                }
+            @Test func `draw square strokes over the fill`() throws {
+                let bitmap = try #require(RGBABitmap(width: 100, height: 100))
 
-                let frame = CGRect(20.0, 20.0, 60.0, 60.0)
-                context.drawSquare(
-                    frame: frame,
+                bitmap.context.drawSquare(
+                    frame: CGRect(20.0, 20.0, 60.0, 60.0),
                     fillColor: NSUIColor.yellow,
-                    strokeWidth: 2.0,
+                    strokeWidth: 10.0,
                     strokeColor: NSUIColor.black
                 )
 
-                #expect(context.width == 100)
+                #expect(bitmap.pixel(atContextPoint: CGPoint(x: 16.5, y: 50.5)) == .black)
+                #expect(bitmap.pixel(atContextPoint: CGPoint(x: 22.5, y: 50.5)) == .black)
+                #expect(bitmap.pixel(atContextPoint: CGPoint(x: 50.5, y: 77.5)) == .black)
+                #expect(bitmap.pixel(atContextPoint: CGPoint(x: 50.5, y: 50.5)) == .yellow)
+                #expect(bitmap.pixel(atContextPoint: CGPoint(x: 5.5, y: 5.5)) == .clear)
             }
 
-            @Test func `draw square without fill color`() {
-                guard let context = createContext() else {
-                    Issue.record("Failed to create context")
-                    return
-                }
+            @Test func `draw square without fill color only strokes`() throws {
+                let bitmap = try #require(RGBABitmap(width: 100, height: 100))
 
-                let frame = CGRect(10.0, 10.0, 80.0, 80.0)
-                context.drawSquare(
-                    frame: frame,
+                bitmap.context.drawSquare(
+                    frame: CGRect(10.0, 10.0, 80.0, 80.0),
                     fillColor: nil,
-                    strokeWidth: 3.0,
+                    strokeWidth: 4.0,
                     strokeColor: NSUIColor.blue
                 )
 
-                #expect(context.width == 100)
+                #expect(bitmap.pixel(atContextPoint: CGPoint(x: 10.5, y: 50.5)) == .blue)
+                #expect(bitmap.pixel(atContextPoint: CGPoint(x: 50.5, y: 50.5)) == .clear)
             }
 
             // MARK: - drawText Tests
@@ -231,67 +228,52 @@
 
             // MARK: - drawStar Tests
 
-            @Test func `draw star five points`() {
-                guard let context = createContext() else {
-                    Issue.record("Failed to create context")
-                    return
-                }
+            /// A point at `fraction` of the outer radius, `angle` radians clockwise from the tip pointing toward `minY`.
+            private func starPoint(in rect: CGRect, angle: Double, fraction: Double) -> CGPoint {
+                let radius = min(rect.width, rect.height) / 2.0 * fraction
+                return CGPoint(x: rect.midX + radius * sin(angle), y: rect.midY - radius * cos(angle))
+            }
 
+            @Test(arguments: [3, 5, 6, 8])
+            func `draw star is centred in the rect with one tip per point`(points: Int) throws {
+                let bitmap = try #require(RGBABitmap(width: 100, height: 100))
                 let rect = CGRect(10.0, 10.0, 80.0, 80.0)
-                context.drawStar(
-                    rect: rect,
-                    color: NSUIColor.yellow,
-                    nbPoint: 5
-                )
 
-                #expect(context.width == 100)
+                bitmap.context.drawStar(rect: rect, color: NSUIColor.red, nbPoint: UInt(points))
+
+                #expect(bitmap.pixel(atContextPoint: CGPoint(x: rect.midX, y: rect.midY)) == .red)
+                for index in 0 ..< points {
+                    let tipAngle = 2.0 * Double.pi * Double(index) / Double(points)
+                    let gapAngle = tipAngle + Double.pi / Double(points)
+                    let tip = starPoint(in: rect, angle: tipAngle, fraction: 0.7)
+                    let gap = starPoint(in: rect, angle: gapAngle, fraction: 0.7)
+                    #expect(bitmap.pixel(atContextPoint: tip) == .red, "tip \(index) at \(tip)")
+                    #expect(bitmap.pixel(atContextPoint: gap) == .clear, "gap \(index) at \(gap)")
+                }
             }
 
-            @Test func `draw star six points`() {
-                guard let context = createContext() else {
-                    Issue.record("Failed to create context")
-                    return
-                }
-
-                let rect = CGRect(10.0, 10.0, 80.0, 80.0)
-                context.drawStar(
-                    rect: rect,
-                    color: NSUIColor.red,
-                    nbPoint: 6
-                )
-
-                #expect(context.width == 100)
-            }
-
-            @Test func `draw star three points`() {
-                guard let context = createContext() else {
-                    Issue.record("Failed to create context")
-                    return
-                }
-
-                let rect = CGRect(0.0, 0.0, 100.0, 100.0)
-                context.drawStar(
-                    rect: rect,
-                    color: NSUIColor.blue,
-                    nbPoint: 3
-                )
-
-                #expect(context.width == 100)
-            }
-
-            @Test func `draw star default points`() {
-                guard let context = createContext() else {
-                    Issue.record("Failed to create context")
-                    return
-                }
-
+            @Test func `draw star default has five points`() throws {
+                let bitmap = try #require(RGBABitmap(width: 100, height: 100))
                 let rect = CGRect(20.0, 20.0, 60.0, 60.0)
-                context.drawStar(
-                    rect: rect,
-                    color: NSUIColor.orange
-                )
 
-                #expect(context.width == 100)
+                bitmap.context.drawStar(rect: rect, color: NSUIColor.red)
+
+                for index in 0 ..< 5 {
+                    let tip = starPoint(in: rect, angle: 2.0 * Double.pi * Double(index) / 5.0, fraction: 0.7)
+                    #expect(bitmap.pixel(atContextPoint: tip) == .red, "tip \(index) at \(tip)")
+                }
+                #expect(bitmap.pixel(atContextPoint: CGPoint(x: 22.5, y: 22.5)) == .clear)
+            }
+
+            @Test func `draw star stays within a non-square rect`() throws {
+                let bitmap = try #require(RGBABitmap(width: 100, height: 100))
+                let rect = CGRect(10.0, 30.0, 80.0, 40.0)
+
+                bitmap.context.drawStar(rect: rect, color: NSUIColor.red, nbPoint: 5)
+
+                let total = bitmap.paintedPixelCount(inContextRect: CGRect(0, 0, 100, 100))
+                #expect(total > 0)
+                #expect(bitmap.paintedPixelCount(inContextRect: rect) == total)
             }
         }
     #endif

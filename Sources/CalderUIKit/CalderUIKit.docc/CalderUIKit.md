@@ -47,3 +47,5 @@ CalderUIKit no longer declares retroactive `Sendable` conformances for `UNUserNo
 The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangle's origin. `topLeft` returns `(minX, minY)` instead of `.zero`, `topRight` and `bottomLeft` use `minY` and `minX`, and `center` returns `(midX, midY)` instead of `(minX, midY)`.
 
 `CGContext.drawText(text:rect:font:color:)` now draws into the receiving context instead of the current UIKit or AppKit graphics context.
+
+`CGContext.drawStar(rect:color:nbPoint:)` now centres the star in `rect`, sizes it to the shorter side, and draws a star with `nbPoint` tips for both odd and even counts. `CGContext.drawSquare(frame:fillColor:strokeWidth:strokeColor:)` now fills before stroking, so the whole stroke is visible.
