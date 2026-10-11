@@ -55,3 +55,5 @@ The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangl
 `ColorRanges(_:_:)` and `ColorRanges(_:_:_:)` now convert color components to the 0–255 scale used by `ColorRange`, so `fuzz` is likewise expressed on the 0–255 scale. They also normalize each component range when the two colors are not ordered instead of crashing. `UIImage.withColorMasked(_:_:)` now masks images that have an alpha channel instead of returning `nil`.
 
 `UIImage.base64URLJpg()` now encodes JPEG data (at compression quality `1.0`) instead of labelling PNG data as `image/jpeg`. `base64URLPng()` and `base64URLJpg()` no longer insert line breaks into the Base64 payload. `base64()` and `base64String()` are unchanged and still wrap at 64 characters.
+
+`CIImage.writePNG(uiImage:)` and `CIImage.writeJpeg(uiImage:compression:)` now throw `CIImage.WriteError.encodingFailed` when the image cannot be encoded, instead of returning a URL to a file that was never written.

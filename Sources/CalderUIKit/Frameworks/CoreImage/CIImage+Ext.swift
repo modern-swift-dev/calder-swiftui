@@ -115,6 +115,18 @@
             }
         }
 
+        #if canImport(UIKit)
+            // MARK: Errors
+            public extension CIImage {
+
+                /// An error thrown when an image cannot be written to a file.
+                enum WriteError: Swift.Error {
+                    /// The image could not be encoded, so no file was written.
+                    case encodingFailed
+                }
+            }
+        #endif
+
         // MARK: PNGs
         public extension CIImage {
 
@@ -182,12 +194,16 @@
             #if canImport(UIKit)
                 /// Writes a `UIImage` to a PNG file.
                 /// - Parameter uiImage: The input `UIImage`.
-                /// - Throws: An error if writing fails.
+                /// - Throws: ``WriteError/encodingFailed`` if the image cannot be encoded as PNG, for example when it
+                ///   has no image data, or an error if writing the file fails.
                 /// - Returns: The `URL` of the written PNG file.
                 static func writePNG(uiImage: UIImage) throws -> URL {
                     try autoreleasepool {
+                        guard let data = uiImage.pngData() else {
+                            throw WriteError.encodingFailed
+                        }
                         let fileUrl = URL.applicativeCacheDirectory.appendingPathComponent("\(UUID().uuidString).png")
-                        try uiImage.pngData()?.write(to: fileUrl, options: .atomic)
+                        try data.write(to: fileUrl, options: .atomic)
                         return fileUrl
                     }
                 }
@@ -308,12 +324,16 @@
                 /// - Parameters:
                 ///   - uiImage: The input `UIImage`.
                 ///   - compression: The compression quality (0.0 to 1.0). Defaults to 0.9.
-                /// - Throws: An error if writing fails.
+                /// - Throws: ``WriteError/encodingFailed`` if the image cannot be encoded as JPEG, for example when it
+                ///   has no image data, or an error if writing the file fails.
                 /// - Returns: The `URL` of the written JPEG file.
                 static func writeJpeg(uiImage: UIImage, compression: CGFloat = 0.9) throws -> URL {
                     try autoreleasepool {
+                        guard let data = uiImage.jpegData(compressionQuality: compression) else {
+                            throw WriteError.encodingFailed
+                        }
                         let fileUrl = URL.applicativeCacheDirectory.appendingPathComponent("\(UUID().uuidString).jpg")
-                        try uiImage.jpegData(compressionQuality: compression)?.write(to: fileUrl, options: .atomic)
+                        try data.write(to: fileUrl, options: .atomic)
                         return fileUrl
                     }
                 }

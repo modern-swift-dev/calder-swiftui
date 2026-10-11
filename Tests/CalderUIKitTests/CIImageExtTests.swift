@@ -239,6 +239,12 @@
                 try FileManager.default.removeItem(at: url)
             }
 
+            @Test func `write PNG from UI image throws when encoding fails`() {
+                #expect(throws: CIImage.WriteError.encodingFailed) {
+                    try CIImage.writePNG(uiImage: UIImage())
+                }
+            }
+
             @Test func `write PNG from data`() throws {
                 guard let data = createTestImageData() else {
                     Issue.record("Failed to create test image data")
@@ -296,6 +302,12 @@
                 let url = try CIImage.writeJpeg(uiImage: image, compression: 0.5)
                 #expect(url.pathExtension == "jpg")
                 try FileManager.default.removeItem(at: url)
+            }
+
+            @Test func `write jpeg from UI image throws when encoding fails`() {
+                #expect(throws: CIImage.WriteError.encodingFailed) {
+                    try CIImage.writeJpeg(uiImage: UIImage())
+                }
             }
 
             @Test func `write jpeg from data`() throws {
