@@ -57,4 +57,6 @@ Selected `PaginatedList.Selection` rows carry the `isSelected` accessibility tra
 
 The `Double` binding variant of `InputNumber` parses input with the decimal separator of the
 environment's locale, so "12,5" in French and "12.5" in English both store `12.5`. The field
-rejects text that isn't a number in that locale instead of storing `0`.
+rejects text that isn't a number in that locale instead of storing `0`. The field
+displays the bound value, including `0`, in the same locale without grouping separators or
+exponent notation.

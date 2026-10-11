@@ -177,6 +177,36 @@
             #expect(InputNumber.acceptsDecimalText(text, locale: Locale(identifier: localeIdentifier)) == accepted)
         }
 
+        @Test(arguments: [
+            ("en_US", 1e16, "10000000000000000"),
+            ("fr_FR", 1e16, "10000000000000000"),
+            ("en_US", 1_234_567.5, "1234567.5"),
+            ("fr_FR", 1_234_567.5, "1234567,5"),
+            ("en_US", -12.5, "-12.5"),
+            ("en_US", 0, "0"),
+            ("fr_FR", 0, "0")
+        ])
+        func `double input formats values in the given locale without exponent or grouping`(localeIdentifier: String, value: Double, expected: String) {
+            #expect(InputNumber.formatDecimal(value, locale: Locale(identifier: localeIdentifier)) == expected)
+        }
+
+        @Test(arguments: ["en_US", "fr_FR"])
+        func `double input formatted values parse back to the same value`(localeIdentifier: String) {
+            let locale = Locale(identifier: localeIdentifier)
+
+            for value in [0, 12.5, -3.25, 1e16, 123_456_789.125] {
+                #expect(InputNumber.parseDecimal(InputNumber.formatDecimal(value, locale: locale), locale: locale) == value)
+            }
+        }
+
+        #if canImport(UIKit) && !os(watchOS)
+            @Test func `double input displays a stored zero`() {
+                let input = InputNumber("Amount", value: .constant(0))
+
+                #expect(input.textValue == "0")
+            }
+        #endif
+
         @Test func `number formatter uses posix separator and integer limit`() {
             let formatter = InputNumber.numberFormatter(maxIntegerDigits: 3)
 

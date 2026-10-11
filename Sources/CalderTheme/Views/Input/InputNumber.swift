@@ -96,6 +96,9 @@
             /// The field rejects text that isn't a number in that locale, such as "abc", instead of
             /// writing `0`. A lone minus sign is accepted while typing and leaves the binding unchanged.
             ///
+            /// The field displays the bound value, including `0`, in the same locale without grouping
+            /// separators or exponent notation. Display formatting doesn't round the bound value.
+            ///
             /// - Parameters:
             ///   - value: A binding to the decimal value that the field displays and updates.
             ///   - placeholder: The placeholder text displayed when the field is empty.
@@ -110,7 +113,7 @@
                 isValid: @escaping (Double) -> Bool = { _ in true }
             ) {
                 _value = .constant(nil)
-                _textValue = State(initialValue: value.wrappedValue == 0 ? "" : String(value.wrappedValue))
+                _textValue = State(initialValue: Self.formatDecimal(value.wrappedValue, locale: .current))
                 self.placeholder = placeholder
                 displayTextViewBorder = showBorder
                 maxIntegerDigits = 15
@@ -126,7 +129,8 @@
             /// Initializes a themed decimal input field with its placeholder first.
             ///
             /// The field parses input with the decimal separator of the environment's `locale`.
-            /// The field rejects text that isn't a number in that locale.
+            /// The field rejects text that isn't a number in that locale. The field displays
+            /// the bound value, including `0`, without grouping separators or exponent notation.
             ///
             /// - Parameters:
             ///   - placeholder: The placeholder text displayed when the field is empty.
@@ -214,7 +218,8 @@
                             .stroke(decimalShowBorder ? theme.text3 : theme.transparent, lineWidth: 1)
                     }
                     .onChange(of: textValue, initial: false) { oldValue, newValue in
-                        guard oldValue != newValue else {
+                        // A formatted binding update must not round the source value.
+                        guard oldValue != newValue, newValue != Self.formatDecimal(value.wrappedValue, locale: locale) else {
                             return
                         }
                         // Reject text that isn't a number in the current locale instead of storing a stale or zero value.
@@ -229,9 +234,10 @@
 
                         value.wrappedValue = parsedValue
                     }
-                    .onChange(of: value.wrappedValue, initial: false) { _, newValue in
+                    // The initial update reformats text created before the environment locale was available.
+                    .onChange(of: value.wrappedValue, initial: true) { _, newValue in
                         if Self.parseDecimal(textValue, locale: locale) != newValue {
-                            textValue = newValue == 0 ? "" : String(newValue)
+                            textValue = Self.formatDecimal(newValue, locale: locale)
                         }
                     }
             }
@@ -246,11 +252,7 @@
             if text.isEmpty {
                 return 0
             }
-            let formatter = NumberFormatter()
-            formatter.locale = locale
-            formatter.numberStyle = .decimal
-            formatter.usesGroupingSeparator = false
-            return formatter.number(from: text)?.doubleValue
+            return decimalFormatter(locale: locale).number(from: text)?.doubleValue
         }
 
         /// Returns whether decimal text is a number in a locale or a lone minus sign typed before one.
@@ -260,6 +262,28 @@
         /// - Returns: `true` when the field accepts the text.
         static func acceptsDecimalText(_ text: String, locale: Locale) -> Bool {
             text == "-" || parseDecimal(text, locale: locale) != nil
+        }
+
+        /// Formats a decimal value for editing using the separators of a locale.
+        ///
+        /// The text has no grouping separators or exponent notation, so it parses back with
+        /// ``parseDecimal(_:locale:)``. Zero is formatted as "0".
+        /// - Parameters:
+        ///   - value: The value to format.
+        ///   - locale: The locale whose decimal separator the text uses.
+        /// - Returns: The formatted text.
+        static func formatDecimal(_ value: Double, locale: Locale) -> String {
+            decimalFormatter(locale: locale).string(from: NSNumber(value: value)) ?? ""
+        }
+
+        /// Creates a formatter for editable decimal text in a locale, without grouping separators.
+        private static func decimalFormatter(locale: Locale) -> NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.locale = locale
+            formatter.numberStyle = .decimal
+            formatter.usesGroupingSeparator = false
+            formatter.maximumFractionDigits = 15
+            return formatter
         }
 
         /// Formats a binding update for display, clearing the field for an absent value.
