@@ -62,7 +62,8 @@
             ///   - mandatory: A boolean indicating if the field is required. Defaults to `false`.
             ///   - mode: The display mode for the date picker (date, time, or dateAndTime). Defaults to `.dateAndTime`.
             ///   - min: The earliest selectable date. Defaults to `nil` (no minimum).
-            ///   - max: The latest selectable date. Defaults to `nil` (no maximum).
+            ///   - max: The latest selectable date. Defaults to `nil` (no maximum). When `max` is earlier
+            ///     than the minimum, only the minimum date is selectable.
             ///   - locale: The locale to use for date formatting. Defaults to `Locale.current`.
             ///   - timeZone: The time zone for the date picker. Defaults to `TimeZone.current`.
             ///   - calendar: The calendar for the date picker. Defaults to `Calendar.current`.
@@ -89,6 +90,12 @@
                 self.mode = mode
             }
 
+            /// The dates the picker allows, collapsed to the minimum when the maximum is earlier.
+            var selectableRange: ClosedRange<Date> {
+                let lowerBound = min ?? Date.distantPast
+                return lowerBound ... Swift.max(lowerBound, max ?? Date.distantFuture)
+            }
+
             public var body: some View {
                 FormField(
                     name: name,
@@ -97,7 +104,7 @@
                     DatePicker(
                         "",
                         selection: $value,
-                        in: (min ?? Date.distantPast) ... (max ?? Date.distantFuture),
+                        in: selectableRange,
                         displayedComponents: mode.components
                     )
                     #if !os(watchOS)

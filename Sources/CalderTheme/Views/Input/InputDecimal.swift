@@ -38,6 +38,7 @@
         ///   - value: A binding to an optional `Double` value that will be displayed and updated by the input.
         ///   - placeholder: The placeholder text to display when the field is empty. Defaults to an empty string.
         ///   - maxFractionDigits: The maximum number of digits allowed after the decimal point. Defaults to 15.
+        ///     Negative values are treated as `0`.
         ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text field. Defaults to `true`.
         ///   - invalid: A boolean indicating if the input is currently in an invalid state, which affects styling. Defaults to `false`.
         ///   - invalidMessage: An optional string message to display when the input is invalid. Defaults to `nil`.
@@ -51,14 +52,14 @@
         ) {
             self._value = value
             self.placeholder = placeholder
-            self.maxFractionDigits = maxFractionDigits
+            self.maxFractionDigits = Swift.max(maxFractionDigits, 0)
             self.displayTextViewBorder = displayTextViewBorder
             self.invalid = invalid
             self.invalidMessage = invalidMessage
 
-            let formatter = InputDecimal.dotDecimalFormatter(maxFractionDigits: maxFractionDigits)
+            let formatter = InputDecimal.dotDecimalFormatter(maxFractionDigits: self.maxFractionDigits)
             dotDecimalFormatter = formatter
-            commaDecimalFormatter = InputDecimal.commaDecimalFormatter(maxFractionDigits: maxFractionDigits)
+            commaDecimalFormatter = InputDecimal.commaDecimalFormatter(maxFractionDigits: self.maxFractionDigits)
 
             if let double = value.wrappedValue,
                let text = formatter.string(from: NSNumber(value: double)) {

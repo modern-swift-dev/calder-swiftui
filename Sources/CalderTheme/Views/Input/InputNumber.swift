@@ -28,6 +28,8 @@
         let displayTextViewBorder: Bool
         /// The maximum number of integer digits allowed for the number input.
         let maxIntegerDigits: Int
+        /// The largest digit limit whose numbers always fit in `Int64`.
+        private static let maximumIntegerDigits = 18
         /// A `NumberFormatter` configured for integer input.
         let numberFormatter: NumberFormatter
         /// A boolean indicating if the current input is considered invalid.
@@ -52,7 +54,8 @@
         /// - Parameters:
         ///   - value: A binding to an optional `Int64` value that will be displayed and updated by the input.
         ///   - placeholder: The placeholder text to display when the field is empty. Defaults to an empty string.
-        ///   - maxIntegerDigits: The maximum number of integer digits allowed. Defaults to 15.
+        ///   - maxIntegerDigits: The maximum number of integer digits allowed. Defaults to 15. Values are clamped
+        ///     to `1...18` so every accepted number fits in `Int64`.
         ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text field. Defaults to `true`.
         ///   - invalid: A boolean indicating if the input is currently in an invalid state, which affects styling. Defaults to `false`.
         ///   - invalidMessage: An optional string message to display when the input is invalid. Defaults to `nil`.
@@ -66,7 +69,7 @@
         ) {
             self._value = value
             self.placeholder = placeholder
-            self.maxIntegerDigits = maxIntegerDigits
+            self.maxIntegerDigits = Swift.min(Swift.max(maxIntegerDigits, 1), Self.maximumIntegerDigits)
             self.displayTextViewBorder = displayTextViewBorder
             self.invalid = invalid
             self.invalidMessage = invalidMessage
@@ -77,7 +80,7 @@
                 decimalShowBorder = displayTextViewBorder
             #endif
 
-            let formatter = InputNumber.numberFormatter(maxIntegerDigits: maxIntegerDigits)
+            let formatter = InputNumber.numberFormatter(maxIntegerDigits: self.maxIntegerDigits)
             numberFormatter = formatter
 
             if let intValue = value.wrappedValue,

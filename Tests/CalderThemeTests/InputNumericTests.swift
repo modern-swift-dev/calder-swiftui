@@ -207,6 +207,33 @@
             }
         #endif
 
+        @Test func `input number clamps a non-positive digit limit to one digit`() {
+            let input = InputNumber(value: .constant(nil), maxIntegerDigits: 0)
+
+            #expect(input.maxIntegerDigits == 1)
+            #expect(input.isValidInput(text: "7"))
+            #expect(!input.isValidInput(text: "12"))
+            _ = input.body
+        }
+
+        @Test func `input number clamps large digit limits so values fit in Int64`() {
+            let input = InputNumber(value: .constant(nil), maxIntegerDigits: 25)
+
+            #expect(input.maxIntegerDigits == 18)
+            #expect(input.isValidInput(text: "-999999999999999999"))
+            #expect(!input.isValidInput(text: "9999999999999999999"))
+            #expect(input.parseInput("-999999999999999999") == -999_999_999_999_999_999)
+        }
+
+        @Test func `input decimal clamps a negative fraction limit to zero digits`() {
+            let input = InputDecimal(value: .constant(nil), maxFractionDigits: -1)
+
+            #expect(input.maxFractionDigits == 0)
+            #expect(input.isValidInput(text: "12"))
+            #expect(!input.isValidInput(text: "12.5"))
+            _ = input.body
+        }
+
         @Test func `number formatter uses posix separator and integer limit`() {
             let formatter = InputNumber.numberFormatter(maxIntegerDigits: 3)
 

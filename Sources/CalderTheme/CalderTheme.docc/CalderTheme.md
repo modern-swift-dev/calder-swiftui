@@ -60,3 +60,7 @@ environment's locale, so "12,5" in French and "12.5" in English both store `12.5
 rejects text that isn't a number in that locale instead of storing `0`. The field
 displays the bound value, including `0`, in the same locale without grouping separators or
 exponent notation.
+
+Out-of-range configurations are clamped instead of trapping: `InputNumber` limits integer digits
+to `1...18` so accepted numbers always fit in `Int64`, `InputDecimal` treats a negative fraction
+digit limit as `0`, and `FormDatePicker` allows only its minimum date when the maximum is earlier.
