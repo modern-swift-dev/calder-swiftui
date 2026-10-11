@@ -44,18 +44,15 @@
         /// A shared computation between `sizeThatFits` and `placeSubviews`.
         public struct Cache {
 
-            /// The minimal size of the view.
-            var minSize: CGSize
-
-            /// The cached rows.
+            /// The cached rows, keyed by a hash of the proposal and subview sizes they were computed for.
             var rows: (Int, [Row])?
         }
 
-        /// Creates a new cache for the layout.
+        /// Creates a new, empty cache for the layout.
         /// - Parameter subviews: The subviews to consider for the cache.
-        /// - Returns: A `Cache` instance initialized with the minimal size.
+        /// - Returns: A `Cache` instance with no cached rows.
         public func makeCache(subviews: Subviews) -> Cache {
-            Cache(minSize: minSize(subviews: subviews))
+            Cache()
         }
 
         /// Updates the existing cache when the layout or its subviews change.
@@ -67,11 +64,14 @@
         ///   - cache: A binding to the cache to update.
         ///   - subviews: The current subviews to consider.
         public func updateCache(_ cache: inout Cache, subviews: Subviews) {
-            cache.minSize = minSize(subviews: subviews)
             cache.rows = nil
         }
 
         /// Asks the layout to recommend a size for the container.
+        ///
+        /// The height is the height of the stacked rows. The width is the proposed width, or the
+        /// widest row when the proposal is unspecified or narrower than a child, so a `.zero`
+        /// proposal reports the minimum size with every child on its own row.
         ///
         /// - Parameters:
         ///   - proposal: The proposed size for the container.
@@ -86,10 +86,10 @@
             let rows = arrangeRows(proposal: proposal, subviews: subviews, cache: &cache)
 
             if rows.isEmpty {
-                return cache.minSize
+                return .zero
             }
 
-            let width = proposal.width ?? rows.map(\.width).reduce(.zero) { max($0, $1) }
+            let width = max(proposal.width ?? .zero, rows.map(\.width).reduce(.zero) { max($0, $1) })
 
             var height: CGFloat = .zero
             if let lastRow = rows.last {
@@ -100,6 +100,9 @@
         }
 
         /// Places the subviews within the given bounds.
+        ///
+        /// Each subview is proposed the size it reported when measured against the container's
+        /// width, so flexible children keep their measured height instead of filling the container.
         ///
         /// - Parameters:
         ///   - bounds: The bounding rectangle in which to place the subviews.
@@ -122,7 +125,7 @@
                     let y: CGFloat = row.yOffset + anchor.y * (row.height - element.size.height)
                     let point = CGPoint(x: x + bounds.minX, y: y + bounds.minY)
 
-                    subviews[element.index].place(at: point, anchor: .topLeading, proposal: proposal)
+                    subviews[element.index].place(at: point, anchor: .topLeading, proposal: ProposedViewSize(element.size))
                 }
             }
         }
@@ -155,12 +158,9 @@
                 return []
             }
 
-            if cache.minSize.width > proposal.width ?? .infinity,
-               cache.minSize.height > proposal.height ?? .infinity {
-                return []
-            }
-
-            let sizes = subviews.map { $0.sizeThatFits(proposal) }
+            // Measure each child against the container width only, letting it choose its own height.
+            let childProposal = ProposedViewSize(width: proposal.width, height: nil)
+            let sizes = subviews.map { $0.sizeThatFits(childProposal) }
 
             let hash = computeHash(proposal: proposal, sizes: sizes)
             if let (oldHash, oldRows) = cache.rows,
@@ -243,15 +243,6 @@
             }
 
             return hasher.finalize()
-        }
-
-        /// Calculates the minimum size required to fit all subviews without wrapping.
-        /// - Parameter subviews: The subviews to measure.
-        /// - Returns: A `CGSize` representing the minimum size.
-        private func minSize(subviews: Subviews) -> CGSize {
-            subviews
-                .map { $0.sizeThatFits(.zero) }
-                .reduce(CGSize.zero) { CGSize(width: max($0.width, $1.width), height: max($0.height, $1.height)) }
         }
 
         /// Determines the horizontal spacing between two adjacent subviews.

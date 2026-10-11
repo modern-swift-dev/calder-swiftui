@@ -9,30 +9,56 @@
 
         // MARK: - Layout harness
 
-        /// Records the placement bounds each probe receives during layout.
+        /// Records the placement proposals and bounds each probe receives during layout.
         ///
         /// SwiftUI runs layout on the main thread, so probes record through `MainActor.assumeIsolated`.
         @MainActor final class Recorder {
+            var placementProposals: [Int: ProposedViewSize] = [:]
             var frames: [Int: CGRect] = [:]
+            var minimumSize: CGSize?
         }
 
-        /// A leaf view that reports a fixed ideal size and records how the container lays it out.
+        /// A leaf view that reports an ideal size and records how the container lays it out.
+        ///
+        /// A flexible-height probe takes any proposed height and falls back to its ideal height.
         struct Probe: Layout {
             let id: Int
             let size: CGSize
+            var flexibleHeight = false
             let recorder: Recorder
 
             func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-                size
+                guard flexibleHeight else {
+                    return size
+                }
+                return CGSize(width: size.width, height: proposal.height ?? size.height)
             }
 
             func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
                 MainActor.assumeIsolated {
+                    recorder.placementProposals[id] = proposal
                     recorder.frames[id] = bounds
                 }
                 for subview in subviews {
                     subview.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
                 }
+            }
+        }
+
+        /// A container that records the minimum size its single child reports.
+        struct MinimumSizeProbe: Layout {
+            let recorder: Recorder
+
+            func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+                let minimumSize = subviews.first?.sizeThatFits(.zero)
+                MainActor.assumeIsolated {
+                    recorder.minimumSize = minimumSize
+                }
+                return subviews.first?.sizeThatFits(proposal) ?? .zero
+            }
+
+            func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+                subviews.first?.place(at: bounds.origin, proposal: proposal)
             }
         }
 
@@ -71,6 +97,51 @@
             // 40 + 30 + 40 exceeds 100, so the second probe must wrap to a new row.
             #expect(recorder.frames[1]?.minY == (firstRowY ?? 0) + 10)
             #expect(recorder.frames[1]?.minX == recorder.frames[0]?.minX)
+        }
+
+        @Test func `children are proposed their own measured size`() {
+            let recorder = Recorder()
+            let sizes = [CGSize(width: 40, height: 10), CGSize(width: 30, height: 20)]
+            _ = ImageRenderer(content: Self.content(sizes, horizontalSpacing: 0, width: 100, recorder: recorder)).cgImage
+
+            #expect(recorder.placementProposals[0] == ProposedViewSize(width: 40, height: 10))
+            #expect(recorder.placementProposals[1] == ProposedViewSize(width: 30, height: 20))
+        }
+
+        @Test func `flexible height children do not fill the container height`() {
+            let recorder = Recorder()
+            let content = WrappingHStackLayout(alignment: .topLeading, horizontalSpacing: 0, verticalSpacing: 0) {
+                Probe(id: 0, size: CGSize(width: 40, height: 10), flexibleHeight: true, recorder: recorder) { Color.clear }
+                Probe(id: 1, size: CGSize(width: 40, height: 10), flexibleHeight: true, recorder: recorder) { Color.clear }
+            }
+            .frame(width: 50, height: 400, alignment: .topLeading)
+            _ = ImageRenderer(content: content).cgImage
+
+            #expect(recorder.frames[0]?.height == 10)
+            #expect(recorder.frames[1]?.minY == (recorder.frames[0]?.minY ?? 0) + 10)
+        }
+
+        @Test func `undersized proposals still place every child`() {
+            let recorder = Recorder()
+            let sizes = [CGSize(width: 40, height: 10), CGSize(width: 40, height: 10)]
+            _ = ImageRenderer(content: Self.content(sizes, horizontalSpacing: 0, width: 30, height: 5, recorder: recorder)).cgImage
+
+            let firstFrame = recorder.frames[0] ?? .null
+            #expect(recorder.frames[1] == CGRect(x: firstFrame.minX, y: firstFrame.minY + 10, width: 40, height: 10))
+        }
+
+        @Test func `minimum size stacks every row`() {
+            let recorder = Recorder()
+            let content = MinimumSizeProbe(recorder: recorder) {
+                WrappingHStackLayout(horizontalSpacing: 0, verticalSpacing: 5) {
+                    Probe(id: 0, size: CGSize(width: 40, height: 10), recorder: recorder) { Color.clear }
+                    Probe(id: 1, size: CGSize(width: 30, height: 20), recorder: recorder) { Color.clear }
+                }
+            }
+            .frame(width: 100, height: 100)
+            _ = ImageRenderer(content: content).cgImage
+
+            #expect(recorder.minimumSize == CGSize(width: 40, height: 35))
         }
 
         @Test func `changing vertical spacing re-lays out rows`() {
@@ -189,25 +260,15 @@
 
         // MARK: - Cache Structure
 
-        @Test func `cache can be created with min size and nil rows`() {
-            let cache = WrappingHStackLayout.Cache(
-                minSize: CGSize(width: 100, height: 50),
-                rows: nil
-            )
+        @Test func `cache can be created with nil rows`() {
+            let cache = WrappingHStackLayout.Cache(rows: nil)
 
-            #expect(cache.minSize.width == 100)
-            #expect(cache.minSize.height == 50)
             #expect(cache.rows == nil)
         }
 
-        @Test func `cache can be created with min size and empty rows`() {
-            let cache = WrappingHStackLayout.Cache(
-                minSize: CGSize(width: 100, height: 50),
-                rows: (12345, [])
-            )
+        @Test func `cache can be created with empty rows`() {
+            let cache = WrappingHStackLayout.Cache(rows: (12345, []))
 
-            #expect(cache.minSize.width == 100)
-            #expect(cache.minSize.height == 50)
             #expect(cache.rows?.0 == 12345)
             #expect(cache.rows?.1.isEmpty == true)
         }
@@ -227,13 +288,8 @@
                 height: 25
             )
 
-            let cache = WrappingHStackLayout.Cache(
-                minSize: CGSize(width: 60, height: 53),
-                rows: (98765, [row1, row2])
-            )
+            let cache = WrappingHStackLayout.Cache(rows: (98765, [row1, row2]))
 
-            #expect(cache.minSize.width == 60)
-            #expect(cache.minSize.height == 53)
             #expect(cache.rows?.0 == 98765)
             #expect(cache.rows?.1.count == 2)
         }
@@ -394,16 +450,6 @@
             #expect(layout1.alignment == .leading)
             #expect(layout2.alignment == .trailing)
             #expect(layout3.alignment == .center)
-        }
-
-        @Test func `cache initialization with zero min size`() {
-            let cache = WrappingHStackLayout.Cache(
-                minSize: .zero,
-                rows: nil
-            )
-
-            #expect(cache.minSize == .zero)
-            #expect(cache.rows == nil)
         }
 
         @Test func `row with zero width and height`() {
