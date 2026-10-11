@@ -17,7 +17,15 @@
             /// Whether a local keyboard has been shown and has not subsequently been hidden.
             public private(set) var visible: Bool = false
             /// Whether the reported keyboard height suggests a connected hardware keyboard.
-            public private(set) var isHardwardKeyboard: Bool = false
+            public private(set) var isHardwareKeyboard: Bool = false
+            /// Whether the reported keyboard height suggests a connected hardware keyboard.
+            ///
+            /// - Note: Deprecated misspelling of ``isHardwareKeyboard``.
+            @available(*, deprecated, renamed: "isHardwareKeyboard")
+            public var isHardwardKeyboard: Bool {
+                isHardwareKeyboard
+            }
+
             /// The size reported by the most recent keyboard frame notification, or zero after hiding.
             public private(set) var keyboardSize: CGSize = .zero
             @ObservationIgnored
@@ -64,7 +72,7 @@
                         Task { @MainActor [weak self] in
                             self?.objectWillChange.send()
                             self?.visible = false
-                            self?.isHardwardKeyboard = false
+                            self?.isHardwareKeyboard = false
                             self?.keyboardSize = .zero
                         }
                     }
@@ -73,7 +81,7 @@
 
             private func updateKeyboardSize(_ size: CGSize) {
                 keyboardSize = size
-                isHardwardKeyboard = size.height <= 75 // typical keyboard height when a hardware keyboard is connected is around 55px. So using 75px has a safety value.
+                isHardwareKeyboard = size.height <= 75 // typical keyboard height when a hardware keyboard is connected is around 55px. So using 75px has a safety value.
             }
         }
 

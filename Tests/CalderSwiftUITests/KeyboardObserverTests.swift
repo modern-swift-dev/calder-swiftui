@@ -20,7 +20,7 @@
                 ]
             )
             try await waitUntil { observer.visible && observer.keyboardSize == softwareSize }
-            #expect(!observer.isHardwardKeyboard)
+            #expect(!observer.isHardwareKeyboard)
 
             let hardwareSize = CGSize(width: 320, height: 55)
             NotificationCenter.default.post(
@@ -29,12 +29,28 @@
                 userInfo: [UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(origin: .zero, size: hardwareSize))]
             )
             try await waitUntil { observer.keyboardSize == hardwareSize }
-            #expect(observer.isHardwardKeyboard)
+            #expect(observer.isHardwareKeyboard)
 
             NotificationCenter.default.post(name: UIResponder.keyboardDidHideNotification, object: nil)
             try await waitUntil { !observer.visible }
             #expect(observer.keyboardSize == .zero)
-            #expect(!observer.isHardwardKeyboard)
+            #expect(!observer.isHardwareKeyboard)
+        }
+
+        @available(*, deprecated, message: "Exercises the deprecated isHardwardKeyboard alias.")
+        @Test func `deprecated misspelled alias reports isHardwareKeyboard`() async throws {
+            let observer = KeyboardObserver()
+            NotificationCenter.default.post(
+                name: UIResponder.keyboardDidShowNotification,
+                object: nil,
+                userInfo: [
+                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
+                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(x: 0, y: 0, width: 320, height: 55))
+                ]
+            )
+            try await waitUntil { observer.visible }
+            #expect(observer.isHardwareKeyboard)
+            #expect(observer.isHardwardKeyboard)
         }
 
         @Test func `notification subscriptions do not retain observer`() {
