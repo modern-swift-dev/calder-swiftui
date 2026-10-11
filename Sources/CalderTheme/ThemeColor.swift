@@ -51,7 +51,7 @@
                 self.lightContrast = base.lighten(amount: lightContrastRatio)
             }
             if let darkContrastRatio {
-                self.darkContrast = base.lighten(amount: darkContrastRatio)
+                self.darkContrast = base.darken(amount: darkContrastRatio)
             }
         }
 

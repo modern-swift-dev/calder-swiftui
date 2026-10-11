@@ -5,6 +5,14 @@
     import Testing
 
     @Suite(.serialized) struct ThemeColorTests {
+        /// A colour with room to move in both directions so lightening and darkening are observable.
+        private static let midTone = Color(red: 0.4, green: 0.4, blue: 0.8)
+
+        /// Relative luminance of the colour resolved in a default environment.
+        private static func luminance(_ color: Color) -> Float {
+            let resolved = color.resolve(in: EnvironmentValues())
+            return 0.2126 * resolved.linearRed + 0.7152 * resolved.linearGreen + 0.0722 * resolved.linearBlue
+        }
 
         // MARK: - Initialization: init(light:dark:lightContrast:darkContrast:)
 
@@ -88,21 +96,36 @@
         }
 
         @Test func `init with darken and light contrast ratio`() {
-            let base = Color.blue
+            let base = Self.midTone
             let themeColor = ThemeColor(darken: base, ratio: 0.3, lightContrastRatio: 0.2)
 
             #expect(themeColor.getColor(scheme: .light, contrast: nil) == base)
             let lightContrastColor = themeColor.getColor(scheme: .light, contrast: .increased)
-            #expect(lightContrastColor != base) // Should be lightened
+            #expect(Self.luminance(lightContrastColor) > Self.luminance(base))
         }
 
         @Test func `init with darken and dark contrast ratio`() {
-            let base = Color.blue
+            let base = Self.midTone
             let themeColor = ThemeColor(darken: base, ratio: 0.3, darkContrastRatio: 0.2)
 
             #expect(themeColor.getColor(scheme: .light, contrast: nil) == base)
             let darkContrastColor = themeColor.getColor(scheme: .dark, contrast: .increased)
-            #expect(darkContrastColor != base) // Should be lightened
+            #expect(Self.luminance(darkContrastColor) < Self.luminance(base))
+        }
+
+        @Test func `init with darken darkens the dark mode colour`() {
+            let base = Self.midTone
+            let themeColor = ThemeColor(darken: base, ratio: 0.3)
+
+            #expect(Self.luminance(themeColor.getColor(scheme: .dark, contrast: nil)) < Self.luminance(base))
+        }
+
+        @Test func `init with darken RGB string darkens the dark contrast colour`() {
+            let themeColor = ThemeColor(darken: "#6666CC", ratio: 0.3, lightContrastRatio: 0.2, darkContrastRatio: 0.2)
+            let base = themeColor.getColor(scheme: .light, contrast: nil)
+
+            #expect(Self.luminance(themeColor.getColor(scheme: .light, contrast: .increased)) > Self.luminance(base))
+            #expect(Self.luminance(themeColor.getColor(scheme: .dark, contrast: .increased)) < Self.luminance(base))
         }
 
         @Test func `init with darken and all contrast ratios`() {
