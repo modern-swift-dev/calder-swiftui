@@ -9,7 +9,8 @@
         ///
         /// This view integrates with a `PaginatedList.DataSource` to display selectable items
         /// and writes each selection change to the supplied binding. Multi-selection
-        /// leaves the view presented; selecting a single item dismisses it.
+        /// leaves the view presented; selecting a single item dismisses it. Selected rows
+        /// carry the `isSelected` accessibility trait.
         struct Selection<DataType: Identifiable & Codable & Sendable, Content: View, Header: View, Footer: View>: View {
 
             /// Defines the selection mode for the list.
@@ -205,6 +206,7 @@
                         })
                         .buttonStyle(.plain)
                         .disabled(!isSelected(item: item.wrappedValue) && isMaxReached)
+                        .accessibilityAddTraits(isSelected(item: item.wrappedValue) ? .isSelected : [])
                     },
                     header: tableHeader,
                     footer: tableFooter

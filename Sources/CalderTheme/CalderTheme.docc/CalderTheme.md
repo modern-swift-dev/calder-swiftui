@@ -47,3 +47,5 @@ items starts in the empty state.
 
 `PaginatedList.Selection.Mode.multi(max:)` expresses no limit only with `nil`. A maximum of `0`
 permits no new selections, while selected items can still be deselected.
+
+Selected `PaginatedList.Selection` rows carry the `isSelected` accessibility trait.
