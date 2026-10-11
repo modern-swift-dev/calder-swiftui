@@ -11,13 +11,13 @@ Calder contains application utilities for Swift and Apple platforms. The package
 
 ## Install
 
-Until the first release is tagged, add the `main` branch:
+Add the package with a version requirement:
 
 ```swift
 dependencies: [
     .package(
         url: "https://github.com/modern-swift-dev/calder-swiftui.git",
-        branch: "main"
+        from: "1.1.3"
     )
 ]
 ```

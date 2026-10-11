@@ -1,6 +1,6 @@
 ---
 title: "Getting started with Calder"
-description: "Add Calder from main and select the products your Swift target imports."
+description: "Add a Calder release and select the products your Swift target imports."
 ---
 
 Getting started
@@ -15,7 +15,7 @@ Calder uses Swift 6 and supports iOS 18, macOS 15, tvOS 18, watchOS 11, and visi
 
 ## 2. Add the package
 
-Until the first version is tagged, use the current `main` branch in your package manifest.
+Add Calder to your package manifest with a version requirement.
 
 Package.swift
 
@@ -23,7 +23,7 @@ Package.swift
 dependencies: [
     .package(
         url: "https://github.com/modern-swift-dev/calder-swiftui.git",
-        branch: "main"
+        from: "1.1.3"
     )
 ]
 ```
