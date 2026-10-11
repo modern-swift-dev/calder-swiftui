@@ -65,6 +65,22 @@
             #expect(state.selection.map(\.id) == [2])
         }
 
+        @Test func `a maximum of zero permits no selection`() {
+            let state = State()
+            let view = state.view(mode: .multi(max: 0))
+            #expect(view.isMaxReached)
+            view.onSelection(item: Item(id: 1))
+            #expect(state.selection.isEmpty)
+        }
+
+        @Test func `a maximum of zero still permits deselection`() {
+            let state = State()
+            state.selection = [Item(id: 1)]
+            let view = state.view(mode: .multi(max: 0))
+            view.onSelection(item: Item(id: 1))
+            #expect(state.selection.isEmpty)
+        }
+
         @Test func `selection reflects external binding changes`() {
             let state = State()
             let view = state.view(mode: .multi(max: nil))

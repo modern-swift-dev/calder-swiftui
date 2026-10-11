@@ -17,7 +17,11 @@
                 /// Allows only a single item to be selected.
                 case single
                 /// Allows multiple items to be selected, with an optional maximum limit.
-                /// - Parameter max: The maximum number of items that can be selected. `nil` for no limit.
+                ///
+                /// Selected items can always be deselected. Once the limit is reached, unselected
+                /// items are disabled.
+                /// - Parameter max: The maximum number of items that can be selected, or `nil` for no limit.
+                ///   A maximum of `0` permits no new selections; it does not mean unlimited.
                 case multi(max: UInt?)
             }
 
@@ -39,7 +43,7 @@
 
             /// A boolean indicating whether the maximum selection limit has been reached in multi-selection mode.
             var isMaxReached: Bool {
-                if case let .multi(max) = mode, let max, max > 0 {
+                if case let .multi(max) = mode, let max {
                     return selection.count >= max
                 }
                 return false
