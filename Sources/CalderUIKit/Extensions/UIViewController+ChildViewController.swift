@@ -5,30 +5,34 @@
         import UIKit
 
         public extension UIViewController {
-            /// A type alias for a common completion handler closure.
-            typealias CompletionHandler = @Sendable () -> Void
+            /// A completion handler called on the main actor after an animated containment change finishes.
+            typealias CompletionHandler = @MainActor () -> Void
 
             /// Helper method to add a `UIViewController` as a child view controller to a specified container view.
+            ///
+            /// The child receives `willMove(toParent:)` once, from `addChild(_:)`, before its view is added,
+            /// and `didMove(toParent:)` once after its view is in the container.
             /// - Parameters:
             ///   - child: The view controller to add as a child.
             ///   - containerView: The `UIView` that will contain the child view controller's root view.
             func addChildViewController(_ child: UIViewController, toContainerView containerView: UIView) {
-                child.willMove(toParent: self)
                 addChild(child)
                 containerView.addSubview(child.view)
                 child.didMove(toParent: self)
             }
 
             /// Helper method to remove a `UIViewController` and its view from its parent view controller hierarchy.
+            ///
+            /// The view controller receives `willMove(toParent:)` once before its view is removed,
+            /// and `didMove(toParent:)` once, from `removeFromParent()`, after its view is removed.
             func removeViewAndControllerFromParentViewController() {
                 guard parent != nil else {
                     return
                 }
 
                 willMove(toParent: nil)
-                removeFromParent()
                 view.removeFromSuperview()
-                didMove(toParent: nil)
+                removeFromParent()
             }
 
             /// Transitions from an existing child view controller to a new child view controller with a fade animation.
@@ -39,7 +43,8 @@
             ///   - containerView: An optional view to insert the child in. If `nil`, the parent view controller's root view is used. Defaults to `nil`.
             ///   - duration: The duration of the transition animation. Defaults to 0.5 seconds.
             ///   - delay: The delay before starting the animation. Defaults to 0.0 seconds.
-            ///   - completion: An optional completion handler to call after the animation finishes.
+            ///   - completion: An optional completion handler called on the main actor after the animation finishes
+            ///     and the previous child has been removed.
             /// - Returns: The `newChild` view controller.
             @discardableResult func transition(
                 fromChild child: UIViewController?,
@@ -54,21 +59,31 @@
                     return newChild
                 }
 
+                // UIKit's containment order: the outgoing child is told first, the incoming child
+                // receives `didMove(toParent:)` only after the transition finishes.
+                let outgoingChild = child?.parent == nil ? nil : child
+                outgoingChild?.willMove(toParent: nil)
+
+                let container: UIView = containerView ?? view
                 newChild.view.alpha = 0
                 newChild.view.translatesAutoresizingMaskIntoConstraints = false
-                addChildViewController(newChild, toContainerView: containerView ?? view)
+                addChild(newChild)
+                container.addSubview(newChild.view)
                 NSLayoutConstraint.activate {
-                    newChild.view.pinned(to: containerView ?? view)
+                    newChild.view.pinned(to: container)
                 }
 
                 UIView.animateKeyframes(withDuration: duration, delay: delay, options: .beginFromCurrentState, animations: {
                     child?.view.alpha = 0.0
                     newChild.view.alpha = 1.0
                 }, completion: { _ in
-                    Task { @MainActor in
-                        child?.removeViewAndControllerFromParentViewController()
+                    // UIKit calls animation completions on the main thread.
+                    MainActor.assumeIsolated {
+                        outgoingChild?.view.removeFromSuperview()
+                        outgoingChild?.removeFromParent()
+                        newChild.didMove(toParent: self)
+                        completion?()
                     }
-                    completion?()
                 })
                 return newChild
             }
@@ -78,7 +93,7 @@
             ///   - parent: The parent view controller to add this view controller to.
             ///   - duration: The duration of the fade-in animation. Defaults to 0.5 seconds.
             ///   - delay: The delay before starting the animation. Defaults to 0.0 seconds.
-            ///   - completion: An optional completion handler to call after the animation finishes.
+            ///   - completion: An optional completion handler called on the main actor after the animation finishes.
             func fadeIn(
                 in parent: UIViewController,
                 duration: TimeInterval = 0.5,
@@ -90,7 +105,10 @@
                 UIView.animateKeyframes(withDuration: duration, delay: delay, options: .beginFromCurrentState, animations: {
                     self.view.alpha = 1.0
                 }, completion: { _ in
-                    completion?()
+                    // UIKit calls animation completions on the main thread.
+                    MainActor.assumeIsolated {
+                        completion?()
+                    }
                 })
             }
 
@@ -98,15 +116,17 @@
             /// - Parameters:
             ///   - duration: The duration of the fade-out animation. Defaults to 0.5 seconds.
             ///   - delay: The delay before starting the animation. Defaults to 0.0 seconds.
-            ///   - completion: An optional completion handler to call after the animation finishes.
+            ///   - completion: An optional completion handler called on the main actor after the animation finishes
+            ///     and the view controller has been removed.
             func fadeOut(duration: TimeInterval = 0.5, delay: TimeInterval = 0.0, completion: CompletionHandler? = nil) {
                 UIView.animateKeyframes(withDuration: duration, delay: delay, options: .beginFromCurrentState, animations: {
                     self.view.alpha = 0.0
                 }, completion: { _ in
-                    Task { @MainActor in
+                    // UIKit calls animation completions on the main thread.
+                    MainActor.assumeIsolated {
                         self.removeViewAndControllerFromParentViewController()
+                        completion?()
                     }
-                    completion?()
                 })
             }
         }

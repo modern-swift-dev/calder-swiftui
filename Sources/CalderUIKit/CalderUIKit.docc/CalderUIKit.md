@@ -33,3 +33,5 @@ The `coordinateRegion(padding:)` helpers now size each axis independently: the l
 The `MKMapView` overlay insertion helpers now keep overlays in the order given instead of reversing them. Type-based helpers find the overlay type within the requested level rather than across all levels, and the `above:` variants insert above the last matching overlay instead of below it.
 
 `SwiftUISceneDelegate.createRootView(_:)` now returns `AnyView`, so subclasses can override it to supply their root view; wrap the view in `AnyView`. The default root view is SwiftUI's `EmptyView`.
+
+Child view controller helpers send each containment callback once, in the order UIKit documents. `transition(fromChild:toNewChild:inContainerView:duration:delay:completion:)` and `fadeOut(duration:delay:completion:)` remove the outgoing view controller before calling `completion`. `UIViewController.CompletionHandler` is now `@MainActor () -> Void` instead of `@Sendable () -> Void`.
