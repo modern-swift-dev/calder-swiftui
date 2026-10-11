@@ -39,3 +39,5 @@ Child view controller helpers send each containment callback once, in the order 
 The system-spacing anchor helpers (`eqAfter`, `leqAfter`, `geqAfter`, `eqBelow`, `leqBelow`, and `geqBelow`) default `multiplier` to `1`, producing one system spacing. Pass `multiplier: 0` to keep the previous zero spacing.
 
 CalderUIKit no longer declares retroactive `Sendable` conformances for `UNUserNotificationCenter`, `UNNotificationSettings`, `WKWebsiteDataStore`, or `WKHTTPCookieStore`. Code that relied on them must keep these values in one isolation domain; the WebKit types are main-actor isolated. `UNUserNotificationCenter.settings` now reads the settings of the center it is called on instead of always using `UNUserNotificationCenter.current()`.
+
+`UIApplication.suspendApplication()` and `UIApplication.exitApplication(_:code:)` are deprecated. `suspendApplication()` no longer sends a private selector and does nothing. `exitApplication(_:code:)` waits without blocking the main thread and no longer suspends the app before exiting. Apps should let the user leave instead of suspending or terminating themselves.
