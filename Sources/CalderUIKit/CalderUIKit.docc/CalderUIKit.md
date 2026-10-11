@@ -16,6 +16,8 @@ Clustering requests now finish their map updates in submission order. Consecutiv
 
 Notification callbacks complete even when the service's weak delegate has been released or cleared. Foreground notifications use no presentation options in that case.
 
+`UIContentSizeCategory.adjust(webView:)` now scales web text with the category. It sets `-webkit-text-size-adjust` to the body text style's size for the category relative to its size at `large`, such as `124%` for `extraExtraLarge`, instead of always `100%`.
+
 A child transition with no previous child now inserts the new child into the supplied container and pins it to that container, matching subsequent transitions.
 
 `BarcodeGenerator.qr` encodes payloads as UTF-8, so non-ASCII text such as "Café" produces a QR code. Code 128 and PDF417 barcodes still require ASCII payloads and return `nil` otherwise.

@@ -7,11 +7,16 @@
 
         public extension UIContentSizeCategory {
 
-            /// Calculate Base Text Size Adjustments in percent
-            private func textSizeAdjustmentInPercent() -> String {
-                let traits = UITraitCollection(preferredContentSizeCategory: self)
-                let scaledFont = UIFont.scaledSystemFont(ofSize: 14.0, compatibleWith: traits)
-                let ratio: Double = scaledFont.pointSize.double / scaledFont.pointSize.double
+            /// The CSS `-webkit-text-size-adjust` value for this category, such as `"112%"`.
+            ///
+            /// The percentage is the body text style's scaled size relative to its size at
+            /// `large`. The value is `"auto"` for `unspecified`.
+            internal var webTextSizeAdjustment: String {
+                guard self != .unspecified else {
+                    return "auto"
+                }
+                let baseSize = Self.large.bodyPointSize
+                let ratio = (bodyPointSize / baseSize).double
 
                 let numberFormat = NumberFormatter()
                 numberFormat.locale = .posix
@@ -19,18 +24,19 @@
                 return numberFormat.string(for: ratio.asNumber) ?? "auto"
             }
 
-            /// Update the webview text-size based on the content-size category
-            /// - parameter webView: The Webview to customize
-            @MainActor func adjust(webView: WKWebView) {
+            private var bodyPointSize: CGFloat {
+                let traits = UITraitCollection(preferredContentSizeCategory: self)
+                return UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits).pointSize
+            }
 
-                var value = "auto"
-                switch self {
-                    case .unspecified:
-                        value = "auto"
-                    default:
-                        value = textSizeAdjustmentInPercent()
-                }
-                let javascript = "document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust='\(value)'"
+            /// Applies this content size category to the text of a web view's page.
+            ///
+            /// Sets the page body's `-webkit-text-size-adjust` style to the body text style's scale
+            /// for this category relative to `large`, or to `auto` for `unspecified`. Call it after
+            /// the page finishes loading and again when the category changes.
+            /// - Parameter webView: The web view whose loaded page should be adjusted.
+            @MainActor func adjust(webView: WKWebView) {
+                let javascript = "document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust='\(webTextSizeAdjustment)'"
                 webView.evaluateJavaScript(javascript, completionHandler: nil)
             }
         }
