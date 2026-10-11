@@ -11,9 +11,11 @@
     /// This control displays a list of selectable segments, dynamically arranging them
     /// in a horizontal flow that wraps to the next line if space is insufficient.
     /// It supports single-choice selection, visually highlighting the currently selected item.
+    /// VoiceOver reports the currently selected segment as selected.
     ///
-    /// - Important: The `IDType` for the `Item` must conform to `Identifiable`, `Hashable`, and `Sendable`.
-    public struct SegmentedControl<IDType: Identifiable & Hashable & Sendable>: View {
+    /// - Important: The `IDType` for the `Item` must conform to `Hashable` and `Sendable`, so plain
+    ///   values such as `String` and `Int` can identify segments.
+    public struct SegmentedControl<IDType: Hashable & Sendable>: View {
 
         /// Represents an individual segment with ID and display title.
         public struct Item: Identifiable, Equatable, Hashable, Sendable {
@@ -74,6 +76,7 @@
                                 custom: AnyShapeStyle(theme.text1)
                             )
                     )
+                    .accessibilityAddTraits(item.id == selectedItem ? .isSelected : [])
                     .accessibilityIdentifier("segmented-control-item-\(item.id)")
                     .id("segmented-control-item-\(item.id)")
                 }
