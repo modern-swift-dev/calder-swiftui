@@ -45,6 +45,7 @@
             /// - Returns: An initialized `BarcodeSelectoViewController`.
             public func makeUIViewController(context: Context) -> BarcodeSelectoViewController {
                 let vc = BarcodeSelectoViewController()
+                vc.recognizedTypes = recognizedTypes
                 vc.highlightColor = UIColor(highlightColor)
                 vc.scanDelegate = context.coordinator
                 return vc
