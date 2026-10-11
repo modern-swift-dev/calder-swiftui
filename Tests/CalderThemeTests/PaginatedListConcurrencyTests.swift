@@ -189,6 +189,82 @@
             }
         }
 
+        @Test(arguments: [false, true]) func `cancelled first load restores the prior state and can be retried`(failing: Bool) async {
+            let source = PaginatedList.DataSource<Item>(items: [])
+            await source.configureAndLoad(firstPageLoader: { throw Failure.request }, nextPageLoader: { _ in .init(results: []) })
+            let loader = Loader()
+            let pending = Task {
+                await source.configureAndLoad(firstPageLoader: { try await loader.load() }, nextPageLoader: { _ in .init(results: []) })
+            }
+            await loader.waitUntilStarted()
+            pending.cancel()
+            loader.finish(failing: failing)
+            await pending.value
+            #expect(source.items.isEmpty)
+            if case .error = source.state {} else {
+                Issue.record("Cancelling the first load must restore the prior state, got \(source.state)")
+            }
+
+            let retry = Task { await source.load() }
+            await loader.waitUntilStarted()
+            loader.finish(id: 1)
+            await retry.value
+            #expect(source.items.map(\.id) == [1])
+        }
+
+        @Test(arguments: [false, true]) func `cancelled reload keeps pagination and can be retried`(failing: Bool) async {
+            let source = PaginatedList.DataSource<Item>(items: [])
+            await source.configureAndLoad(firstPageLoader: { .init(next: nil, hasNext: true, results: [Item(id: 1)]) }, nextPageLoader: { _ in .init(results: []) })
+            let loader = Loader()
+            let pending = Task {
+                await source.configureAndLoad(firstPageLoader: { try await loader.load() }, nextPageLoader: { _ in .init(results: [Item(id: 2)]) })
+            }
+            await loader.waitUntilStarted()
+            pending.cancel()
+            loader.finish(failing: failing)
+            await pending.value
+            #expect(source.items.map(\.id) == [1])
+            #expect(source.hasNext)
+            if case .displaying = source.state {} else {
+                Issue.record("Cancelling a reload must restore the prior state, got \(source.state)")
+            }
+
+            await source.next()
+            #expect(source.items.map(\.id) == [1, 2])
+
+            let retry = Task { await source.reload() }
+            await loader.waitUntilStarted()
+            loader.finish(id: 3)
+            await retry.value
+            #expect(source.items.map(\.id) == [3])
+        }
+
+        @Test func `cancelled reload that superseded another reload restores the original page`() async {
+            let source = PaginatedList.DataSource<Item>(items: [])
+            await source.configureAndLoad(firstPageLoader: { .init(next: nil, hasNext: true, results: [Item(id: 1)]) }, nextPageLoader: { _ in .init(results: []) })
+            let first = Loader()
+            let second = Loader()
+            let superseded = Task {
+                await source.configureAndLoad(firstPageLoader: { try await first.load() }, nextPageLoader: { _ in .init(results: []) })
+            }
+            await first.waitUntilStarted()
+            let cancelled = Task {
+                await source.configureAndLoad(firstPageLoader: { try await second.load() }, nextPageLoader: { _ in .init(results: []) })
+            }
+            await second.waitUntilStarted()
+            cancelled.cancel()
+            second.finish(failing: true)
+            await cancelled.value
+            first.finish(id: 50)
+            await superseded.value
+
+            #expect(source.items.map(\.id) == [1])
+            #expect(source.hasNext)
+            if case .displaying = source.state {} else {
+                Issue.record("Cancelling a reload must restore the state before loading, got \(source.state)")
+            }
+        }
+
         @Test func `cancelled next page preserves cursor for retry`() async {
             let source = PaginatedList.DataSource<Item>(items: [])
             let loader = Loader()

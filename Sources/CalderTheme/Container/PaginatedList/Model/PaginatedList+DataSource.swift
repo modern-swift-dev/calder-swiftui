@@ -52,6 +52,12 @@
             private var currentRequestId: UUID = .init()
             private var isLoadingFirstPage = false
             private var isLoadingNextPage = false
+            /// The page and state to restore if the active first-page request is cancelled.
+            ///
+            /// Captured when a first-page request starts while no other first-page request is
+            /// pending, so cancelling a reload that superseded another restores the state from
+            /// before both.
+            private var cancellationRestorePoint: (page: Results<DataType>?, state: GenericState)?
 
             /// A closure responsible for loading the first page of data.
             private var firstPageLoader: @MainActor @Sendable () async throws -> Results<DataType> = {
@@ -204,6 +210,7 @@
             /// Clears the items and count, invalidating outstanding page requests.
             public func removeAll() {
                 invalidateRequests()
+                cancellationRestorePoint = nil
                 currentPage = nil
                 count = nil
                 items = []
@@ -225,29 +232,41 @@
             }
 
             /// Loads the first page again, ignoring results from all earlier requests.
+            ///
+            /// If the reload is cancelled, the source restores the page and state it had before
+            /// loading, so pagination continues and the reload can be retried.
             public func reload() async {
                 guard !Task.isCancelled else {
                     return
                 }
                 invalidateRequests()
-                currentPage = nil
-                await load()
+                await loadFirstPage()
             }
 
             /// Loads the first page of data if no page is currently loaded.
             ///
             /// Sets the state to `.loading`, performs the `firstPageLoader` operation,
-            /// and updates the `items` and `state` based on the result. Handles cancellation.
+            /// and updates the `items` and `state` based on the result. Cancellation keeps the
+            /// items and restores the state from before loading, so the load can be retried.
             public func load() async {
                 guard currentPage == nil, !isLoadingFirstPage, !Task.isCancelled else {
                     return
                 }
+                await loadFirstPage()
+            }
+
+            private func loadFirstPage() async {
+                if cancellationRestorePoint == nil {
+                    cancellationRestorePoint = (currentPage, state)
+                }
+                currentPage = nil
                 let requestId = currentRequestId
                 isLoadingFirstPage = true
                 state = .loading
                 defer {
                     if requestId == currentRequestId {
                         isLoadingFirstPage = false
+                        cancellationRestorePoint = nil
                     }
                 }
 
@@ -257,7 +276,7 @@
                         return
                     }
                     guard !Task.isCancelled else {
-                        calculateViewState()
+                        restoreCancelledFirstPage()
                         return
                     }
                     currentPage = response
@@ -268,7 +287,7 @@
                         return
                     }
                     guard !Task.isCancelled, !(error is CancellationError) else {
-                        calculateViewState()
+                        restoreCancelledFirstPage()
                         return
                     }
                     os_log("%{public}@", log: .default, type: .error, String(describing: error))
@@ -277,6 +296,14 @@
                     items = []
                     state = .error(nil)
                 }
+            }
+
+            private func restoreCancelledFirstPage() {
+                guard let restorePoint = cancellationRestorePoint else {
+                    return
+                }
+                currentPage = restorePoint.page
+                state = restorePoint.state
             }
 
             private func invalidateRequests() {
