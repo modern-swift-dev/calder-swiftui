@@ -373,7 +373,7 @@
                 do {
                     try device.lockForConfiguration()
                     device.videoZoomFactor = device.minAvailableVideoZoomFactor
-                    if device.isLowLightBoostEnabled {
+                    if device.isLowLightBoostSupported {
                         device.automaticallyEnablesLowLightBoostWhenAvailable = true
                     }
                     device.unlockForConfiguration()
