@@ -1,5 +1,6 @@
 #if canImport(SwiftUI) && canImport(UIKit) && !os(watchOS) && !os(tvOS)
     import CalderSwiftUI
+    import Combine
     import Foundation
     import SwiftUI
     import Testing
@@ -56,6 +57,49 @@
             _ = ObserverView().environment(\.keyboardObserver, custom)
         }
 
+        @Test func `views reading the environment observer re-render when visibility changes`() async throws {
+            let observer = KeyboardObserver()
+            let recorder = RenderRecorder()
+            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+            window.rootViewController = UIHostingController(
+                rootView: RecordingView(recorder: recorder).environment(\.keyboardObserver, observer)
+            )
+            window.makeKeyAndVisible()
+            defer { window.isHidden = true }
+            window.layoutIfNeeded()
+            #expect(recorder.renderedVisibility.last == false)
+
+            NotificationCenter.default.post(
+                name: UIResponder.keyboardDidShowNotification,
+                object: nil,
+                userInfo: [
+                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
+                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(x: 0, y: 0, width: 320, height: 300))
+                ]
+            )
+            try await waitUntil {
+                window.layoutIfNeeded()
+                return recorder.renderedVisibility.last == true
+            }
+        }
+
+        @Test func `object will change still fires for observable object call sites`() async throws {
+            let observer = KeyboardObserver()
+            var changeCount = 0
+            let subscription = observer.objectWillChange.sink { changeCount += 1 }
+            NotificationCenter.default.post(
+                name: UIResponder.keyboardDidShowNotification,
+                object: nil,
+                userInfo: [
+                    UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: true),
+                    UIResponder.keyboardFrameEndUserInfoKey: NSValue(cgRect: CGRect(x: 0, y: 0, width: 320, height: 300))
+                ]
+            )
+            try await waitUntil { observer.visible }
+            #expect(changeCount > 0)
+            subscription.cancel()
+        }
+
         private func waitUntil(_ condition: () -> Bool) async throws {
             let deadline = ContinuousClock.now.advanced(by: .seconds(2))
             while !condition(), ContinuousClock.now < deadline {
@@ -69,6 +113,20 @@
 
             var body: some View {
                 Text(observer.visible ? "Visible" : "Hidden")
+            }
+        }
+
+        private final class RenderRecorder {
+            var renderedVisibility: [Bool] = []
+        }
+
+        private struct RecordingView: View {
+            @Environment(\.keyboardObserver) private var observer
+            let recorder: RenderRecorder
+
+            var body: some View {
+                recorder.renderedVisibility.append(observer.visible)
+                return Text(observer.visible ? "Visible" : "Hidden")
             }
         }
     }

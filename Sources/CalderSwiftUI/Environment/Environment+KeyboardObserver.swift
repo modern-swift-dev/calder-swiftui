@@ -6,15 +6,21 @@
 
         /// Observes keyboard notifications and publishes keyboard state on the main actor.
         ///
+        /// `KeyboardObserver` uses the Observation framework, so SwiftUI views that read its properties, including
+        /// views that obtain it through `@Environment(\.keyboardObserver)`, update when keyboard state changes.
+        /// It also conforms to `ObservableObject` for source compatibility with `@StateObject` and `@ObservedObject`
+        /// call sites; prefer `@State` or `@Environment` in new code.
+        ///
         /// Observation continues for the lifetime of this object. Notifications are debounced by 150 milliseconds.
-        @MainActor public class KeyboardObserver: ObservableObject {
+        @MainActor @Observable public class KeyboardObserver: ObservableObject {
 
             /// Whether a local keyboard has been shown and has not subsequently been hidden.
-            @Published public private(set) var visible: Bool = false
+            public private(set) var visible: Bool = false
             /// Whether the reported keyboard height suggests a connected hardware keyboard.
-            @Published public private(set) var isHardwardKeyboard: Bool = false
+            public private(set) var isHardwardKeyboard: Bool = false
             /// The size reported by the most recent keyboard frame notification, or zero after hiding.
-            @Published public private(set) var keyboardSize: CGSize = .zero
+            public private(set) var keyboardSize: CGSize = .zero
+            @ObservationIgnored
             private var cancellables = Set<AnyCancellable>()
 
             /// Starts observing keyboard notifications. Create and access the observer on the main actor.
@@ -28,6 +34,7 @@
                         }
                         let size = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue.size
                         Task { @MainActor [weak self] in
+                            self?.objectWillChange.send()
                             self?.visible = true
                             if let size {
                                 self?.updateKeyboardSize(size)
@@ -44,6 +51,7 @@
                             return
                         }
                         Task { @MainActor [weak self] in
+                            self?.objectWillChange.send()
                             self?.updateKeyboardSize(size)
                         }
                     }
@@ -54,6 +62,7 @@
                     .receive(on: DispatchQueue.main)
                     .sink { [weak self] _ in
                         Task { @MainActor [weak self] in
+                            self?.objectWillChange.send()
                             self?.visible = false
                             self?.isHardwardKeyboard = false
                             self?.keyboardSize = .zero
