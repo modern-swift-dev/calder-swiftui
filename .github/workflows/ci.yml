@@ -111,6 +111,9 @@ jobs:
           fi
 
           echo "device-id=$device_identifier" >> "$GITHUB_OUTPUT"
+
+          # Start booting now so first-boot setup overlaps the build.
+          xcrun simctl boot "$device_identifier" || true
       - name: Build for ${{ matrix.platform }}
         env:
           SIMULATOR_ID: ${{ steps.simulator.outputs.device-id }}
@@ -130,6 +133,12 @@ jobs:
           for product in "${products[@]}"; do
             xcodebuild build -scheme "$product" -destination "$destination" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
           done
+      - name: Wait for ${{ matrix.simulator-name }} to finish booting
+        if: matrix.platform != 'macOS'
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.device-id }}
+        # A newly created simulator stalls tests for minutes while it finishes its first boot.
+        run: xcrun simctl bootstatus "$SIMULATOR_ID" -b
       - name: Test on ${{ matrix.platform }}
         env:
           SIMULATOR_ID: ${{ steps.simulator.outputs.device-id }}
