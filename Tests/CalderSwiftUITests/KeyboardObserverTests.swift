@@ -40,15 +40,6 @@
             #expect(!observer.isHardwareKeyboard)
         }
 
-        @available(*, deprecated, message: "Exercises the deprecated isHardwardKeyboard alias.")
-        @Test func `deprecated misspelled alias reports isHardwareKeyboard`() async throws {
-            let observer = KeyboardObserver()
-            postShow(size: CGSize(width: 320, height: 55))
-            try await waitUntil { observer.visible }
-            #expect(observer.isHardwareKeyboard)
-            #expect(observer.isHardwardKeyboard)
-        }
-
         @Test func `show frame change and hide notifications apply in arrival order`() async throws {
             let observer = KeyboardObserver()
             postShow(size: CGSize(width: 320, height: 300))

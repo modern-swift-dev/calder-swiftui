@@ -39,6 +39,7 @@ This release fixes defects across every module and changes several defaults. Rea
 
 - `Color(rgb:)` returns an optional; unwrap the result (#40).
 - `KeyboardObserver` uses the Observation framework. The `$visible`, `$isHardwardKeyboard`, and `$keyboardSize` publishers were removed; observe `objectWillChange` or use Observation instead. `@StateObject` and `@ObservedObject` call sites keep working, and views reading the observer through `@Environment` now update (#36).
+- The misspelled `KeyboardObserver.isHardwardKeyboard` property was removed; use `isHardwareKeyboard` (#39).
 - `Array.hashMap(predicate:)` rethrows errors from `predicate` instead of dropping the element, so callers passing a throwing closure must use `try` (#78).
 - `BarcodeScannerViewDelegate` is `@MainActor` and `Sendable`, and its `supportedObjectTypes(_:)` requirement is `nonisolated` (#9).
 - `UIViewController.CompletionHandler` is `@MainActor () -> Void` instead of `@Sendable () -> Void` (#62).
@@ -52,7 +53,6 @@ This release fixes defects across every module and changes several defaults. Rea
   - CalderTheme: `AdaptativeStack` → `AdaptiveStack`, `BarcodeSelectoViewController` → `BarcodeSelectorViewController`, `BarcodeSelectoViewControllerDelegate` → `BarcodeSelectorViewControllerDelegate`.
   - CalderSwiftUI: `AdaptativeValue` → `AdaptiveValue`, `adaptativeValue(compact:regular:)` → `adaptiveValue(compact:regular:)`, `disableSharedbackground(disable:)` → `disableSharedBackground(_:)` (the argument defaults to `true`), `EdgeInsets.zero` → SwiftUI's `EdgeInsets()`, and the `NSColor.textColor` instance property → `contrastingTextColor()`.
   - CalderUIKit: `UINavigationController.topViewController()` → `lastViewController()`, `CGFloat.small`/`.medium`/`.large` → `.spacingSmall`/`.spacingMedium`/`.spacingLarge`, `NSUIColor`/`NSUIFont` → `CalderPlatformColor`/`CalderPlatformFont`, and `debugDescription` on `CGFloat`, `CGPoint`, `CGSize`, and `CGRect` → `labeledDebugDescription`. The `CGPoint`, `CGSize`, and `CGRect` descriptions now end with the closing parenthesis they were missing.
-- `KeyboardObserver.isHardwardKeyboard` → `isHardwareKeyboard` (#39).
 - `UIApplication.suspendApplication()` and `exitApplication(_:code:)` are deprecated. `suspendApplication()` no longer sends a private selector and does nothing; `exitApplication(_:code:)` no longer blocks the main thread or suspends the app first (#67).
 
 ### Additions
@@ -68,6 +68,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `LayoutConstraintBuilder` supports `if` without `else` and `for` loops (#100).
 - `opaqueSeparator`, the `systemFill` family, `lightText`, and `darkText` are available on macOS (#44).
 - `SegmentedControl` accepts any `Hashable & Sendable` ID, such as `String` or `Int` (#84).
+- The `Double` variant of `InputNumber` accepts `zeroDisplay: .placeholder`, which leaves the field empty and shows the placeholder for a bound `0`, as it did before #32. The default, `.number`, displays "0".
 - Accessibility: Calder toggle styles expose toggle semantics (#79); `FormSwitch` and `FormDatePicker` are labelled with the row name (#80); selected `PaginatedList.Selection` rows (#81) and `SegmentedControl` segments (#84) carry the selected trait; invalid `InputText` and `InputPassword` fields always draw their error border and VoiceOver reads the invalid message as the hint (#82); `PercentView` and `PercentageCircle` expose a localized percentage value (#83); `MessageBox` reads its severity and the themed disclosure group hides its chevron (#85); `InputPassword`'s reveal button has a label and the revealed field disables autocorrection (#34).
 
 ### Fixes

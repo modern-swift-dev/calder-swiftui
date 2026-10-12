@@ -32,6 +32,8 @@ environment's locale, so "12,5" in French and "12.5" in English both store `12.5
 rejects text that isn't a number in that locale instead of storing `0`. The field
 displays the bound value, including `0`, in the same locale without grouping separators or
 exponent notation.
+To keep showing the placeholder for a bound `0`, where `0` means no amount has been entered,
+pass `zeroDisplay: .placeholder`.
 
 Out-of-range configurations are clamped instead of trapping: `InputNumber` limits integer digits
 to `1...18` so accepted numbers always fit in `Int64`, `InputDecimal` treats a negative fraction

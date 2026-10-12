@@ -48,6 +48,16 @@
             private let decimalIsValid: (Double) -> Bool
             /// Whether the decimal input displays a border.
             private let decimalShowBorder: Bool
+            /// How the decimal input displays a bound value of `0`.
+            private let decimalZeroDisplay: ZeroDisplay
+
+            /// How a decimal input field displays a bound value of `0`.
+            public enum ZeroDisplay: Sendable {
+                /// Displays a bound `0` as "0".
+                case number
+                /// Leaves the field empty for a bound `0`, so the placeholder shows.
+                case placeholder
+            }
         #endif
 
         /// Initializes an `InputNumber` view.
@@ -125,6 +135,7 @@
                 keyboardType = .numbersAndPunctuation
                 decimalIsValid = { _ in true }
                 decimalShowBorder = displayTextViewBorder
+                decimalZeroDisplay = .number
             #endif
 
             let formatter = InputNumber.numberFormatter(maxIntegerDigits: self.maxIntegerDigits)
@@ -146,20 +157,23 @@
             /// The field rejects text that isn't a number in that locale, such as "abc", instead of
             /// writing `0`. A lone minus sign is accepted while typing and leaves the binding unchanged.
             ///
-            /// The field displays the bound value, including `0`, in the same locale without grouping
-            /// separators or exponent notation. Display formatting doesn't round the bound value.
+            /// The field displays the bound value in the same locale without grouping separators or
+            /// exponent notation. By default it displays `0` as "0"; pass ``ZeroDisplay/placeholder`` to
+            /// leave the field empty instead. Display formatting doesn't round the bound value.
             ///
             /// - Parameters:
             ///   - value: A binding to the decimal value that the field displays and updates.
             ///   - placeholder: The placeholder text displayed when the field is empty.
             ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
             ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
+            ///   - zeroDisplay: How the field displays a bound value of `0`. Defaults to ``ZeroDisplay/number``.
             ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 value: Binding<Double>,
                 placeholder: String,
                 keyboardType: UIKeyboardType = .decimalPad,
                 showBorder: Bool = false,
+                zeroDisplay: ZeroDisplay = .number,
                 isValid: @escaping (Double) -> Bool = { _ in true }
             ) {
                 self.init(
@@ -167,6 +181,7 @@
                     placeholderText: .verbatim(placeholder),
                     keyboardType: keyboardType,
                     showBorder: showBorder,
+                    zeroDisplay: zeroDisplay,
                     isValid: isValid
                 )
             }
@@ -181,12 +196,14 @@
             ///   - placeholder: The localized placeholder text displayed when the field is empty.
             ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
             ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
+            ///   - zeroDisplay: How the field displays a bound value of `0`. Defaults to ``ZeroDisplay/number``.
             ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 value: Binding<Double>,
                 placeholder: LocalizedStringResource,
                 keyboardType: UIKeyboardType = .decimalPad,
                 showBorder: Bool = false,
+                zeroDisplay: ZeroDisplay = .number,
                 isValid: @escaping (Double) -> Bool = { _ in true }
             ) {
                 self.init(
@@ -194,6 +211,7 @@
                     placeholderText: .localized(placeholder),
                     keyboardType: keyboardType,
                     showBorder: showBorder,
+                    zeroDisplay: zeroDisplay,
                     isValid: isValid
                 )
             }
@@ -203,10 +221,11 @@
                 placeholderText: LocalizableText,
                 keyboardType: UIKeyboardType,
                 showBorder: Bool,
+                zeroDisplay: ZeroDisplay,
                 isValid: @escaping (Double) -> Bool
             ) {
                 _value = .constant(nil)
-                _textValue = State(initialValue: Self.formatDecimal(value.wrappedValue, locale: .current))
+                _textValue = State(initialValue: Self.decimalText(for: value.wrappedValue, zeroDisplay: zeroDisplay, locale: .current))
                 placeholder = placeholderText
                 displayTextViewBorder = showBorder
                 maxIntegerDigits = 15
@@ -217,25 +236,29 @@
                 self.keyboardType = keyboardType
                 decimalIsValid = isValid
                 decimalShowBorder = showBorder
+                decimalZeroDisplay = zeroDisplay
             }
 
             /// Initializes a themed decimal input field with its placeholder first.
             ///
             /// The field parses input with the decimal separator of the environment's `locale`.
             /// The field rejects text that isn't a number in that locale. The field displays
-            /// the bound value, including `0`, without grouping separators or exponent notation.
+            /// the bound value without grouping separators or exponent notation, and displays `0`
+            /// as configured by `zeroDisplay`.
             ///
             /// - Parameters:
             ///   - placeholder: The placeholder text displayed when the field is empty.
             ///   - value: A binding to the decimal value that the field displays and updates.
             ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
             ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
+            ///   - zeroDisplay: How the field displays a bound value of `0`. Defaults to ``ZeroDisplay/number``.
             ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 _ placeholder: String,
                 value: Binding<Double>,
                 keyboardType: UIKeyboardType = .decimalPad,
                 showBorder: Bool = false,
+                zeroDisplay: ZeroDisplay = .number,
                 isValid: @escaping (Double) -> Bool = { _ in true }
             ) {
                 self.init(
@@ -243,6 +266,7 @@
                     placeholder: placeholder,
                     keyboardType: keyboardType,
                     showBorder: showBorder,
+                    zeroDisplay: zeroDisplay,
                     isValid: isValid
                 )
             }
@@ -257,12 +281,14 @@
             ///   - value: A binding to the decimal value that the field displays and updates.
             ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
             ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
+            ///   - zeroDisplay: How the field displays a bound value of `0`. Defaults to ``ZeroDisplay/number``.
             ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 _ placeholder: LocalizedStringResource,
                 value: Binding<Double>,
                 keyboardType: UIKeyboardType = .decimalPad,
                 showBorder: Bool = false,
+                zeroDisplay: ZeroDisplay = .number,
                 isValid: @escaping (Double) -> Bool = { _ in true }
             ) {
                 self.init(
@@ -270,6 +296,7 @@
                     placeholder: placeholder,
                     keyboardType: keyboardType,
                     showBorder: showBorder,
+                    zeroDisplay: zeroDisplay,
                     isValid: isValid
                 )
             }
@@ -341,7 +368,7 @@
                 }
                 .onChange(of: textValue, initial: false) { oldValue, newValue in
                     // A formatted binding update must not round the source value.
-                    guard oldValue != newValue, newValue != Self.formatDecimal(value.wrappedValue, locale: locale) else {
+                    guard oldValue != newValue, newValue != Self.decimalText(for: value.wrappedValue, zeroDisplay: decimalZeroDisplay, locale: locale) else {
                         return
                     }
                     // Reject text that isn't a number in the current locale instead of storing a stale or zero value.
@@ -359,9 +386,22 @@
                 // The initial update reformats text created before the environment locale was available.
                 .onChange(of: value.wrappedValue, initial: true) { _, newValue in
                     if Self.parseDecimal(textValue, locale: locale) != newValue {
-                        textValue = Self.formatDecimal(newValue, locale: locale)
+                        textValue = Self.decimalText(for: newValue, zeroDisplay: decimalZeroDisplay, locale: locale)
                     }
                 }
+            }
+
+            /// Formats a decimal value for display, leaving the field empty for `0` when requested.
+            /// - Parameters:
+            ///   - value: The value to format.
+            ///   - zeroDisplay: How to display a value of `0`.
+            ///   - locale: The locale whose decimal separator the text uses.
+            /// - Returns: The text the field displays.
+            static func decimalText(for value: Double, zeroDisplay: ZeroDisplay, locale: Locale) -> String {
+                if value == 0, zeroDisplay == .placeholder {
+                    return ""
+                }
+                return formatDecimal(value, locale: locale)
             }
         #endif
 

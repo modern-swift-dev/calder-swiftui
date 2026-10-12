@@ -204,6 +204,22 @@
 
                 #expect(input.textValue == "0")
             }
+
+            @Test func `double input with placeholder zero display leaves a stored zero empty`() {
+                let input = InputNumber("Amount", value: .constant(0), zeroDisplay: .placeholder)
+
+                #expect(input.textValue.isEmpty)
+            }
+
+            @Test(arguments: [
+                (0, InputNumber.ZeroDisplay.number, "0"),
+                (0, InputNumber.ZeroDisplay.placeholder, ""),
+                (-0.0, InputNumber.ZeroDisplay.placeholder, ""),
+                (12.5, InputNumber.ZeroDisplay.placeholder, "12.5")
+            ])
+            func `double input display text follows the zero display`(value: Double, zeroDisplay: InputNumber.ZeroDisplay, expected: String) {
+                #expect(InputNumber.decimalText(for: value, zeroDisplay: zeroDisplay, locale: Locale(identifier: "en_US")) == expected)
+            }
         #endif
 
         @Test func `input number clamps a non-positive digit limit to one digit`() {

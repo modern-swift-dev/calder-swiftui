@@ -15,7 +15,7 @@ the changes in each release across all Calder modules.
 
 `KeyboardObserver` now uses the Observation framework instead of `@Published` properties. Views that read the observer through `@Environment(\.keyboardObserver)` now update when keyboard state changes. Prefer `@State` to own an observer and `@Environment` or a plain property to read one. The observer still conforms to `ObservableObject` and sends `objectWillChange` before each state change, so existing `@StateObject` and `@ObservedObject` call sites keep compiling and updating. Code that subscribed to the removed `$visible`, `$isHardwardKeyboard`, or `$keyboardSize` publishers must observe `objectWillChange` or use Observation instead.
 
-`KeyboardObserver.isHardwardKeyboard` is deprecated. Use `isHardwareKeyboard` instead; the deprecated property returns the same value.
+The misspelled `KeyboardObserver.isHardwardKeyboard` property was removed. Use `isHardwareKeyboard` instead.
 
 `KeyboardObserver` no longer debounces keyboard notifications by 150 milliseconds. It applies show, frame-change, and hide notifications on the main actor one at a time, in the order they are posted.
 
