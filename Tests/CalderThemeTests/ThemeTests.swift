@@ -652,7 +652,10 @@
 
         /// Allows for the rounding of saturated colors through the renderer's working color space.
         private static func expect(_ pixel: RenderedBitmap.Pixel, near expected: RenderedBitmap.Pixel, sourceLocation: SourceLocation = #_sourceLocation) {
-            #expect(pixel.isClose(to: expected, tolerance: 6), "\(pixel) is not close to \(expected)", sourceLocation: sourceLocation)
+            // Record the pixels in the issue itself so CI annotations show the actual values.
+            if !pixel.isClose(to: expected, tolerance: 6) {
+                Issue.record("\(pixel) is not close to \(expected)", sourceLocation: sourceLocation)
+            }
         }
     }
 

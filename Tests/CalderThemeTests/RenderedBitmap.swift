@@ -36,13 +36,32 @@
         }
 
         /// Renders `view` at its ideal size, or returns `nil` when it produces no image.
+        ///
+        /// A completely blank result is rendered again up to twice, because `ImageRenderer` has
+        /// intermittently produced uniform images on loaded CI simulators; a view that really is
+        /// blank still returns its blank bitmap.
         @MainActor init?(rendering view: some View) {
             let renderer = ImageRenderer(content: view)
             renderer.scale = 1
-            guard let image = renderer.cgImage else {
+            var rendered: RenderedBitmap?
+            for _ in 0 ..< 3 {
+                guard let image = renderer.cgImage, let bitmap = RenderedBitmap(image: image) else {
+                    return nil
+                }
+                rendered = bitmap
+                if !bitmap.isBlank {
+                    break
+                }
+            }
+            guard let rendered else {
                 return nil
             }
-            self.init(image: image)
+            self = rendered
+        }
+
+        /// Whether every byte of the bitmap is zero, as in a fully transparent image.
+        private var isBlank: Bool {
+            bytes.allSatisfy { $0 == 0 }
         }
 
         /// Copies the pixels of `image`.
