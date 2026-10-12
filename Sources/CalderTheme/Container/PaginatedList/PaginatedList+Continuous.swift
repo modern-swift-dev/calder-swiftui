@@ -125,11 +125,13 @@
                                 Group {
                                     if dataSource.nextPageError != nil {
                                         RetryState {
-                                            Task { await dataSource.next() }
+                                            Task { @MainActor in
+                                                await dataSource.next()
+                                            }
                                         }
                                     } else {
                                         LoadingState()
-                                            .task {
+                                            .task { @MainActor in
                                                 await dataSource.next()
                                             }
                                     }

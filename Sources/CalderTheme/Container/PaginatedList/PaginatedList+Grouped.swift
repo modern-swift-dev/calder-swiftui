@@ -67,11 +67,13 @@
                     if dataSource.hasNext {
                         if dataSource.nextPageError != nil {
                             RetryState {
-                                Task { await dataSource.next() }
+                                Task { @MainActor in
+                                    await dataSource.next()
+                                }
                             }
                         } else {
                             LoadingState()
-                                .task(id: dataSource.loadedNextPageCount) {
+                                .task(id: dataSource.loadedNextPageCount) { @MainActor in
                                     await dataSource.next()
                                 }
                         }

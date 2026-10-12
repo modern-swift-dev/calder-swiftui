@@ -619,7 +619,7 @@
             private func showActiveTint() {
                 scanRegionImageView.tintColor = model.scanRegionImageActiveTint
                 tintReset?.cancel()
-                tintReset = Task { [weak self] in
+                tintReset = Task { @MainActor [weak self] in
                     try? await Task.sleep(for: Self.activeTintDuration)
                     guard !Task.isCancelled, let self else {
                         return
