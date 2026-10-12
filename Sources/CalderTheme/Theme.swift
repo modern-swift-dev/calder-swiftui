@@ -43,6 +43,7 @@
         ///   - definition: The `ThemeDefinition` containing color and font styles.
         ///   - scheme: The color scheme, typically `.light` or `.dark`.
         ///   - contrast: The contrast setting, supporting accessibility needs.
+        ///   - dynamicTypeSize: The dynamic type size used to scale fonts.
         public init(definition: ThemeDefinition, scheme: ColorScheme, contrast: ColorSchemeContrast, dynamicTypeSize: DynamicTypeSize) {
             self.definition = definition
             self.scheme = scheme

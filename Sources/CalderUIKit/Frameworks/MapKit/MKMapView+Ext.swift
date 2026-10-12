@@ -180,7 +180,6 @@
 
             /// Centers and zooms the map view to encompass a given array of locations.
             /// - Parameters:
-            ///   - locations: An array of `CLLocation` objects to center on (note: this parameter is unused in the current implementation, `annotations` is used instead).
             ///   - padding: The distance in meters to pad around the locations.
             ///   - animated: A boolean indicating whether to animate the region change.
             @MainActor func centerAndZoomOnAnnotations(

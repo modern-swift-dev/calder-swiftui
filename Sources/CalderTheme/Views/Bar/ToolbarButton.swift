@@ -19,6 +19,8 @@
         ///
         /// - Parameters:
         ///   - placement: The placement of the toolbar item within the navigation bar.
+        ///   - variant: The bar button style variant. Defaults to `.regular`.
+        ///   - enabled: A Boolean value that indicates whether the button is enabled. Defaults to `true`.
         ///   - action: The action to perform when the button is tapped.
         ///   - label: A `ViewBuilder` that creates the content of the button's label.
         public init(
@@ -53,6 +55,8 @@
         ///
         /// - Parameters:
         ///   - placement: The placement of the toolbar item within the navigation bar.
+        ///   - variant: The bar button style variant. Defaults to `.regular`.
+        ///   - enabled: A Boolean value that indicates whether the button is enabled. Defaults to `true`.
         ///   - action: The action to perform when the button is tapped.
         ///   - text: The string to display as the button's label.
         init(
@@ -103,6 +107,8 @@
         ///
         /// - Parameters:
         ///   - placement: The placement of the toolbar item within the navigation bar.
+        ///   - variant: The bar button style variant. Defaults to `.regular`.
+        ///   - enabled: A Boolean value that indicates whether the button is enabled. Defaults to `true`.
         ///   - action: The action to perform when the button is tapped.
         ///   - icon: The `Image` to display as the button's label.
         init(
@@ -125,6 +131,8 @@
         ///
         /// - Parameters:
         ///   - placement: The placement of the toolbar item within the navigation bar.
+        ///   - variant: The bar button style variant. Defaults to `.regular`.
+        ///   - enabled: A Boolean value that indicates whether the button is enabled. Defaults to `true`.
         ///   - action: The action to perform when the button is tapped.
         ///   - symbol: The `SFSymbol` to display as the button's label.
         init(

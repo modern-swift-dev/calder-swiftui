@@ -22,7 +22,6 @@
         public extension WKWebsiteDataStore {
 
             /// Clear the DataStore
-            /// - returns: A Publisher
             func clear() async {
                 await removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: Date(timeIntervalSince1970: 0.0))
                 await httpCookieStore.deleteAllCookies()
@@ -40,7 +39,6 @@
             }
 
             /// Clear the Cookie Store
-            /// - returns: A Future
             func deleteAllCookies() async {
                 let cookies = await getAllCookies()
                 for cookie in cookies {

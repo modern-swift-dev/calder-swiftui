@@ -22,7 +22,6 @@
         ///   - alignment: The guide for aligning the subviews in this stack. This guide has the same screen coordinate for every subview.
         ///   - horizontalSpacing: The distance between adjacent subviews in a row or `nil` if you want the stack to choose a default distance.
         ///   - verticalSpacing: The distance between consequtive rows or`nil` if you want the stack to choose a default distance.
-        ///   - content: A view builder that creates the content of this stack.
         @inlinable public init(
             alignment: Alignment = .center,
             horizontalSpacing: CGFloat? = nil,

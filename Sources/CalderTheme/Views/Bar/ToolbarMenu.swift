@@ -19,6 +19,7 @@
             ///
             /// - Parameters:
             ///   - placement: The placement of the toolbar item within the navigation bar.
+            ///   - variant: The bar button style variant. Defaults to `.regular`.
             ///   - enabled: A boolean value indicating whether the menu is enabled. Defaults to `true`.
             ///   - content: A `ViewBuilder` that creates the content of the menu. This is the view that appears when the menu is tapped.
             ///   - label: A `ViewBuilder` that creates the content of the menu's label. This is the view visible in the toolbar.
@@ -91,6 +92,7 @@
             ///
             /// - Parameters:
             ///   - placement: The placement of the toolbar item within the navigation bar.
+            ///   - variant: The bar button style variant. Defaults to `.regular`.
             ///   - enabled: A boolean value indicating whether the menu is enabled. Defaults to `true`.
             ///   - content: A `ViewBuilder` that creates the content of the menu.
             ///   - text: The string to display as the menu's label.
@@ -153,6 +155,7 @@
             ///
             /// - Parameters:
             ///   - placement: The placement of the toolbar item within the navigation bar.
+            ///   - variant: The bar button style variant. Defaults to `.regular`.
             ///   - content: A `ViewBuilder` that creates the content of the menu.
             ///   - enabled: A boolean value indicating whether the menu is enabled. Defaults to `true`.
             ///   - icon: The `Image` to display as the menu's label.
@@ -187,6 +190,7 @@
             ///
             /// - Parameters:
             ///   - placement: The placement of the toolbar item within the navigation bar.
+            ///   - variant: The bar button style variant. Defaults to `.regular`.
             ///   - content: A `ViewBuilder` that creates the content of the menu.
             ///   - enabled: A boolean value indicating whether the menu is enabled. Defaults to `true`.
             ///   - symbol: The `SFSymbol` to display as the menu's label.
