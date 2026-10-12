@@ -34,7 +34,8 @@
 
         /// MKMapView can create a CLLocationManager that waits for authorization in test
         /// environments; the time limit fails the suite instead of hanging the test process.
-        @Suite(.serialized, .timeLimit(.minutes(1)))
+        /// The limit allows for MapKit's slow first start on a newly created CI simulator.
+        @Suite(.serialized, .timeLimit(.minutes(5)))
         @MainActor struct MKMapViewExtTests {
 
             /// Legacy helper for backwards compatibility

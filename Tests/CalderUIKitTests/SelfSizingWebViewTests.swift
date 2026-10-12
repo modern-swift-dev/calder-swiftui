@@ -71,7 +71,8 @@
                     "<html><head><meta name='viewport' content='width=device-width'></head><body style='margin:0'><div style='height:2000px'></div></body></html>",
                     baseURL: nil
                 )
-                let deadline = ContinuousClock.now + .seconds(10)
+                // Allow for WebKit's slow first start on a newly created CI simulator; the loop exits as soon as the page lays out.
+                let deadline = ContinuousClock.now + .seconds(60)
                 while webView.lastContentSize.height < 2000, ContinuousClock.now < deadline {
                     try await Task.sleep(for: .milliseconds(100))
                 }
