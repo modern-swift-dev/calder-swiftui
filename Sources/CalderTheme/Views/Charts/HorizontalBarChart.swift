@@ -51,6 +51,21 @@
         /// The processed data points to be displayed in the chart.
         private var dataPoints: [DataPoint]
 
+        /// A data point paired with its position, so points sharing a name keep distinct identities.
+        struct PlottedPoint: Identifiable {
+            /// The position of the point in the input data.
+            let id: Int
+            /// The category name for the bar.
+            let name: String
+            /// The value associated with the category.
+            let value: Int
+        }
+
+        /// The data points in input order, identified by position rather than by name.
+        var plottedPoints: [PlottedPoint] {
+            dataPoints.enumerated().map { PlottedPoint(id: $0.offset, name: $0.element.name, value: $0.element.value) }
+        }
+
         /// Initializes the horizontal bar chart with given data points.
         ///
         /// Each bar is annotated with its value, formatted for the environment's locale.
@@ -93,7 +108,7 @@
             VStack(alignment: .leading, spacing: .spacingMedium) {
                 Chart {
                     // Bar Chart for Absolute Values
-                    ForEach(dataPoints, id: \.name) { data in
+                    ForEach(plottedPoints) { data in
                         BarMark(
                             x: .value(yAxisTitleText.text, data.value),
                             y: .value(xAxisLabelText.text, data.name)
