@@ -25,6 +25,27 @@
         ///   - msg: An optional error message.
         ///   - icon: An optional image shown alongside the error message.
         case error(String? = nil, Image = Image(systemSymbol: .exclamationmarkTriangle))
+        /// The initial state before any content is loaded, with a localized message.
+        ///
+        /// SwiftUI looks up the message in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - msg: An optional message to display.
+        ///   - icon: An optional image shown alongside the message.
+        case localizedPristine(LocalizedStringResource?, Image = Image(systemSymbol: .sparkles))
+        /// Indicates that no content is available, with a localized message.
+        ///
+        /// SwiftUI looks up the message in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - msg: An optional message to display.
+        ///   - icon: An optional image shown alongside the message.
+        case localizedEmpty(LocalizedStringResource?, Image = Image(systemSymbol: .binoculars))
+        /// Indicates that an error occurred, with a localized message.
+        ///
+        /// SwiftUI looks up the message in its bundle and table using the environment's locale.
+        /// - Parameters:
+        ///   - msg: An optional error message.
+        ///   - icon: An optional image shown alongside the error message.
+        case localizedError(LocalizedStringResource?, Image = Image(systemSymbol: .exclamationmarkTriangle))
     }
 
     /// A SwiftUI view that adapts its layout and content based on a provided `GenericState`.
@@ -54,61 +75,43 @@
         public var body: some View {
             switch state {
                 case let .pristine(msg, icon):
-                    VStack(spacing: .spacingSmall) {
-                        Spacer()
-
-                        icon
-                            .foregroundStyle(theme.primary)
-                            .font(.title)
-
-                        if let msg {
-                            Text(verbatim: msg)
-                                .font(.body)
-                                .foregroundStyle(theme.text1)
-                        }
-
-                        Spacer()
-                    }
+                    message(msg.map { LocalizableText.verbatim($0) }, icon: icon, tint: theme.primary)
+                case let .localizedPristine(msg, icon):
+                    message(msg.map { LocalizableText.localized($0) }, icon: icon, tint: theme.primary)
                 case let .empty(msg, icon):
-                    VStack(spacing: .spacingSmall) {
-                        Spacer()
-
-                        icon
-                            .foregroundStyle(theme.warning)
-                            .font(.title)
-
-                        if let msg {
-                            Text(verbatim: msg)
-                                .font(.body)
-                                .foregroundStyle(theme.text1)
-                        }
-
-                        Spacer()
-                    }
+                    message(msg.map { LocalizableText.verbatim($0) }, icon: icon, tint: theme.warning)
+                case let .localizedEmpty(msg, icon):
+                    message(msg.map { LocalizableText.localized($0) }, icon: icon, tint: theme.warning)
                 case .displaying:
                     displayingBuilder()
                 case let .error(msg, icon):
-                    VStack(spacing: .spacingSmall) {
-                        Spacer()
-
-                        icon
-                            .foregroundStyle(theme.error)
-                            .font(.title)
-
-                        if let msg {
-                            Text(verbatim: msg)
-                                .font(.body)
-                                .foregroundStyle(theme.text1)
-                        }
-
-                        Spacer()
-                    }
+                    message(msg.map { LocalizableText.verbatim($0) }, icon: icon, tint: theme.error)
+                case let .localizedError(msg, icon):
+                    message(msg.map { LocalizableText.localized($0) }, icon: icon, tint: theme.error)
                 case .loading:
                     VStack(spacing: .spacingSmall) {
                         Spacer()
                         ProgressView().progressViewStyle(.circular)
                         Spacer()
                     }
+            }
+        }
+
+        private func message(_ text: LocalizableText?, icon: Image, tint: Color) -> some View {
+            VStack(spacing: .spacingSmall) {
+                Spacer()
+
+                icon
+                    .foregroundStyle(tint)
+                    .font(.title)
+
+                if let text {
+                    text.text
+                        .font(.body)
+                        .foregroundStyle(theme.text1)
+                }
+
+                Spacer()
             }
         }
     }
