@@ -69,6 +69,8 @@ The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangl
 
 `CIImage.writePNG(uiImage:)` and `CIImage.writeJpeg(uiImage:compression:)` now throw `CIImage.WriteError.encodingFailed` when the image cannot be encoded, instead of returning a URL to a file that was never written.
 
+`UIColor.asImage(_:)`, `asSquare(_:)`, `asCircle(_:)`, and `asOval(_:)` now render with `UIGraphicsImageRenderer`, so the images use the renderer format's scale (the main screen scale) instead of scale 1 and a zero size returns an empty image instead of asserting. `asOval(_:centered:)` is now `asOval(_:)`: the `centered` parameter was removed because the default `true` centred the path on the origin and drew only its bottom-right quarter. The oval now fills the whole image. `UIImage.tintGradient(colors:vertical:)` keeps the source image's scale and returns an empty image for an empty size.
+
 ### Barcodes
 
 `BarcodeGenerator.qr` encodes payloads as UTF-8, so non-ASCII text such as "Café" produces a QR code. Code 128 and PDF417 barcodes still require ASCII payloads and return `nil` otherwise.

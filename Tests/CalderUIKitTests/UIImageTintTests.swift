@@ -76,6 +76,22 @@
                 #expect(gradientImage.size.height == 20)
             }
 
+            @Test func `tint gradient keeps the image scale`() {
+                let format = UIGraphicsImageRendererFormat()
+                format.scale = 2
+                let image = UIGraphicsImageRenderer(size: CGSize(width: 10, height: 10), format: format).image { context in
+                    UIColor.white.setFill()
+                    context.fill(CGRect(x: 0, y: 0, width: 10, height: 10))
+                }
+                #expect(image.tintGradient(colors: [.red, .blue]).scale == 2)
+            }
+
+            @Test func `tint and tint gradient of an empty image return empty images`() {
+                let empty = UIImage()
+                #expect(empty.tint(.red) == nil)
+                #expect(empty.tintGradient(colors: [.red, .blue]).size == .zero)
+            }
+
             @Test func `tint gradient default vertical`() {
                 let image = createTestImage()
                 let gradientImage = image.tintGradient(colors: [.cyan, .magenta])

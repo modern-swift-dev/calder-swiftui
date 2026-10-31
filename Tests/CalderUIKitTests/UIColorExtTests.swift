@@ -107,7 +107,7 @@
 
             // MARK: - asOval Tests
 
-            @Test func `as oval centered default`() {
+            @Test func `as oval default`() {
                 let color = UIColor.red
                 let size = CGSize(width: 100, height: 50)
                 let image = color.asOval(size)
@@ -115,20 +115,46 @@
                 #expect(image.size.height == 50)
             }
 
-            @Test func `as oval centered`() {
-                let color = UIColor.blue
-                let size = CGSize(width: 80, height: 40)
-                let image = color.asOval(size, centered: true)
-                #expect(image.size.width == 80)
-                #expect(image.size.height == 40)
+            @Test func `as oval draws the whole shape`() throws {
+                let image = UIColor.red.asOval(CGSize(width: 40, height: 20))
+                let bitmap = try #require(image.cgImage.flatMap { RGBABitmap(image: $0) })
+                let scale = Int(image.scale)
+
+                // The centre of every quadrant of the oval is painted, the corners are not.
+                for (x, y) in [(10, 5), (30, 5), (10, 15), (30, 15), (20, 10)] {
+                    #expect(bitmap.pixel(x: x * scale, y: y * scale) == .red)
+                }
+                #expect(bitmap.pixel(x: 0, y: 0) == .clear)
+                #expect(bitmap.pixel(x: bitmap.width - 1, y: bitmap.height - 1) == .clear)
             }
 
-            @Test func `as oval not centered`() {
-                let color = UIColor.green
-                let size = CGSize(width: 60, height: 30)
-                let image = color.asOval(size, centered: false)
-                #expect(image.size.width == 60)
-                #expect(image.size.height == 30)
+            @Test func `as circle draws the whole shape`() throws {
+                let image = UIColor.red.asCircle(20)
+                let bitmap = try #require(image.cgImage.flatMap { RGBABitmap(image: $0) })
+                let scale = Int(image.scale)
+
+                for (x, y) in [(5, 5), (15, 5), (5, 15), (15, 15)] {
+                    #expect(bitmap.pixel(x: x * scale, y: y * scale) == .red)
+                }
+                #expect(bitmap.pixel(x: 0, y: 0) == .clear)
+            }
+
+            #if !os(watchOS)
+                @Test func `shape images render at the renderer format scale`() {
+                    let scale = UIGraphicsImageRendererFormat().scale
+                    #expect(UIColor.red.asImage(CGSize(width: 4, height: 4)).scale == scale)
+                    #expect(UIColor.red.asSquare(4).scale == scale)
+                    #expect(UIColor.red.asCircle(4).scale == scale)
+                    #expect(UIColor.red.asOval(CGSize(width: 4, height: 2)).scale == scale)
+                }
+            #endif
+
+            @Test func `shape images with zero size are empty`() {
+                #expect(UIColor.red.asImage(.zero).size == .zero)
+                #expect(UIColor.red.asSquare(0).size == .zero)
+                #expect(UIColor.red.asCircle(0).size == .zero)
+                #expect(UIColor.red.asOval(.zero).size == .zero)
+                #expect(UIColor.red.asImage(CGSize(width: 10, height: 0)).size == .zero)
             }
 
             @Test func `as oval square size`() {

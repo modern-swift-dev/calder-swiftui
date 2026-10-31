@@ -7,8 +7,11 @@
 
             /// Tints an image with the specified color.
             /// - Parameter tintColor: The `UIColor` to apply as a tint.
-            /// - Returns: A new `UIImage` with the applied tint, or `nil` if the image's `cgImage` is unavailable.
+            /// - Returns: A new `UIImage` with the applied tint, or `nil` if the image's `cgImage` is unavailable or its size is empty.
             func tint(_ tintColor: UIColor) -> UIImage? {
+                guard size.width > 0, size.height > 0 else {
+                    return nil
+                }
                 let bounds = CGRect(origin: .zero, size: size)
                 let renderer = UIGraphicsImageRenderer(size: size, format: UIGraphicsImageRendererFormat.transparent())
                 if let cgImage {
@@ -32,37 +35,28 @@
             /// - Parameters:
             ///   - colors: An array of `UIColor` objects to use for the gradient. The gradient will transition between these colors.
             ///   - vertical: A boolean indicating whether the gradient should be applied vertically (`true`) or horizontally (`false`). Defaults to `true`.
-            /// - Returns: A new `UIImage` with the applied gradient tint. If the context cannot be created, an empty `UIImage` is returned.
+            /// - Returns: A new `UIImage` with the applied gradient tint. If the image has no `cgImage` or an empty size, or the gradient cannot be created, an empty `UIImage` is returned. The result keeps the image's scale.
             func tintGradient(colors: [UIColor], vertical: Bool = true) -> UIImage {
-                UIGraphicsBeginImageContextWithOptions(size, false, scale)
-                guard let context = UIGraphicsGetCurrentContext(),
-                      let cgImage else {
-                    UIGraphicsEndImageContext()
+                guard size.width > 0, size.height > 0, let cgImage else {
                     return UIImage()
                 }
-                context.translateBy(x: 0, y: size.height)
-                context.scaleBy(x: 1, y: -1)
-                context.setBlendMode(.normal)
-                let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
-
-                // Create gradient
                 let cgColors = colors.map(\.cgColor) as CFArray
-                let space = CGColorSpaceCreateDeviceRGB()
-                guard let gradient = CGGradient(colorsSpace: space, colors: cgColors, locations: nil) else {
-                    UIGraphicsEndImageContext()
+                guard let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: cgColors, locations: nil) else {
                     return UIImage()
                 }
 
-                // Apply gradient
-                context.clip(to: rect, mask: cgImage)
-                if vertical {
-                    context.drawLinearGradient(gradient, start: CGPoint(x: 0, y: 0), end: CGPoint(x: 0, y: size.height), options: .drawsAfterEndLocation)
-                } else {
-                    context.drawLinearGradient(gradient, start: CGPoint(x: 0, y: 0), end: CGPoint(x: size.width, y: 0), options: .drawsAfterEndLocation)
+                let format = UIGraphicsImageRendererFormat.transparent()
+                format.scale = scale
+                let rect = CGRect(origin: .zero, size: size)
+                let end = vertical ? CGPoint(x: 0, y: size.height) : CGPoint(x: size.width, y: 0)
+                return UIGraphicsImageRenderer(size: size, format: format).image { context in
+                    let cgContext = context.cgContext
+                    cgContext.translateBy(x: 0, y: size.height)
+                    cgContext.scaleBy(x: 1, y: -1)
+                    cgContext.setBlendMode(.normal)
+                    cgContext.clip(to: rect, mask: cgImage)
+                    cgContext.drawLinearGradient(gradient, start: .zero, end: end, options: .drawsAfterEndLocation)
                 }
-                let gradientImage = UIGraphicsGetImageFromCurrentImageContext()
-                UIGraphicsEndImageContext()
-                return gradientImage ?? UIImage()
             }
         }
     #endif
