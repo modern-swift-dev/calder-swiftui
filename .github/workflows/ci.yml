@@ -153,10 +153,16 @@ jobs:
             destination="id=$SIMULATOR_ID"
           fi
 
+          # With coverage on, the watchOS 27.0 simulator skips the CalderUIKitTests bundle and the run exits 65.
+          coverage=YES
+          if [ '${{ matrix.platform }}' = 'watchOS' ]; then
+            coverage=NO
+          fi
+
           xcodebuild test -scheme Calder-Package -destination "$destination" \
-            -enableCodeCoverage YES -resultBundlePath "$RESULT_BUNDLE" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+            -enableCodeCoverage "$coverage" -resultBundlePath "$RESULT_BUNDLE" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
       - name: Report ${{ matrix.platform }} coverage
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.platform != 'watchOS' }}
         env:
           RESULT_BUNDLE: ${{ runner.temp }}/${{ matrix.platform }}.xcresult
         run: |
