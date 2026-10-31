@@ -59,6 +59,8 @@ The `UIApplication` scene and window lookups (`session(for:)`, `scene(for:)`, `w
 
 `UIView.setViewGradient(startLocation:startPoint:startColor:endLocation:endPoint:endColor:type:)` now hosts its gradient in a single non-interactive subview at index 0 that resizes with the view. Repeated calls reconfigure that gradient instead of stacking layers. The method no longer sets `masksToBounds` on the view, so shadows are no longer clipped; the gradient clips itself using the view's corner radius at the time of the call.
 
+`UIScrollView.setupKeyboardAutoAdjustment(keepCentered:)` now applies the content insets synchronously when the keyboard notification arrives. It previously hopped to the main run loop's default mode, so the insets waited while the scroll view tracked a touch, such as during interactive keyboard dismissal. The returned `AnyCancellable` is active as soon as the method returns.
+
 ### Geometry and drawing
 
 The `CGRect` corner, mid-edge, and `center` helpers now account for the rectangle's origin. `topLeft` returns `(minX, minY)` instead of `.zero`, `topRight` and `bottomLeft` use `minY` and `minX`, and `center` returns `(midX, midY)` instead of `(minX, midY)`.

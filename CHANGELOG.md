@@ -47,6 +47,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `UIImage.resizeToFit(_:_:)` resizes images that aren't backed by a `CGImage`, such as `CIImage`-backed images, instead of returning them unchanged; an `orientation` override is ignored for them, as in `resize(_:_:_:)` (#113).
 - The `UIApplication` scene and window lookups (`session(for:)`, `scene(for:)`, `windowScene(for:)`, `window(for:)`, `windows(for:)`, `keyWindow(for:)`, `keyWindows(for:)`, `topMostPresentedViewController(for:)`) consider every scene in the requested activation state instead of one arbitrary scene, prefer the scene that holds the key window, and read the application they're called on instead of `UIApplication.shared` (#114).
 - `coordinateRegion(padding:)` covers the smallest longitude span, so coordinates at `179°` and `-179°` give a `2°` span centred on `180°` instead of `358°` centred on `0°`, and clamps the padded latitudes and spans to MapKit's limits. `CLLocationCoordinate2D.distance(from:)` and `isNear(_:threshold:)` measure longitude the shorter way around the globe, as `distanceInMeters(from:)` already did (#117).
+- `UIScrollView.setupKeyboardAutoAdjustment(keepCentered:)` updates the insets as each keyboard notification arrives, instead of waiting for the main run loop's default mode, so they no longer lag behind the keyboard animation while the scroll view is tracking (#122).
 
 ### Source-breaking changes
 

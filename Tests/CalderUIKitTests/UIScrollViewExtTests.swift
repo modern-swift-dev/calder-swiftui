@@ -73,33 +73,28 @@
             // MARK: - setupKeyboardAutoAdjustment Tests
 
             #if !os(tvOS)
-                @Test func `keyboard auto adjustment insets the bottom by the covered height`() async throws {
+                @Test func `keyboard auto adjustment insets the bottom by the covered height`() {
                     let scrollView = UIScrollView(frame: CGRect(x: 0, y: 0, width: 300, height: 500))
                     scrollView.contentInset.bottom = 10
                     scrollView.contentSize = CGSize(width: 300, height: 100)
                     let cancellable = scrollView.setupKeyboardAutoAdjustment(keepCentered: false)
                     defer { cancellable?.cancel() }
 
-                    // The subscription is set up asynchronously on the main run loop, so repost until it applies.
-                    try await waitUntil {
-                        postKeyboardFrame(CGRect(x: 0, y: 300, width: 300, height: 200))
-                        return scrollView.contentInset.bottom == 210
-                    }
+                    // The notification applies immediately, without waiting for a run loop mode such as scroll tracking.
+                    postKeyboardFrame(CGRect(x: 0, y: 300, width: 300, height: 200))
+                    #expect(scrollView.contentInset.bottom == 210)
                     #expect(scrollView.contentInset.top == 0)
                 }
 
-                @Test func `keyboard auto adjustment keep centered`() async throws {
+                @Test func `keyboard auto adjustment keep centered`() {
                     let scrollView = UIScrollView(frame: CGRect(x: 0, y: 0, width: 300, height: 500))
                     scrollView.contentSize = CGSize(width: 300, height: 100)
                     let cancellable = scrollView.setupKeyboardAutoAdjustment(keepCentered: true)
                     defer { cancellable?.cancel() }
 
-                    // The subscription is set up asynchronously on the main run loop, so repost until it applies.
                     // The top inset centers the content above the keyboard: (500 - 100 - 200) / 2.
-                    try await waitUntil {
-                        postKeyboardFrame(CGRect(x: 0, y: 300, width: 300, height: 200))
-                        return scrollView.contentInset.top == 100
-                    }
+                    postKeyboardFrame(CGRect(x: 0, y: 300, width: 300, height: 200))
+                    #expect(scrollView.contentInset.top == 100)
                     #expect(scrollView.contentInset.bottom == 200)
                 }
 

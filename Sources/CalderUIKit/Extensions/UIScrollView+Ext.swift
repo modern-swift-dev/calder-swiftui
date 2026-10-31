@@ -24,6 +24,9 @@
             }
 
             /// Sets up automatic adjustment of the scroll view's content inset to accommodate the keyboard.
+            ///
+            /// UIKit posts the keyboard notifications on the main thread, and the insets update as each one arrives,
+            /// including while the scroll view is tracking a touch, such as during interactive keyboard dismissal.
             /// - Parameter keepCentered: A boolean indicating whether the scroll view's content should try to remain vertically centered when the keyboard appears.
             /// - Returns: An `AnyCancellable` object to manage the notification subscription lifecycle.
             func setupKeyboardAutoAdjustment(keepCentered: Bool) -> AnyCancellable? {
@@ -32,8 +35,6 @@
                 #else
                     let bottomInset = contentInset.bottom
                     return NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification, object: nil)
-                        .subscribe(on: RunLoop.main)
-                        .receive(on: RunLoop.main)
                         .sink { [weak self] notification in
                             guard let self else {
                                 return
