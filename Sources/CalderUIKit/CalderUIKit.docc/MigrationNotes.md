@@ -67,6 +67,32 @@ When a second `transition(fromChild:toNewChild:inContainerView:duration:delay:co
 
 `UITableView.indexPathForLastRow(inSection:)`, `UICollectionView.indexPathForLastItem(inSection:)`, `indexPathForLastRow`, and `indexPathForLastItem` return `nil` for empty or out-of-range sections instead of row or item 0. `UITableView.safeScrollToRow(at:at:animated:)` ignores negative indices.
 
+### Image picking
+
+`UIViewController.openImagePicker(sender:allowEditing:canPickFromLibrary:buttonFileText:buttonCameraText:buttonCancelText:)` was removed. Its replacement, `pickImages(source:limit:)`, is `async throws` and returns the images directly, so the presenting view controller no longer conforms to `UIImagePickerControllerDelegate` and `UINavigationControllerDelegate`. The photo library now uses `PHPickerViewController`, which needs no photo-library permission and supports picking several images; the camera still uses `UIImagePickerController` and needs an `NSCameraUsageDescription`. The old method also showed an action sheet to choose between the camera and the library; the new one takes the source as an argument, so show your own choice first, and the editing option is gone.
+
+```swift
+// Before
+openImagePicker(
+    sender: button,
+    canPickFromLibrary: true,
+    buttonFileText: "Choose from Library",
+    buttonCameraText: "Take Photo",
+    buttonCancelText: "Cancel"
+)
+// Handle the result in imagePickerController(_:didFinishPickingMediaWithInfo:)
+
+// After
+do {
+    let images = try await pickImages(source: .photoLibrary, limit: 3)
+    // `images` is empty when the user cancels.
+} catch ImagePickerError.sourceUnavailable {
+    // For example, the camera on a simulator.
+}
+```
+
+Pass `limit: 0` for no limit. The call throws `ImagePickerError.alreadyPresenting` instead of silently doing nothing when the view controller is already presenting another view controller.
+
 ### Views
 
 `UIView.setViewGradient(startLocation:startPoint:startColor:endLocation:endPoint:endColor:type:)` now hosts its gradient in a single non-interactive subview at index 0 that resizes with the view. Repeated calls reconfigure that gradient instead of stacking layers. The method no longer sets `masksToBounds` on the view, so shadows are no longer clipped; the gradient clips itself using the view's corner radius at the time of the call.

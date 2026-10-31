@@ -3,83 +3,43 @@
         import Foundation
         import UIKit
 
+        @MainActor
         public extension UIViewController {
-            /// Utility method that allows presenting the `UIImagePickerController` (Image Picker) from any `UIViewController`.
-            /// It provides options to pick from the photo library or camera, and handles presentation as an action sheet on iPad.
+
+            /// Presents an image picker and returns the images the user picks.
+            ///
+            /// The photo library uses `PHPickerViewController`, limited to images, so the app needs no
+            /// photo-library permission. The camera uses `UIImagePickerController` and returns one photo; the app
+            /// needs an `NSCameraUsageDescription`. The caller doesn't implement any delegate.
+            ///
+            /// The call suspends until the user finishes or cancels. Cancelling the surrounding task doesn't
+            /// dismiss the picker.
             /// - Parameters:
-            ///   - sender: The `UIView` that acts as the source for the popover presentation controller on iPad.
-            ///   - allowEditing: A boolean indicating whether the user can edit the selected image. Defaults to `false`.
-            ///   - canPickFromLibrary: A boolean indicating whether picking from the photo library is allowed. Defaults to `true`.
-            ///   - buttonFileText: The title for the "Choose from Library" action button.
-            ///   - buttonCameraText: The title for the "Take Photo or Video" action button.
-            ///   - buttonCancelText: The title for the "Cancel" action button.
-            func openImagePicker(
-                sender: UIView,
-                allowEditing: Bool = false,
-                canPickFromLibrary: Bool = true,
-                buttonFileText: String,
-                buttonCameraText: String,
-                buttonCancelText: String
-            ) {
-                let isPhotoLibraryAvailable = canPickFromLibrary && UIImagePickerController.isSourceTypeAvailable(.photoLibrary)
-                let isCameraAvailable = UIImagePickerController.isSourceTypeAvailable(.camera)
+            ///   - source: Where to get images from.
+            ///   - limit: The most images to return. Defaults to `1`; zero or less means no limit. The camera always
+            ///     returns at most one image.
+            /// - Returns: The picked images in selection order, or an empty array when the user cancels.
+            /// - Throws: ``ImagePickerError/sourceUnavailable(_:)`` when `source` isn't available on this device,
+            ///   ``ImagePickerError/alreadyPresenting`` when this view controller is already presenting another one, or
+            ///   the error from loading a picked image.
+            func pickImages(source: ImagePickerSource, limit: Int = 1) async throws -> [UIImage] {
+                try await pickImages(source: source, limit: limit, using: SystemImagePickerPresenter())
+            }
+        }
 
-                let openCamera = { [weak self] in
-                    let imagePicker = UIImagePickerController()
-                    imagePicker.sourceType = .camera
-                    imagePicker.allowsEditing = allowEditing
-                    imagePicker.delegate = self as? (any (UIImagePickerControllerDelegate & UINavigationControllerDelegate))
-                    self?.present(imagePicker, animated: true, completion: nil)
+        @MainActor
+        extension UIViewController {
+
+            func pickImages(source: ImagePickerSource, limit: Int, using presenter: some ImagePickerPresenting) async throws -> [UIImage] {
+                guard presenter.isAvailable(source) else {
+                    throw ImagePickerError.sourceUnavailable(source)
                 }
-
-                let openLibrary = { [weak self] in
-                    let imagePicker = UIImagePickerController()
-                    imagePicker.sourceType = .photoLibrary
-                    imagePicker.mediaTypes = UIImagePickerController.availableMediaTypes(for: imagePicker.sourceType) ?? []
-                    imagePicker.delegate = self as? (any (UIImagePickerControllerDelegate & UINavigationControllerDelegate))
-                    imagePicker.allowsEditing = allowEditing
-                    self?.present(imagePicker, animated: true, completion: nil)
+                guard presentedViewController == nil else {
+                    throw ImagePickerError.alreadyPresenting
                 }
-
-                if isCameraAvailable, isPhotoLibraryAvailable {
-                    let alert = UIAlertController(
-                        title: nil,
-                        message: nil,
-                        preferredStyle: UIAlertController.Style.actionSheet
-                    )
-
-                    let cameraAction = UIAlertAction(
-                        title: buttonCameraText,
-                        style: .default,
-                        handler: { _ in
-                            openCamera()
-                        }
-                    )
-
-                    let photoLibraryAction = UIAlertAction(
-                        title: buttonFileText,
-                        style: .default,
-                        handler: { _ in
-                            openLibrary()
-                        }
-                    )
-
-                    let defaultAction = UIAlertAction(
-                        title: buttonCancelText,
-                        style: .cancel,
-                        handler: nil
-                    )
-                    alert.addAction(cameraAction)
-                    alert.addAction(photoLibraryAction)
-                    alert.addAction(defaultAction)
-                    alert.popoverPresentationController?.sourceView = sender
-                    alert.popoverPresentationController?.sourceRect = sender.bounds
-                    present(alert, animated: true, completion: nil)
-                } else if isPhotoLibraryAvailable {
-                    openLibrary()
-                } else if isCameraAvailable {
-                    openCamera()
-                }
+                let limit = max(limit, 0)
+                let images = try await presenter.presentPicker(source: source, limit: limit, from: self)
+                return limit > 0 ? Array(images.prefix(limit)) : images
             }
         }
     #endif
