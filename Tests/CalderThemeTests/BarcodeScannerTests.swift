@@ -76,6 +76,38 @@
                 #expect(controller.barcodeScanner.isSuspended)
             }
 
+            @Test func `scan results go to the current result binding`() async throws {
+                final class Store {
+                    var result: BarcodeScanner.ScanResult?
+                }
+                let first = Store()
+                let second = Store()
+                func binding(_ store: Store) -> Binding<BarcodeScanner.ScanResult?> {
+                    Binding(
+                        get: { MainActor.assumeIsolated { store.result } },
+                        set: { value in MainActor.assumeIsolated { store.result = value } }
+                    )
+                }
+                let host = UIHostingController(rootView: BarcodeScanner(result: binding(first), state: .scanning))
+                let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+                window.rootViewController = host
+                window.makeKeyAndVisible()
+                defer { window.isHidden = true }
+                host.view.layoutIfNeeded()
+                let controller = try #require(host.children.compactMap { $0 as? BarcodeScannerViewController }.first)
+
+                host.rootView = BarcodeScanner(result: binding(second), state: .scanning)
+                host.view.setNeedsLayout()
+                host.view.layoutIfNeeded()
+                controller.barcodeScanner.deliverScannedCode("code", type: .qr, rect: .zero, path: UIBezierPath())
+                for _ in 0 ..< 100 where second.result == nil {
+                    try await Task.sleep(for: .milliseconds(10))
+                }
+
+                #expect(second.result?.payload == "code")
+                #expect(first.result == nil)
+            }
+
             /// Hosts a ``BarcodeScanner`` in a window so SwiftUI drives its view controller.
             @MainActor private final class HostedBarcodeScanner {
                 private let host: UIHostingController<BarcodeScanner>

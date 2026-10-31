@@ -86,11 +86,13 @@
             ///
             /// A changed ``state`` takes effect immediately: `.scanning` resumes detection, `.suspended` pauses it,
             /// and `.finished` stops the camera. Resetting ``result`` to `nil` after a scan resumes detection
-            /// unless the state is `.suspended` or `.finished`.
+            /// unless the state is `.suspended` or `.finished`. The coordinator writes scan results to the current
+            /// ``result`` binding.
             /// - Parameters:
             ///   - uiViewController: The `BarcodeScannerViewController` to update.
             ///   - context: The representable context.
             public func updateUIViewController(_ uiViewController: BarcodeScannerViewController, context: Context) {
+                context.coordinator.result = $result
                 uiViewController.themeDefinition = context.environment.themeDefinition
                 uiViewController.apply(state)
                 if result == nil {
@@ -107,13 +109,13 @@
             /// The coordinator class that handles scan results from the view controller.
             public class Coordinator: NSObject {
 
-                /// A binding to update the scan result in the parent SwiftUI view.
-                @Binding var result: ScanResult?
+                /// A binding to update the scan result in the parent SwiftUI view. The scanner refreshes it on every update.
+                var result: Binding<ScanResult?>
 
                 /// Initializes a new coordinator.
                 /// - Parameter result: A binding to the scan result.
                 public init(result: Binding<ScanResult?>) {
-                    self._result = result
+                    self.result = result
                 }
 
                 /// Handles the scan result from the barcode scanner view controller.
@@ -121,7 +123,7 @@
                 ///   - code: The scanned code as a string.
                 ///   - type: The type of the scanned code.
                 func handleScanResult(_ code: String, _ type: AVMetadataObject.ObjectType) {
-                    result = .init(payload: code, type: type)
+                    result.wrappedValue = .init(payload: code, type: type)
                 }
             }
 
