@@ -21,7 +21,7 @@ jobs:
   lint:
     runs-on: xcode-27
     env:
-      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Verify Swift 6.4
@@ -36,7 +36,7 @@ jobs:
   apple:
     runs-on: xcode-27
     env:
-      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
@@ -46,19 +46,19 @@ jobs:
             simulator-name: iPhone 17 Pro
             runtime-platform: iOS
             # Must match the runtime used to record snapshot baselines.
-            runtime-version: '27.0'
+            runtime-version: '27.2'
           - platform: tvOS
             simulator-name: Apple TV 4K (3rd generation)
             runtime-platform: tvOS
-            runtime-version: '27.0'
+            runtime-version: '27.2'
           - platform: visionOS
             simulator-name: Apple Vision Pro
             runtime-platform: visionOS
-            runtime-version: '27.0'
+            runtime-version: '27.2'
           - platform: watchOS
             simulator-name: Apple Watch Series 12 (46mm)
             runtime-platform: watchOS
-            runtime-version: '27.0'
+            runtime-version: '27.2'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Cache SwiftPM dependencies
@@ -71,9 +71,9 @@ jobs:
         run: |
           brew install mint
           mint install cpisciotta/xcbeautify
-      - name: Verify Xcode 27.0 and Swift 6.4
+      - name: Verify Xcode 27.2 and Swift 6.4
         run: |
-          xcodebuild -version | grep -F 'Xcode 27.0' 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+          xcodebuild -version | grep -F 'Xcode 27.2' 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
           swift --version | grep -F 'Swift version 6.4'
       - name: Ensure ${{ matrix.simulator-name }} simulator exists
         id: simulator
@@ -83,44 +83,7 @@ jobs:
           RUNTIME_PLATFORM: ${{ matrix.runtime-platform }}
           RUNTIME_VERSION: ${{ matrix.runtime-version }}
         run: |
-          device_type_identifier="$(
-            xcrun simctl list devicetypes --json |
-              jq -er --arg name "$SIMULATOR_NAME" \
-                'first(.devicetypes[] | select(.name == $name) | .identifier)'
-          )"
-          if runtime="$(
-            xcrun simctl list runtimes available --json |
-              jq -cer --arg platform "$RUNTIME_PLATFORM" --arg version "$RUNTIME_VERSION" '
-                [
-                  .runtimes[]
-                  | select(.name | startswith($platform + " "))
-                  | select(.version == $version)
-                ]
-                | first
-              '
-          )"; then
-            runtime_identifier="$(jq -r '.identifier' <<< "$runtime")"
-            jq -r '"Using runtime: \(.name), build \(.buildversion) (\(.identifier))"' <<< "$runtime"
-          else
-            echo "::error::No available $RUNTIME_PLATFORM $RUNTIME_VERSION runtime. Install the required runtime before running tests."
-            exit 1
-          fi
-
-          if device_identifier="$(
-            xcrun simctl list devices available --json |
-              jq -er \
-                --arg name "$SIMULATOR_NAME" \
-                --arg runtime "$runtime_identifier" \
-                'first(.devices[$runtime][] | select(.name == $name) | .udid)'
-          )"; then
-            echo "Using existing $SIMULATOR_NAME ($device_identifier)"
-          else
-            device_identifier="$(xcrun simctl create \
-              "$SIMULATOR_NAME" \
-              "$device_type_identifier" \
-              "$runtime_identifier")"
-          fi
-
+          device_identifier="$(bash Scripts/ensure-simulator.sh "$SIMULATOR_NAME" "$RUNTIME_PLATFORM" "$RUNTIME_VERSION")"
           echo "device-id=$device_identifier" >> "$GITHUB_OUTPUT"
       - name: Build for ${{ matrix.platform }}
         env:
@@ -161,16 +124,10 @@ jobs:
             destination="id=$SIMULATOR_ID"
           fi
 
-          # With coverage on, the watchOS 27.0 simulator skips the CalderUIKitTests bundle and the run exits 65.
-          coverage=YES
-          if [ '${{ matrix.platform }}' = 'watchOS' ]; then
-            coverage=NO
-          fi
-
           xcodebuild test -scheme Calder-Package -destination "$destination" \
-            -enableCodeCoverage "$coverage" -resultBundlePath "$RESULT_BUNDLE" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+            -enableCodeCoverage YES -resultBundlePath "$RESULT_BUNDLE" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
       - name: Report ${{ matrix.platform }} coverage
-        if: ${{ !cancelled() && matrix.platform != 'watchOS' }}
+        if: ${{ !cancelled() }}
         env:
           RESULT_BUNDLE: ${{ runner.temp }}/${{ matrix.platform }}.xcresult
         run: |
@@ -191,7 +148,7 @@ jobs:
     # Build-only: Mac Catalyst tests are not run.
     runs-on: xcode-27
     env:
-      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Cache SwiftPM dependencies
@@ -204,9 +161,9 @@ jobs:
         run: |
           brew install mint
           mint install cpisciotta/xcbeautify
-      - name: Verify Xcode 27.0 and Swift 6.4
+      - name: Verify Xcode 27.2 and Swift 6.4
         run: |
-          xcodebuild -version | grep -F 'Xcode 27.0' 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+          xcodebuild -version | grep -F 'Xcode 27.2' 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
           swift --version | grep -F 'Swift version 6.4'
       - name: Build for Mac Catalyst
         run: |

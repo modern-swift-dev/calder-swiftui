@@ -31,9 +31,9 @@ make test-visionos
 
 ### Simulator runtimes and snapshot baselines
 
-CI and the Makefile pin iOS, tvOS, watchOS, and visionOS simulator runtimes to 27.0. Install the matching runtime before running each platform's tests.
+CI and the Makefile use Xcode 27.2 and pin iOS, tvOS, watchOS, and visionOS simulator runtimes to 27.2. Install the matching runtimes before running each platform's tests (`xcodebuild -downloadPlatform <platform>`). The `make test-*` targets create their simulator with `Scripts/ensure-simulator.sh` when it doesn't exist, as CI does; pass a `*_DESTINATION`, such as `IOS_DESTINATION='id=<udid>'`, to use another device.
 
-Record and verify iOS snapshots using Xcode 27.0 and the iPhone 17 Pro simulator running iOS 27.0. Newer iOS runtimes can render differently even with the same Xcode and SDK. When intentionally changing a runtime, update `.github/workflows/ci.yml`, `.github/workflows/release.yml`, and `Makefile`, and review and update any affected snapshots.
+Record and verify iOS snapshots using Xcode 27.2 and the iPhone 17 Pro simulator running iOS 27.2. Newer iOS runtimes can render differently even with the same Xcode and SDK. When intentionally changing a runtime, update `.github/workflows/ci.yml`, `.github/workflows/release.yml`, and `RUNTIME_VERSION` in the `Makefile`, and re-record the affected snapshots.
 
 ## Documentation
 

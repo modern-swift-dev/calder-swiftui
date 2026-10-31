@@ -4,10 +4,13 @@ SWIFT_FILES ?= .
 SHELL := /bin/bash
 
 SCHEME ?= Calder-Package
-IOS_DESTINATION ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=27.0
-TVOS_DESTINATION ?= platform=tvOS Simulator,name=Apple TV 4K (3rd generation),OS=27.0
-WATCHOS_DESTINATION ?= platform=watchOS Simulator,name=Apple Watch Series 12 (46mm),OS=27.0
-VISIONOS_DESTINATION ?= platform=visionOS Simulator,name=Apple Vision Pro,OS=27.0
+# Simulator runtimes match CI and the snapshot baselines (Xcode 27.2). Each test target creates its
+# simulator when it doesn't exist; override a *_DESTINATION (for example `id=<udid>`) to use another device.
+RUNTIME_VERSION ?= 27.2
+IOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'iPhone 17 Pro' iOS $(RUNTIME_VERSION))
+TVOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple TV 4K (3rd generation)' tvOS $(RUNTIME_VERSION))
+WATCHOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple Watch Series 12 (46mm)' watchOS $(RUNTIME_VERSION))
+VISIONOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple Vision Pro' visionOS $(RUNTIME_VERSION))
 
 .PHONY: setup lint format documentation test test-macos test-ios test-tvos test-watchos test-visionos
 

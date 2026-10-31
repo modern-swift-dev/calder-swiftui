@@ -22,7 +22,7 @@ jobs:
       contents: write
     runs-on: xcode-27
     env:
-      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Cache SwiftPM dependencies
@@ -31,9 +31,9 @@ jobs:
           path: ~/Library/Caches/org.swift.swiftpm
           key: swiftpm-${{ runner.os }}-${{ hashFiles('Package.resolved') }}
           restore-keys: swiftpm-${{ runner.os }}-
-      - name: Verify Xcode 27.0 and Swift 6.4
+      - name: Verify Xcode 27.2 and Swift 6.4
         run: |
-          xcodebuild -version | grep -F 'Xcode 27.0'
+          xcodebuild -version | grep -F 'Xcode 27.2'
           swift --version | grep -F 'Swift version 6.4'
       - name: Build documentation archive
         run: make documentation
