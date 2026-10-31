@@ -60,6 +60,10 @@
             @Binding public var torch: Bool
             /// The camera's zoom factor, which pinching the preview changes.
             @Binding public var zoomFactor: CGFloat
+            /// Receives every code a continuous scanner reads, or `nil` when the scanner writes to ``result``.
+            private let onScan: (@MainActor (ScanResult) -> Void)?
+            /// How long a continuous scanner suppresses a repeat of the same value, or `nil` when it isn't continuous.
+            private let cooldown: Duration?
 
             /// Initializes a new `BarcodeScanner` instance.
             /// - Parameters:
@@ -82,6 +86,38 @@
                 self.supportedTypes = supportedTypes
                 self._torch = torch
                 self._zoomFactor = zoomFactor
+                onScan = nil
+                cooldown = nil
+            }
+
+            /// Initializes a continuous `BarcodeScanner` that reports every code it reads.
+            ///
+            /// The scanner keeps scanning after each code and calls `onScan` for each one, so it has no result to reset. It
+            /// suppresses a repeat of the same value within `cooldown`, so the same item can be scanned again after the cooldown
+            /// but a code held in front of the camera isn't reported over and over. Different codes are always reported.
+            /// - Parameters:
+            ///   - state: The initial state of the scanner.
+            ///   - supportedTypes: Optional array of supported code types. Defaults to nil (all types).
+            ///   - cooldown: How long to suppress a repeat of the same value, counted from when it was last reported. Defaults to
+            ///     2 seconds.
+            ///   - torch: A binding that turns the torch on or off while the camera runs. Defaults to a torch that stays off.
+            ///   - zoomFactor: A binding to the camera's zoom factor, where `1` is no zoom, which is the default.
+            ///   - onScan: Called on the main actor with each code the scanner reads.
+            public init(
+                state: State,
+                supportedTypes: [AVMetadataObject.ObjectType]? = nil,
+                cooldown: Duration = .seconds(2),
+                torch: Binding<Bool> = .constant(false),
+                zoomFactor: Binding<CGFloat> = .constant(1),
+                onScan: @escaping @MainActor (ScanResult) -> Void
+            ) {
+                self._result = .constant(nil)
+                self.state = state
+                self.supportedTypes = supportedTypes
+                self._torch = torch
+                self._zoomFactor = zoomFactor
+                self.onScan = onScan
+                self.cooldown = cooldown
             }
 
             /// Creates the underlying `BarcodeScannerViewController` instance.
@@ -91,6 +127,7 @@
                 var model = BarcodeScannerViewController.defaultScannerModel
                 model.isTorchOn = torch
                 model.zoomFactor = zoomFactor
+                model.repeatCooldown = cooldown
                 let viewController = BarcodeScannerViewController(supportedTypes: supportedTypes, scannerModel: model)
                 viewController.themeDefinition = context.environment.themeDefinition
                 viewController.callback = context.coordinator.handleScanResult
@@ -115,6 +152,7 @@
                 uiViewController.apply(state)
                 uiViewController.isTorchOn = torch
                 context.coordinator.zoomFactor = $zoomFactor
+                context.coordinator.onScan = onScan
                 uiViewController.zoomFactor = zoomFactor
                 if result == nil {
                     uiViewController.resultDidReset()
@@ -126,6 +164,7 @@
             public func makeCoordinator() -> Coordinator {
                 let coordinator = Coordinator(result: $result)
                 coordinator.zoomFactor = $zoomFactor
+                coordinator.onScan = onScan
                 return coordinator
             }
 
@@ -138,6 +177,9 @@
                 /// A binding to the camera's zoom factor, which a pinch writes to. The scanner refreshes it on every update.
                 var zoomFactor: Binding<CGFloat> = .constant(1)
 
+                /// Receives every code when the scanner is continuous. The scanner refreshes it on every update.
+                var onScan: (@MainActor (ScanResult) -> Void)?
+
                 /// Initializes a new coordinator.
                 /// - Parameter result: A binding to the scan result.
                 public init(result: Binding<ScanResult?>) {
@@ -149,7 +191,13 @@
                 ///   - code: The scanned code as a string.
                 ///   - type: The type of the scanned code.
                 func handleScanResult(_ code: String, _ type: AVMetadataObject.ObjectType) {
-                    result.wrappedValue = .init(payload: code, type: type)
+                    let scanned = ScanResult(payload: code, type: type)
+                    if let onScan {
+                        // The view controller reports codes on the main actor.
+                        MainActor.assumeIsolated { onScan(scanned) }
+                    } else {
+                        result.wrappedValue = scanned
+                    }
                 }
             }
 

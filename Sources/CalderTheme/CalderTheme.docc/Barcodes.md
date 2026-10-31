@@ -97,6 +97,24 @@ BarcodeScanner(result: $result, state: .scanning, zoomFactor: $zoom)
 With UIKit, set `BarcodeScannerView.Model.zoomFactor` when you create the scanner, or use
 `BarcodeScannerViewController.zoomFactor` and `onZoomFactorChange` while it runs.
 
+### Scan continuously
+
+By default `BarcodeScanner` delivers one code to its `result` binding and waits for you to reset
+it. To scan many items in a row, such as the items of an order, pass an `onScan` closure instead.
+The scanner keeps scanning and calls the closure for every code it reads:
+
+```swift
+BarcodeScanner(state: .scanning, cooldown: .seconds(2)) { scanned in
+    add(scanned.payload)
+}
+```
+
+The scanner suppresses a repeat of the same value within `cooldown`, which defaults to 2 seconds
+and counts from when that value was last reported, so a code held in front of the camera isn't
+reported over and over, and the same item can be scanned again once the cooldown has passed.
+Different codes are always reported. With UIKit, set `BarcodeScannerView.Model.repeatCooldown`;
+`BarcodeScannerViewController` then calls its `callback` for every code and doesn't suspend detection.
+
 To let people pick among the codes in view, use `BarcodeSelector` and choose the symbologies to
 recognize:
 

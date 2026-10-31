@@ -343,13 +343,18 @@
             }
 
             /// Called when a QR code is successfully scanned.
-            /// Suspends the scanner before processing the scanned code, so only one code is delivered per scan.
+            /// Suspends the scanner before processing the scanned code, so only one code is delivered per scan, unless the scanner
+            /// model has a ``BarcodeScannerView/Model`` `repeatCooldown`: a continuous scanner keeps scanning and delivers every code.
             /// - Parameters:
             ///   - code: The string value of the scanned code.
             ///   - type: The `AVMetadataObject.ObjectType` of the scanned code.
             ///   - rect: The `CGRect` in the preview layer that encloses the scanned code.
             ///   - path: The `UIBezierPath` representing the boundaries of the scanned code.
             public func onCodeScanned(_ code: String, type: AVMetadataObject.ObjectType, rect: CGRect, path: UIBezierPath) {
+                if scannerModel.repeatCooldown != nil {
+                    callback(code, type)
+                    return
+                }
                 barcodeScanner.suspend()
                 handle((code, type))
             }

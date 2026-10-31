@@ -62,6 +62,9 @@
                 ///   - scanRegionImageMargin: The margin applied to the scan region image to define the `rectOfInterest`. Defaults to `.xxxs`.
                 ///   - isTorchOn: Whether the torch is on while the camera runs. Defaults to `false`. A camera without a torch ignores it.
                 ///   - zoomFactor: The camera's zoom factor, clamped to the range the camera supports. Defaults to `1`, which is no zoom.
+                ///   - repeatCooldown: How long to suppress a repeat of the same value, which makes the scanner continuous: it keeps
+                ///     reporting codes, and reports the same value again once the cooldown has passed. Defaults to `nil`, which reports
+                ///     a value once until ``resetLastScan()``.
                 public init(
                     gravity: AVLayerVideoGravity = .resizeAspect,
                     crossHairImage: UIImage = .init(
@@ -77,7 +80,8 @@
                     scanRegionImageActiveTint: UIColor = UIColor.blue,
                     scanRegionImageMargin: CGFloat = .xxxs,
                     isTorchOn: Bool = false,
-                    zoomFactor: CGFloat = 1
+                    zoomFactor: CGFloat = 1,
+                    repeatCooldown: Duration? = nil
                 ) {
                     self.gravity = gravity
                     self.crossHairImage = crossHairImage
@@ -91,6 +95,7 @@
                     self.scanRegionImageMargin = scanRegionImageMargin
                     self.isTorchOn = isTorchOn
                     self.zoomFactor = zoomFactor
+                    self.repeatCooldown = repeatCooldown
                 }
 
                 /// The Video Gravity for the `AVCaptureVideoPreviewLayer`.
@@ -128,6 +133,9 @@
 
                 /// The camera's zoom factor, clamped to the range the camera supports.
                 var zoomFactor: CGFloat
+
+                /// How long to suppress a repeat of the same value in continuous scanning, or `nil` to report a value once.
+                var repeatCooldown: Duration?
             }
 
             /// The Delegate that receives scan events and provides supported object types.
@@ -138,6 +146,12 @@
 
             /// The Last Known Scan Value to prevent spamming the same code in rapid burst
             private var lastScanValue = ""
+
+            /// Suppresses repeats of a value while the scanner is continuous, or `nil` when it reports a value once.
+            private var cooldown: BarcodeScanCooldown?
+
+            /// The clock that times the cooldown. A test replaces it.
+            var now: () -> ContinuousClock.Instant = { .now }
 
             /// Whether the torch should be on while the camera runs.
             private var desiredTorch: Bool
@@ -199,6 +213,7 @@
                 self.model = model
                 desiredTorch = model.isTorchOn
                 desiredZoom = model.zoomFactor
+                cooldown = model.repeatCooldown.map { BarcodeScanCooldown(duration: $0) }
                 super.init(frame: .zero)
                 #if !os(tvOS)
                     addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(handlePinch)))
@@ -284,8 +299,11 @@
 
         public extension BarcodeScannerView {
             /// Resets the last known scanned value, allowing the same code to be scanned again immediately.
+            ///
+            /// A continuous scanner forgets every value it reported, so each is reported again on its next detection.
             func resetLastScan() {
                 lastScanValue = ""
+                cooldown?.reset()
             }
         }
 
@@ -726,17 +744,33 @@
 
                 showActiveTint()
 
-                guard let avVideoPreviewLayer, lastScanValue != code else {
+                guard let avVideoPreviewLayer, shouldDeliver(code) else {
                     return
                 }
                 let points = corners.map { avVideoPreviewLayer.layerPointConverted(fromCaptureDevicePoint: $0) }
-                lastScanValue = code
                 deliverScannedCode(
                     code,
                     type: type,
                     rect: Self.boundingRect(of: points),
                     path: Self.cutOutPath(in: avVideoPreviewLayer.bounds, around: points)
                 )
+            }
+
+            /// Returns whether to deliver a detection of `code`, and records it when it does.
+            ///
+            /// A single-result scanner delivers a value once until ``resetLastScan()``. A continuous scanner delivers it again
+            /// once its cooldown has passed.
+            /// - Parameter code: The detected value.
+            /// - Returns: `true` if the detection is new.
+            func shouldDeliver(_ code: String) -> Bool {
+                if cooldown != nil {
+                    return cooldown?.shouldReport(code, at: now()) ?? false
+                }
+                guard lastScanValue != code else {
+                    return false
+                }
+                lastScanValue = code
+                return true
             }
 
             /// Shows the active scan-region tint, then restores the inactive tint once no code has been detected

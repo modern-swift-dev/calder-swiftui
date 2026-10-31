@@ -159,6 +159,9 @@ camera runs; a device without a torch ignores it. Existing scanners behave as be
 ``BarcodeScanner`` also has a `zoomFactor` binding. The default, `1`, is no zoom. Pinching the preview
 changes the zoom and writes the factor to the binding, clamped to the range the camera supports.
 
+``BarcodeScanner`` also has a continuous mode: create it with `onScan` and a `cooldown` to receive
+every code instead of one `result`. Single-result scanning is unchanged and still the default.
+
 ### Localized text properties
 
 The `String` properties that return text created from a `LocalizedStringResource` resolve it with the
