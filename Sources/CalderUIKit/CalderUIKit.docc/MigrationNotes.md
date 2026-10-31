@@ -91,6 +91,8 @@ The `CGContext` drawing helpers and the `CalderPlatformColor` and `CalderPlatfor
 
 `UIImage.resizeToFit(_:_:)` now resizes images without a `CGImage`, such as those created from a `CIImage`, instead of silently returning the receiver. Like `resize(_:_:_:)`, it ignores the `orientation` argument for those images.
 
+The `UIImage` thumbnail helpers `init(data:thumbnailSize:)`, `resize(_:_:_:)`, `resizeToFit(_:_:)`, and `scaledCopy(_:_:)` are now also available on visionOS.
+
 ### Barcodes
 
 `BarcodeGenerator.qr` encodes payloads as UTF-8, so non-ASCII text such as "Café" produces a QR code. Code 128 and PDF417 barcodes still require ASCII payloads and return `nil` otherwise.

@@ -1,11 +1,19 @@
 #if canImport(Darwin)
-    #if canImport(UIKit) && !os(watchOS) && !os(visionOS)
+    #if canImport(UIKit) && !os(watchOS)
         import Foundation
         import ImageIO
         import UIKit
 
         public extension UIImage {
 
+            /// Creates an image from encoded image data, decoded directly at a reduced size with ImageIO.
+            ///
+            /// The thumbnail keeps the aspect ratio, applies the image's orientation, and has its longer side
+            /// limited to the longer side of `newSize`, in pixels.
+            /// - Parameters:
+            ///   - data: The encoded image data, such as PNG or JPEG.
+            ///   - newSize: The size the thumbnail must fit in; only its longer side is used.
+            /// - Returns: `nil` if `data` isn't a decodable image.
             convenience init?(data: Data, thumbnailSize newSize: CGSize) {
                 let data = data as CFData
                 guard let source = CGImageSourceCreateWithData(data, nil) else {
