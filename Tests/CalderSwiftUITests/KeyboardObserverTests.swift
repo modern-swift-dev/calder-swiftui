@@ -76,15 +76,21 @@
 
         @Test func `size stays zero while the keyboard is hidden`() async throws {
             let observer = KeyboardObserver()
+            var changeCount = 0
+            let subscription = observer.objectWillChange.sink { changeCount += 1 }
             postFrameChange(size: CGSize(width: 320, height: 300))
             postShow(size: CGSize(width: 320, height: 280))
             postHide()
             postFrameChange(size: CGSize(width: 320, height: 55))
             // A later local show without a frame proves the hidden frame change was processed first.
             postShow(size: nil)
-            try await waitUntil { observer.visible }
+            // Events apply one at a time, so wait for all three applied changes (show, hide, show) rather than
+            // `visible`, which is already true between the first show and the hide.
+            try await waitUntil { changeCount >= 3 }
+            #expect(observer.visible)
             #expect(observer.keyboardSize == .zero)
             #expect(!observer.isHardwareKeyboard)
+            subscription.cancel()
         }
 
         @Test func `notification subscriptions do not retain observer`() {
