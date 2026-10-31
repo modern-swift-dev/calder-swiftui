@@ -10,6 +10,10 @@
                 AnyView(self)
             }
 
+            /// Applies a transformation to this view inline, which is useful for conditional modifiers such as
+            /// availability checks that a plain modifier chain can't express.
+            /// - Parameter modifier: A closure that receives this view and returns the transformed view.
+            /// - Returns: The view that `modifier` returns.
             func modify(@ViewBuilder _ modifier: (Self) -> some View) -> some View {
                 modifier(self)
             }
@@ -17,6 +21,10 @@
 
         public extension ToolbarContent {
 
+            /// Applies a transformation to this toolbar content inline, which is useful for conditional modifiers such as
+            /// availability checks that a plain modifier chain can't express.
+            /// - Parameter modifier: A closure that receives this toolbar content and returns the transformed content.
+            /// - Returns: The toolbar content that `modifier` returns.
             func modify(@ToolbarContentBuilder _ modifier: (Self) -> some ToolbarContent) -> some ToolbarContent {
                 modifier(self)
             }
