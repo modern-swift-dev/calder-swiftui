@@ -82,6 +82,21 @@ struct TicketScanner: View {
 With UIKit, set `BarcodeScannerView.Model.isTorchOn` when you create the scanner, or call
 `BarcodeScannerViewController.isTorchOn` and `BarcodeScannerView.setTorch(_:)` while it runs.
 
+### Zoom the camera
+
+Pass a `zoomFactor` binding to zoom the camera. `1` is no zoom, which is the default, and the camera
+clamps the factor to the range it supports. Pinching the preview changes the zoom and writes the new
+factor to the binding:
+
+```swift
+@State private var zoom: CGFloat = 1
+
+BarcodeScanner(result: $result, state: .scanning, zoomFactor: $zoom)
+```
+
+With UIKit, set `BarcodeScannerView.Model.zoomFactor` when you create the scanner, or use
+`BarcodeScannerViewController.zoomFactor` and `onZoomFactorChange` while it runs.
+
 To let people pick among the codes in view, use `BarcodeSelector` and choose the symbologies to
 recognize:
 

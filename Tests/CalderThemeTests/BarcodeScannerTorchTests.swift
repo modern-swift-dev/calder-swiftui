@@ -14,6 +14,9 @@
                 var isTorchAvailable: Bool
                 private(set) var isTorchActive = false
                 private(set) var torchChanges = 0
+                var minAvailableVideoZoomFactor: CGFloat = 1
+                var maxAvailableVideoZoomFactor: CGFloat = 1
+                private(set) var videoZoomFactor: CGFloat = 1
 
                 init(hasTorch: Bool = true, isTorchAvailable: Bool = true) {
                     self.hasTorch = hasTorch
@@ -23,6 +26,10 @@
                 func setTorch(on: Bool) throws {
                     torchChanges += 1
                     isTorchActive = on
+                }
+
+                func setVideoZoomFactor(_ factor: CGFloat) throws {
+                    videoZoomFactor = factor
                 }
             }
 

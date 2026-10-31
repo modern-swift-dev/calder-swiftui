@@ -133,6 +133,21 @@
                 set { barcodeScanner.setTorch(newValue) }
             }
 
+            /// The camera's zoom factor, clamped to the range the camera supports.
+            ///
+            /// Setting it zooms the camera while it runs, and before it starts, the factor applies once it does. `1` is no zoom.
+            /// The scanner view also zooms when the user pinches it; ``onZoomFactorChange`` reports those changes.
+            public var zoomFactor: CGFloat {
+                get { barcodeScanner.zoomFactor }
+                set { barcodeScanner.setZoomFactor(newValue) }
+            }
+
+            /// Called with the new zoom factor, clamped to the camera's range, each time the user's pinch changes it.
+            public var onZoomFactorChange: ((CGFloat) -> Void)? {
+                get { barcodeScanner.onZoomFactorChange }
+                set { barcodeScanner.onZoomFactorChange = newValue }
+            }
+
             /// Whether this device's back camera has a torch.
             ///
             /// Check it to hide a torch button on devices without one, such as iPad and Simulator.

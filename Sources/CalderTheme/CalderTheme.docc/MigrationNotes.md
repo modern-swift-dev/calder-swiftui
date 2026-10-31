@@ -156,6 +156,9 @@ catalog and use the environment's locale. Their English text is unchanged.
 ``BarcodeScanner`` has a `torch` binding, off by default, that turns the torch on or off while the
 camera runs; a device without a torch ignores it. Existing scanners behave as before.
 
+``BarcodeScanner`` also has a `zoomFactor` binding. The default, `1`, is no zoom. Pinching the preview
+changes the zoom and writes the factor to the binding, clamped to the range the camera supports.
+
 ### Localized text properties
 
 The `String` properties that return text created from a `LocalizedStringResource` resolve it with the

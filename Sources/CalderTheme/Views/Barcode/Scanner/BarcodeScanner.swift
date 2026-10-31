@@ -58,6 +58,8 @@
             public var supportedTypes: [AVMetadataObject.ObjectType]?
             /// Whether the torch is on while the camera runs.
             @Binding public var torch: Bool
+            /// The camera's zoom factor, which pinching the preview changes.
+            @Binding public var zoomFactor: CGFloat
 
             /// Initializes a new `BarcodeScanner` instance.
             /// - Parameters:
@@ -66,16 +68,20 @@
             ///   - supportedTypes: Optional array of supported code types. Defaults to nil (all types).
             ///   - torch: A binding that turns the torch on or off while the camera runs. Defaults to a torch that stays off.
             ///     A device without a torch ignores it; check ``BarcodeScannerViewController/isTorchAvailable`` to hide a torch button.
+            ///   - zoomFactor: A binding to the camera's zoom factor, where `1` is no zoom, which is the default. Pinching the
+            ///     preview updates it. The camera clamps it to the range it supports, and the pinch writes the clamped factor.
             public init(
                 result: Binding<ScanResult?>,
                 state: State,
                 supportedTypes: [AVMetadataObject.ObjectType]? = nil,
-                torch: Binding<Bool> = .constant(false)
+                torch: Binding<Bool> = .constant(false),
+                zoomFactor: Binding<CGFloat> = .constant(1)
             ) {
                 self._result = result
                 self.state = state
                 self.supportedTypes = supportedTypes
                 self._torch = torch
+                self._zoomFactor = zoomFactor
             }
 
             /// Creates the underlying `BarcodeScannerViewController` instance.
@@ -84,9 +90,13 @@
             public func makeUIViewController(context: Context) -> BarcodeScannerViewController {
                 var model = BarcodeScannerViewController.defaultScannerModel
                 model.isTorchOn = torch
+                model.zoomFactor = zoomFactor
                 let viewController = BarcodeScannerViewController(supportedTypes: supportedTypes, scannerModel: model)
                 viewController.themeDefinition = context.environment.themeDefinition
                 viewController.callback = context.coordinator.handleScanResult
+                viewController.onZoomFactorChange = { [coordinator = context.coordinator] factor in
+                    coordinator.zoomFactor.wrappedValue = factor
+                }
                 return viewController
             }
 
@@ -104,6 +114,8 @@
                 uiViewController.themeDefinition = context.environment.themeDefinition
                 uiViewController.apply(state)
                 uiViewController.isTorchOn = torch
+                context.coordinator.zoomFactor = $zoomFactor
+                uiViewController.zoomFactor = zoomFactor
                 if result == nil {
                     uiViewController.resultDidReset()
                 }
@@ -112,7 +124,9 @@
             /// Creates the coordinator that acts as the bridge between SwiftUI and UIKit.
             /// - Returns: A new `Coordinator` instance.
             public func makeCoordinator() -> Coordinator {
-                Coordinator(result: $result)
+                let coordinator = Coordinator(result: $result)
+                coordinator.zoomFactor = $zoomFactor
+                return coordinator
             }
 
             /// The coordinator class that handles scan results from the view controller.
@@ -120,6 +134,9 @@
 
                 /// A binding to update the scan result in the parent SwiftUI view. The scanner refreshes it on every update.
                 var result: Binding<ScanResult?>
+
+                /// A binding to the camera's zoom factor, which a pinch writes to. The scanner refreshes it on every update.
+                var zoomFactor: Binding<CGFloat> = .constant(1)
 
                 /// Initializes a new coordinator.
                 /// - Parameter result: A binding to the scan result.

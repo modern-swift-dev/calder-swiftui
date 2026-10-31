@@ -19,6 +19,20 @@
         /// - Parameter on: `true` to turn the torch on, `false` to turn it off.
         /// - Throws: An error when the camera can't be locked for configuration.
         func setTorch(on: Bool) throws
+
+        /// The smallest zoom factor the camera supports.
+        var minAvailableVideoZoomFactor: CGFloat { get }
+
+        /// The largest zoom factor the camera supports.
+        var maxAvailableVideoZoomFactor: CGFloat { get }
+
+        /// The camera's current zoom factor.
+        var videoZoomFactor: CGFloat { get }
+
+        /// Sets the camera's zoom factor.
+        /// - Parameter factor: A zoom factor within the camera's supported range.
+        /// - Throws: An error when the camera can't be locked for configuration.
+        func setVideoZoomFactor(_ factor: CGFloat) throws
     }
 
     extension AVCaptureDevice: @MainActor BarcodeScannerCaptureDevice {
@@ -33,6 +47,12 @@
             } else {
                 torchMode = .off
             }
+        }
+
+        func setVideoZoomFactor(_ factor: CGFloat) throws {
+            try lockForConfiguration()
+            defer { unlockForConfiguration() }
+            videoZoomFactor = factor
         }
     }
 #endif

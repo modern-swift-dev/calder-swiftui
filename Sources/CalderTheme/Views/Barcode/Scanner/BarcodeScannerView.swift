@@ -61,6 +61,7 @@
                 ///   - scanRegionImageActiveTint: The tint color of the crosshair image when active (code detected). Defaults to `.azur`.
                 ///   - scanRegionImageMargin: The margin applied to the scan region image to define the `rectOfInterest`. Defaults to `.xxxs`.
                 ///   - isTorchOn: Whether the torch is on while the camera runs. Defaults to `false`. A camera without a torch ignores it.
+                ///   - zoomFactor: The camera's zoom factor, clamped to the range the camera supports. Defaults to `1`, which is no zoom.
                 public init(
                     gravity: AVLayerVideoGravity = .resizeAspect,
                     crossHairImage: UIImage = .init(
@@ -75,7 +76,8 @@
                     scanRegionImageTint: UIColor = UIColor.gray,
                     scanRegionImageActiveTint: UIColor = UIColor.blue,
                     scanRegionImageMargin: CGFloat = .xxxs,
-                    isTorchOn: Bool = false
+                    isTorchOn: Bool = false,
+                    zoomFactor: CGFloat = 1
                 ) {
                     self.gravity = gravity
                     self.crossHairImage = crossHairImage
@@ -88,6 +90,7 @@
                     self.scanRegionImageActiveTint = scanRegionImageActiveTint
                     self.scanRegionImageMargin = scanRegionImageMargin
                     self.isTorchOn = isTorchOn
+                    self.zoomFactor = zoomFactor
                 }
 
                 /// The Video Gravity for the `AVCaptureVideoPreviewLayer`.
@@ -122,6 +125,9 @@
 
                 /// Whether the torch is on while the camera runs. A camera without a torch ignores it.
                 var isTorchOn: Bool
+
+                /// The camera's zoom factor, clamped to the range the camera supports.
+                var zoomFactor: CGFloat
             }
 
             /// The Delegate that receives scan events and provides supported object types.
@@ -135,6 +141,15 @@
 
             /// Whether the torch should be on while the camera runs.
             private var desiredTorch: Bool
+
+            /// The zoom factor the camera should have while it runs, before clamping to its range.
+            private var desiredZoom: CGFloat
+
+            /// The zoom factor when the current pinch began, or `nil` between pinches.
+            private var pinchStartZoom: CGFloat?
+
+            /// Called with the new zoom factor, already clamped to the camera's range, each time a pinch changes it.
+            public var onZoomFactorChange: ((CGFloat) -> Void)?
 
             /// The Model of this view containing configuration options.
             private var model: Model
@@ -183,7 +198,11 @@
             public init(model: Model) {
                 self.model = model
                 desiredTorch = model.isTorchOn
+                desiredZoom = model.zoomFactor
                 super.init(frame: .zero)
+                #if !os(tvOS)
+                    addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(handlePinch)))
+                #endif
                 buildSubviews()
                 buildConstraints()
             }
@@ -330,7 +349,75 @@
             func attach(_ device: any BarcodeScannerCaptureDevice) {
                 avDevice = device
                 applyTorch()
+                applyZoom()
             }
+        }
+
+        // MARK: - Zoom
+
+        public extension BarcodeScannerView {
+            /// The range of zoom factors the camera supports, or `1 ... 1` before the camera starts.
+            var zoomFactorRange: ClosedRange<CGFloat> {
+                guard let device = avDevice else {
+                    return 1 ... 1
+                }
+                return device.minAvailableVideoZoomFactor ... max(device.minAvailableVideoZoomFactor, device.maxAvailableVideoZoomFactor)
+            }
+
+            /// The camera's zoom factor, clamped to ``zoomFactorRange``.
+            ///
+            /// The requested factor applies again each time the camera starts.
+            var zoomFactor: CGFloat {
+                zoomFactorRange.clampedValue(desiredZoom)
+            }
+
+            /// Zooms the camera.
+            ///
+            /// The factor is clamped to ``zoomFactorRange``. Before the camera starts, the request applies once it does.
+            /// - Parameter factor: The zoom factor, where `1` is no zoom.
+            func setZoomFactor(_ factor: CGFloat) {
+                desiredZoom = avDevice == nil ? factor : zoomFactorRange.clampedValue(factor)
+                applyZoom()
+            }
+        }
+
+        extension BarcodeScannerView {
+            /// Makes the camera's zoom match ``zoomFactor`` when it can.
+            func applyZoom() {
+                guard let device = avDevice, device.videoZoomFactor != zoomFactor else {
+                    return
+                }
+                do {
+                    try device.setVideoZoomFactor(zoomFactor)
+                } catch {
+                    os_log("%{public}@", log: .default, type: .error, String(describing: error))
+                }
+            }
+
+            /// Handles a change of the pinch gesture on the preview.
+            /// - Parameters:
+            ///   - scale: The gesture's scale relative to where it began.
+            ///   - state: The gesture's state.
+            func pinch(scale: CGFloat, state: UIGestureRecognizer.State) {
+                switch state {
+                    case .began:
+                        pinchStartZoom = zoomFactor
+                    case .changed:
+                        guard avDevice != nil, let pinchStartZoom else {
+                            return
+                        }
+                        setZoomFactor(pinchStartZoom * scale)
+                        onZoomFactorChange?(zoomFactor)
+                    default:
+                        pinchStartZoom = nil
+                }
+            }
+
+            #if !os(tvOS)
+                @objc private func handlePinch(_ recognizer: UIPinchGestureRecognizer) {
+                    pinch(scale: recognizer.scale, state: recognizer.state)
+                }
+            #endif
         }
 
         // MARK: - State
@@ -376,6 +463,8 @@
                     // The preview connection exists only once the input is added, so rotate it after configuration.
                     Task { @MainActor in
                         self.configureVideoOrientation()
+                        // Configuration resets the camera's zoom, so apply the requested zoom afterwards.
+                        self.applyZoom()
                     }
                 }
 
