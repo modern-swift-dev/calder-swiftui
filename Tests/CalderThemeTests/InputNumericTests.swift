@@ -177,6 +177,61 @@
         }
 
         @Test(arguments: [
+            ("en_US", "\u{2212}3", -3),
+            ("en_US", "\u{2212}3.5", -3.5),
+            ("sv_SE", "-3", -3),
+            ("sv_SE", "\u{2212}3,5", -3.5),
+            ("sv_SE", "3,5", 3.5)
+        ])
+        func `double input accepts the ASCII hyphen and the Unicode minus sign`(localeIdentifier: String, text: String, expected: Double) {
+            let locale = Locale(identifier: localeIdentifier)
+
+            #expect(InputNumber.parseDecimal(text, locale: locale) == expected)
+            #expect(InputNumber.acceptsDecimalText(text, locale: locale))
+        }
+
+        @Test(arguments: ["en_US", "sv_SE"])
+        func `double input accepts either minus sign alone while typing`(localeIdentifier: String) {
+            let locale = Locale(identifier: localeIdentifier)
+
+            #expect(InputNumber.acceptsDecimalText("-", locale: locale))
+            #expect(InputNumber.acceptsDecimalText("\u{2212}", locale: locale))
+            #expect(!InputNumber.acceptsDecimalText("--3", locale: locale))
+            #expect(!InputNumber.acceptsDecimalText("-\u{2212}3", locale: locale))
+        }
+
+        @Test func `double input formatted negative values in a Unicode minus locale parse back`() {
+            let locale = Locale(identifier: "sv_SE")
+
+            for value in [-3.0, -3.25, 12.5] {
+                #expect(InputNumber.parseDecimal(InputNumber.formatDecimal(value, locale: locale), locale: locale) == value)
+            }
+        }
+
+        @Test(arguments: [
+            ("en_US", "fr_FR", "12,5", 12.5),
+            ("en_US", "fr_FR", "12.5", 12.5),
+            ("fr_FR", "en_US", "12.5", 12.5),
+            ("fr_FR", "en_US", "12,5", 12.5),
+            ("fr_FR", "en_US", "\u{2212}12.5", -12.5)
+        ])
+        func `double input accepts the keyboard decimal separator`(localeIdentifier: String, keyboardIdentifier: String, text: String, expected: Double) {
+            let locale = Locale(identifier: localeIdentifier)
+            let keyboard = Locale(identifier: keyboardIdentifier)
+
+            #expect(InputNumber.parseDecimal(text, locale: locale, keyboardLocale: keyboard) == expected)
+            #expect(InputNumber.acceptsDecimalText(text, locale: locale, keyboardLocale: keyboard))
+        }
+
+        @Test func `double input still rejects a second separator with a keyboard locale`() {
+            let locale = Locale(identifier: "en_US")
+            let keyboard = Locale(identifier: "fr_FR")
+
+            #expect(InputNumber.parseDecimal("1.2,5", locale: locale, keyboardLocale: keyboard) == nil)
+            #expect(InputNumber.parseDecimal("abc", locale: locale, keyboardLocale: keyboard) == nil)
+        }
+
+        @Test(arguments: [
             ("en_US", 1e16, "10000000000000000"),
             ("fr_FR", 1e16, "10000000000000000"),
             ("en_US", 1_234_567.5, "1234567.5"),
@@ -199,6 +254,12 @@
         }
 
         #if canImport(UIKit) && !os(watchOS)
+            @Test func `double input defaults to the keyboard with a minus key`() {
+                #expect(InputNumber("Amount", value: .constant(0)).keyboardType == .numbersAndPunctuation)
+                #expect(InputNumber(value: .constant(0), placeholder: "Amount").keyboardType == .numbersAndPunctuation)
+                #expect(InputNumber("Amount", value: .constant(0), keyboardType: .decimalPad).keyboardType == .decimalPad)
+            }
+
             @Test func `double input displays a stored zero`() {
                 let input = InputNumber("Amount", value: .constant(0))
 

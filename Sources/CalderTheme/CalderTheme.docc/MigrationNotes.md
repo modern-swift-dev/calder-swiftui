@@ -62,6 +62,12 @@ exponent notation.
 To keep showing the placeholder for a bound `0`, where `0` means no amount has been entered,
 pass `zeroDisplay: .placeholder`.
 
+The `Double` variant of `InputNumber` shows the `.numbersAndPunctuation` keyboard by default, because
+`.decimalPad` has no minus key and the field accepts negative numbers. Pass `keyboardType: .decimalPad`
+to keep the previous keyboard. The field accepts the decimal separator shown by the device's keyboard
+in addition to the environment locale's, so typed input isn't rejected when the two differ, and it
+accepts the Unicode minus sign (U+2212) used by locales such as Swedish.
+
 Out-of-range configurations are clamped instead of trapping: `InputNumber` limits integer digits
 to `1...18` so accepted numbers always fit in `Int64`, `InputDecimal` treats a negative fraction
 digit limit as `0`, and `FormDatePicker` allows only its minimum date when the maximum is earlier.

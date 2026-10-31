@@ -46,7 +46,7 @@
             /// The decimal binding used by the app-compatible initializer.
             private let decimalValue: Binding<Double>?
             /// The keyboard displayed for decimal input.
-            private let keyboardType: UIKeyboardType
+            let keyboardType: UIKeyboardType
             /// Validation applied to decimal input.
             private let decimalIsValid: (Double) -> Bool
             /// Whether the decimal input displays a border.
@@ -159,6 +159,8 @@
             /// "12,5" in `fr_FR` and "12.5" in `en_US` both write `12.5`. Clearing the field writes `0`.
             /// The field rejects text that isn't a number in that locale, such as "abc", instead of
             /// writing `0`. A lone minus sign is accepted while typing and leaves the binding unchanged.
+            /// The field also accepts the decimal separator of the device's keyboard (`Locale.current`), and a
+            /// minus sign typed as the ASCII hyphen or the Unicode minus sign (U+2212).
             ///
             /// The field displays the bound value in the same locale without grouping separators or
             /// exponent notation. By default it displays `0` as "0"; pass ``ZeroDisplay/placeholder`` to
@@ -167,14 +169,14 @@
             /// - Parameters:
             ///   - value: A binding to the decimal value that the field displays and updates.
             ///   - placeholder: The placeholder text displayed when the field is empty.
-            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
+            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.numbersAndPunctuation`, which has a minus key because the field accepts negative numbers.
             ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
             ///   - zeroDisplay: How the field displays a bound value of `0`. Defaults to ``ZeroDisplay/number``.
             ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 value: Binding<Double>,
                 placeholder: String,
-                keyboardType: UIKeyboardType = .decimalPad,
+                keyboardType: UIKeyboardType? = nil,
                 showBorder: Bool = false,
                 zeroDisplay: ZeroDisplay = .number,
                 isValid: @escaping (Double) -> Bool = { _ in true }
@@ -197,14 +199,14 @@
             /// - Parameters:
             ///   - value: A binding to the decimal value that the field displays and updates.
             ///   - placeholder: The localized placeholder text displayed when the field is empty.
-            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
+            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.numbersAndPunctuation`, which has a minus key because the field accepts negative numbers.
             ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
             ///   - zeroDisplay: How the field displays a bound value of `0`. Defaults to ``ZeroDisplay/number``.
             ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 value: Binding<Double>,
                 placeholder: LocalizedStringResource,
-                keyboardType: UIKeyboardType = .decimalPad,
+                keyboardType: UIKeyboardType? = nil,
                 showBorder: Bool = false,
                 zeroDisplay: ZeroDisplay = .number,
                 isValid: @escaping (Double) -> Bool = { _ in true }
@@ -222,7 +224,7 @@
             private init(
                 value: Binding<Double>,
                 placeholderText: LocalizableText,
-                keyboardType: UIKeyboardType,
+                keyboardType: UIKeyboardType?,
                 showBorder: Bool,
                 zeroDisplay: ZeroDisplay,
                 isValid: @escaping (Double) -> Bool
@@ -236,7 +238,7 @@
                 invalid = false
                 invalidMessage = nil
                 decimalValue = value
-                self.keyboardType = keyboardType
+                self.keyboardType = keyboardType ?? .numbersAndPunctuation
                 decimalIsValid = isValid
                 decimalShowBorder = showBorder
                 decimalZeroDisplay = zeroDisplay
@@ -252,14 +254,14 @@
             /// - Parameters:
             ///   - placeholder: The placeholder text displayed when the field is empty.
             ///   - value: A binding to the decimal value that the field displays and updates.
-            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
+            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.numbersAndPunctuation`, which has a minus key because the field accepts negative numbers.
             ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
             ///   - zeroDisplay: How the field displays a bound value of `0`. Defaults to ``ZeroDisplay/number``.
             ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 _ placeholder: String,
                 value: Binding<Double>,
-                keyboardType: UIKeyboardType = .decimalPad,
+                keyboardType: UIKeyboardType? = nil,
                 showBorder: Bool = false,
                 zeroDisplay: ZeroDisplay = .number,
                 isValid: @escaping (Double) -> Bool = { _ in true }
@@ -282,14 +284,14 @@
             /// - Parameters:
             ///   - placeholder: The localized placeholder text displayed when the field is empty.
             ///   - value: A binding to the decimal value that the field displays and updates.
-            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.decimalPad`.
+            ///   - keyboardType: The keyboard displayed while editing. Defaults to `.numbersAndPunctuation`, which has a minus key because the field accepts negative numbers.
             ///   - showBorder: A Boolean value that indicates whether the field displays a border. Defaults to `false`.
             ///   - zeroDisplay: How the field displays a bound value of `0`. Defaults to ``ZeroDisplay/number``.
             ///   - isValid: A closure that returns whether a value is valid. Invalid values use the theme's error color.
             public init(
                 _ placeholder: LocalizedStringResource,
                 value: Binding<Double>,
-                keyboardType: UIKeyboardType = .decimalPad,
+                keyboardType: UIKeyboardType? = nil,
                 showBorder: Bool = false,
                 zeroDisplay: ZeroDisplay = .number,
                 isValid: @escaping (Double) -> Bool = { _ in true }
@@ -375,12 +377,12 @@
                         return
                     }
                     // Reject text that isn't a number in the current locale instead of storing a stale or zero value.
-                    guard Self.acceptsDecimalText(newValue, locale: locale) else {
+                    guard Self.acceptsDecimalText(newValue, locale: locale, keyboardLocale: .current) else {
                         textValue = oldValue
                         return
                     }
                     // A lone minus sign starts a negative number and leaves the binding unchanged.
-                    guard let parsedValue = Self.parseDecimal(newValue, locale: locale) else {
+                    guard let parsedValue = Self.parseDecimal(newValue, locale: locale, keyboardLocale: .current) else {
                         return
                     }
 
@@ -388,7 +390,7 @@
                 }
                 // The initial update reformats text created before the environment locale was available.
                 .onChange(of: value.wrappedValue, initial: true) { _, newValue in
-                    if Self.parseDecimal(textValue, locale: locale) != newValue {
+                    if Self.parseDecimal(textValue, locale: locale, keyboardLocale: .current) != newValue {
                         textValue = Self.decimalText(for: newValue, zeroDisplay: decimalZeroDisplay, locale: locale)
                     }
                 }
@@ -409,13 +411,23 @@
         #endif
 
         /// Parses decimal text using the separators of a locale.
+        ///
+        /// A leading ASCII hyphen or Unicode minus sign (U+2212) marks a negative number.
         /// - Parameters:
         ///   - text: The text to parse.
         ///   - locale: The locale whose decimal separator the text uses.
+        ///   - keyboardLocale: The locale of the keyboard that typed the text. Its decimal separator is accepted
+        ///     in addition to the separator of `locale`. Defaults to `nil`.
         /// - Returns: `0` for empty text, the parsed value, or `nil` when the whole text is not a number in `locale`.
-        static func parseDecimal(_ text: String, locale: Locale) -> Double? {
+        static func parseDecimal(_ text: String, locale: Locale, keyboardLocale: Locale? = nil) -> Double? {
             if text.isEmpty {
                 return 0
+            }
+            var text = text
+            if let keyboardSeparator = keyboardLocale?.decimalSeparator,
+               let separator = locale.decimalSeparator,
+               keyboardSeparator != separator {
+                text = text.replacingOccurrences(of: keyboardSeparator, with: separator)
             }
             return decimalFormatter(locale: locale).number(from: text)?.doubleValue
         }
@@ -424,9 +436,10 @@
         /// - Parameters:
         ///   - text: The text to check.
         ///   - locale: The locale whose decimal separator the text uses.
+        ///   - keyboardLocale: The locale of the keyboard that typed the text. Defaults to `nil`.
         /// - Returns: `true` when the field accepts the text.
-        static func acceptsDecimalText(_ text: String, locale: Locale) -> Bool {
-            text == "-" || parseDecimal(text, locale: locale) != nil
+        static func acceptsDecimalText(_ text: String, locale: Locale, keyboardLocale: Locale? = nil) -> Bool {
+            text == "-" || text == "\u{2212}" || parseDecimal(text, locale: locale, keyboardLocale: keyboardLocale) != nil
         }
 
         /// Formats a decimal value for editing using the separators of a locale.
