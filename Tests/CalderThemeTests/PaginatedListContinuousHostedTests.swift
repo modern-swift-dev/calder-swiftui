@@ -18,6 +18,7 @@
 
         @MainActor private final class PageServer {
             var requests = 0
+            var firstPageLoads = 0
             private let pages: [[Entry]]
 
             init(pages: [[Entry]]) {
@@ -81,6 +82,55 @@
 
             #expect(server.requests == 1)
             #expect(source.items.map(\.id) == [1])
+        }
+
+        @Test(arguments: ListKind.allCases)
+        private func `the list loads a missing first page below a header taller than the window`(kind: ListKind) async throws {
+            let server = PageServer(pages: [[Entry(id: 1)]])
+            let source = PaginatedList.DataSource<Entry>(items: [])
+            await source.configureAndLoad {
+                server.firstPageLoads += 1
+                return server.page(0)
+            } nextPageLoader: { _ in
+                server.page(0)
+            }
+            source.removeAll()
+            #expect(server.firstPageLoads == 1)
+
+            let window = switch kind {
+                case .continuous:
+                    makeWindow(rootView: PaginatedList.Continuous(dataSource: source) { entry in
+                        Text(verbatim: "\(entry.wrappedValue.id)")
+                    } header: {
+                        TallHeader()
+                    })
+                case .selection:
+                    makeWindow(rootView: PaginatedList.Selection(
+                        isPresented: .constant(true),
+                        selection: .constant([]),
+                        mode: .single,
+                        model: source
+                    ) { entry in
+                        Text(verbatim: "\(entry.id)")
+                    } header: {
+                        TallHeader()
+                    })
+            }
+            defer { window.close() }
+            let content = try #require(window.contentView)
+            _ = await settles(content) { server.firstPageLoads == 2 }
+
+            #expect(server.firstPageLoads == 2)
+            #expect(source.items.map(\.id) == [1])
+        }
+
+        /// A header of 100 rows, 4000 points tall, which pushes the end of the list off screen.
+        private struct TallHeader: View {
+            var body: some View {
+                ForEach(0 ..< 100, id: \.self) { _ in
+                    Color.clear.frame(height: 40)
+                }
+            }
         }
 
         private struct StateList: View {

@@ -16,7 +16,8 @@
         /// diacritics, and numbers sort as in the Finder.
         /// A loading row after the last section requests the next page, regardless of which sections
         /// that page fills. When a next-page request fails, the loading row is replaced by a row that
-        /// retries the failed page.
+        /// retries the failed page. When the data source has no current page, the list requests the
+        /// first page as soon as it appears.
         struct Grouped<DataType: Identifiable & Codable & Sendable, Content: View>: View {
             @Environment(\.theme) var theme
             /// The data source responsible for fetching and managing the paginated data.
@@ -95,9 +96,10 @@
                     .listRowSeparator(.hidden)
                     #endif
                     .listRowBackground(Color.clear)
-                    .task {
-                        await dataSource.load()
-                    }
+                }
+                // The list loads a missing first page when it appears, not when its lazy last row does.
+                .task {
+                    await dataSource.load()
                 }
             }
         }

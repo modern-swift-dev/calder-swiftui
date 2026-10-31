@@ -14,6 +14,7 @@
 
         @MainActor private final class PageServer {
             var requests = 0
+            var firstPageLoads = 0
             private let pages: [[Entry]]
 
             init(pages: [[Entry]]) {
@@ -52,6 +53,32 @@
             #expect(!source.hasNext)
             #expect(server.requests == 3)
             #expect(source.items.map(\.id) == [1, 2, 3])
+        }
+
+        @Test func `the list loads a missing first page when the loaded items fill more than the window`() async throws {
+            let server = PageServer(pages: [[Entry(id: 1, day: "2026-10-11")]])
+            let source = PaginatedList.DataSource<Entry>(items: [])
+            await source.configureAndLoad {
+                server.firstPageLoads += 1
+                return server.page(0)
+            } nextPageLoader: { _ in
+                server.page(0)
+            }
+            source.removeAll()
+            for id in 100 ..< 200 {
+                source.upsert(Entry(id: id, day: "\(id)"))
+            }
+            #expect(server.firstPageLoads == 1)
+
+            let window = makeWindow(rootView: PaginatedList.Grouped(dataSource: source, groupBy: { $0.wrappedValue.day }, viewFactory: { entry in
+                Text(verbatim: "\(entry.wrappedValue.id)")
+            }))
+            defer { window.close() }
+            let content = try #require(window.contentView)
+            _ = await settles(content) { server.firstPageLoads == 2 }
+
+            #expect(server.firstPageLoads == 2)
+            #expect(source.items.map(\.id) == [1])
         }
 
         private func loadUntilLastPage(from server: PageServer) async throws -> PaginatedList.DataSource<Entry> {

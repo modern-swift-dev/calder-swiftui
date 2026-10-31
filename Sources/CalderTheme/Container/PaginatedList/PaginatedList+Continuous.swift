@@ -14,6 +14,8 @@
         /// showing a loading indicator after the last item when more data is available. The indicator
         /// requests the next page again after every loaded page, including pages that add no new items.
         /// When a next-page request fails, the indicator is replaced by a row that retries the failed page.
+        /// When the data source has no current page, the list requests the first page as soon as it
+        /// appears, whatever the height of its header.
         struct Continuous<DataType: Identifiable & Codable & Sendable, Content: View, HeaderContent: View, FooterView: View>: View {
             /// The data source responsible for fetching and managing the paginated data.
             @Bindable var dataSource: DataSource<DataType>
@@ -176,9 +178,10 @@
                     .listRowSeparator(.hidden)
                     #endif
                     .listRowBackground(Color.clear)
-                    .task {
-                        await dataSource.load()
-                    }
+                }
+                // The list loads a missing first page when it appears, not when its lazy last row does.
+                .task {
+                    await dataSource.load()
                 }
             }
         }
