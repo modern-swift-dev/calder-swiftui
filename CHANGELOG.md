@@ -53,6 +53,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `UIScrollView.setupKeyboardAutoAdjustment(keepCentered:)` updates the insets as each keyboard notification arrives, instead of waiting for the main run loop's default mode, so they no longer lag behind the keyboard animation while the scroll view is tracking (#122).
 - `UIApplication.appInterfaceOrientation()` reads any connected window scene when none is foreground-active, such as during launch, and returns `.unknown` when there is no window scene, instead of returning `.portrait` (#125).
 - `KeyboardObserver` ignores hide notifications from non-local keyboards, as it does show and frame-change notifications, so another app's keyboard no longer resets `visible` and `keyboardSize` (#126).
+- `contrastingTextColor(light:dark:)` on `UIColor`, `NSColor`, and `Color` (and so `Color.textColor`) returns whichever candidate has the higher WCAG 2.x contrast ratio against the receiver, instead of comparing the receiver's luma with `0.5`. Some colours now get a different text colour: pure red, for example, gets black text (ratio 5.25) instead of white (4.00). Alpha is ignored, and `dark` wins a tie (#168).
 
 ### Source-breaking changes
 
@@ -107,6 +108,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - The `UIImage` thumbnail helpers (`init(data:thumbnailSize:)`, `resize(_:_:_:)`, `resizeToFit(_:_:)`, and `scaledCopy(_:_:)`) are available on visionOS (#138).
 - `UserNotificationService` and `UserNotificationServiceDelegate` are available on visionOS (#136).
 - `ColorRange` and `ColorRanges` conform to `Sendable` and `Equatable` (#170).
+- `contrastRatio(with:)` on `UIColor`, `NSColor`, and `Color` (with an `in:` environment for resolution) returns the WCAG 2.x contrast ratio between two colours, from 1 to 21 (#168).
 
 ### Fixes
 

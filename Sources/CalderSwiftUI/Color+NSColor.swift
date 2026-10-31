@@ -16,22 +16,38 @@
                 contrastingTextColor()
             }
 
-            /// A contrasting UIColor for text layered on top of the current UIColor instance
+            /// A contrasting color for text layered on top of this color.
+            ///
+            /// Returns whichever of `light` and `dark` has the higher WCAG 2.x contrast ratio against this
+            /// color (see ``contrastRatio(with:)``); `dark` wins a tie. Colors are converted to sRGB using the
+            /// current appearance and alpha is ignored.
+            /// - Parameters:
+            ///   - light: The candidate for dark backgrounds. Defaults to white.
+            ///   - dark: The candidate for light backgrounds. Defaults to black.
+            /// - Returns: `light` or `dark`.
             func contrastingTextColor(light: NSColor = .white, dark: NSColor = .black) -> NSColor {
+                contrastRatio(with: light) > contrastRatio(with: dark) ? light : dark
+            }
+
+            /// The WCAG 2.x contrast ratio between this color and another, from `1` to `21`.
+            ///
+            /// Colors are converted to sRGB using the current appearance and alpha is ignored.
+            /// The ratio is symmetric.
+            /// - Parameter other: The color to compare with.
+            /// - Returns: The contrast ratio, between `1` and `21`.
+            func contrastRatio(with other: NSColor) -> Double {
+                WCAGContrast.ratio(relativeLuminance, other.relativeLuminance)
+            }
+
+            private var relativeLuminance: Double {
                 // Convert to sRGB color space to safely extract RGB components
                 let srgbColor = usingColorSpace(.sRGB) ?? self
                 var r: CGFloat = 0
                 var g: CGFloat = 0
                 var b: CGFloat = 0
                 var a: CGFloat = 0
-
                 srgbColor.getRed(&r, green: &g, blue: &b, alpha: &a)
-
-                // https://en.wikipedia.org/wiki/Luma_(video)
-                let luma: CGFloat = 0.299 * r + 0.587 * g + 0.114 * b
-                let threshold: CGFloat = 0.5
-
-                return luma > threshold ? dark : light
+                return WCAGContrast.relativeLuminance(red: Double(r), green: Double(g), blue: Double(b))
             }
 
             var asSwiftUIColor: Color {
@@ -59,7 +75,7 @@
             /// will calculate the appropriate color that should have the correct
             /// contrasting effect in order to be legible.
             var textColor: Color {
-                NSColor(self).contrastingTextColor().asSwiftUIColor
+                higherContrast(light: .white, dark: .black, in: EnvironmentValues())
             }
 
             func darken(amount: CGFloat = 0.15) -> Color {
@@ -80,7 +96,7 @@
 
             /// A contrasting Color for text layered on top of the current Color instance
             func contrastingTextColor(light: Color = .white, dark: Color = .black) -> NSColor {
-                NSColor(self).contrastingTextColor(light: NSColor(light), dark: NSColor(dark))
+                NSColor(higherContrast(light: light, dark: dark, in: EnvironmentValues()))
             }
 
             /// Return the UIColor for this SwiftUI Color

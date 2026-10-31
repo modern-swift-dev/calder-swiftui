@@ -26,6 +26,24 @@
                 return (r, g, b, a)
             }
 
+            // MARK: - NSColor contrast
+
+            @Test func `ns color contrast ratio matches WCAG references`() {
+                #expect(abs(NSColor.black.contrastRatio(with: .white) - 21) < 0.005)
+                #expect(abs(NSColor.white.contrastRatio(with: .black) - 21) < 0.005)
+                #expect(abs(NSColor.red.contrastRatio(with: .red) - 1) < 0.005)
+                let grey = NSColor(srgbRed: 0x76 / 255, green: 0x76 / 255, blue: 0x76 / 255, alpha: 1)
+                #expect(abs(grey.contrastRatio(with: .white) - 4.54) < 0.005)
+            }
+
+            @Test func `ns color contrasting text color picks higher contrast candidate`() {
+                // Pure red has luma below 0.5 but a higher contrast ratio against black (5.25) than white (4.00).
+                let red = NSColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+                let blue = NSColor(srgbRed: 0, green: 0, blue: 1, alpha: 1)
+                #expect(red.contrastingTextColor() == .black)
+                #expect(blue.contrastingTextColor() == .white)
+            }
+
             // MARK: - NSColor textColor
 
             @Test func `ns color text color for white`() {

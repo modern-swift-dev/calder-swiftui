@@ -50,6 +50,19 @@
                 #expect(r == 1 && g == 1 && b == 0) // Yellow
             }
 
+            @Test func `ui color contrast ratio matches WCAG references`() {
+                #expect(abs(UIColor.black.contrastRatio(with: .white) - 21) < 0.005)
+                #expect(abs(UIColor.white.contrastRatio(with: .black) - 21) < 0.005)
+                #expect(abs(UIColor.red.contrastRatio(with: .red) - 1) < 0.005)
+                #expect(abs(UIColor(red: 0x76 / 255, green: 0x76 / 255, blue: 0x76 / 255, alpha: 1).contrastRatio(with: .white) - 4.54) < 0.005)
+            }
+
+            @Test func `ui color contrasting text color picks higher contrast candidate`() {
+                // Pure red has luma below 0.5 but a higher contrast ratio against black (5.25) than white (4.00).
+                #expect(UIColor.red.contrastingTextColor() == .black)
+                #expect(UIColor.blue.contrastingTextColor() == .white)
+            }
+
             // MARK: - UIColor asSwiftUIColor
 
             @Test func `ui color as swift UI color`() {

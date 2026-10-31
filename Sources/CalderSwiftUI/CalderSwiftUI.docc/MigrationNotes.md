@@ -11,6 +11,10 @@ the changes in each release across all Calder modules.
 
 `Color(rgb:)` is now failable, and both `Color(rgb:)` and `Color(rgba:)` return `nil` for strings with non-hexadecimal digits or the wrong number of digits instead of producing black or white. Accepted strings have an optional `#`, `0x`, or `0X` prefix and no whitespace. To keep a non-optional color, supply the fallback explicitly, for example `Color(rgb: hex) ?? .white`. Hex output from `rgb` and `rgba` rounds each channel instead of truncating it and clamps wide-gamut values to `00`–`FF`.
 
+### Text color contrast
+
+`contrastingTextColor(light:dark:)` on `UIColor`, `NSColor`, and `Color`, and `Color.textColor`, now return whichever candidate has the higher WCAG 2.x contrast ratio against the receiver, instead of comparing the receiver's luma with `0.5`. The two rules agree for most colors, but saturated mid-tones now get dark text: pure red gets black text (contrast ratio 5.25) where it previously got white (4.00). Alpha is ignored and `dark` wins a tie. To measure the ratio yourself, use the new `contrastRatio(with:)`; the `Color` version takes an `in:` environment that resolves both colors, and defaults to a default `EnvironmentValues`.
+
 ### Keyboard observation
 
 `KeyboardObserver` now uses the Observation framework instead of `@Published` properties. Views that read the observer through `@Environment(\.keyboardObserver)` now update when keyboard state changes. Prefer `@State` to own an observer and `@Environment` or a plain property to read one. The observer still conforms to `ObservableObject` and sends `objectWillChange` before each state change, so existing `@StateObject` and `@ObservedObject` call sites keep compiling and updating. Code that subscribed to the removed `$visible`, `$isHardwardKeyboard`, or `$keyboardSize` publishers must observe `objectWillChange` or use Observation instead.
