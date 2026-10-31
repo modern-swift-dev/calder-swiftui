@@ -13,72 +13,76 @@
 
             /// Finds the `UISceneSession` for a specified `UIScene.ActivationState`.
             /// - Parameter state: The activation state of the scene session to find. Defaults to `.foregroundActive`.
-            /// - Returns: The first `UISceneSession` matching the state, or `nil` if none is found.
+            /// - Returns: The first `UISceneSession` matching the state, preferring the session whose scene holds a key window, or `nil` if none is found.
             func session(for state: UIScene.ActivationState = .foregroundActive) -> UISceneSession? {
-                UIApplication.shared.openSessions.first(where: { session in session.scene?.activationState == state })
+                sessions(for: state).first
             }
 
             /// Finds all `UISceneSession`s for a specified `UIScene.ActivationState`.
             /// - Parameter state: The activation state of the scene sessions to find. Defaults to `.foregroundActive`.
-            /// - Returns: An array of `UISceneSession`s matching the state.
+            /// - Returns: An array of `UISceneSession`s matching the state. Sessions whose scene holds a key window come first.
             func sessions(for state: UIScene.ActivationState = .foregroundActive) -> [UISceneSession] {
-                UIApplication.shared.openSessions.filter { session in session.scene?.activationState == state }
+                scenes(for: state).map(\.session)
             }
 
             /// Finds the `UIScene` for a specified `UIScene.ActivationState`.
             /// - Parameter state: The activation state of the scene to find. Defaults to `.foregroundActive`.
-            /// - Returns: The first `UIScene` matching the state, or `nil` if none is found.
+            /// - Returns: The first `UIScene` matching the state, preferring a scene that holds a key window, or `nil` if none is found.
             func scene(for state: UIScene.ActivationState = .foregroundActive) -> UIScene? {
-                session(for: state)?.scene
+                scenes(for: state).first
             }
 
             /// Finds all `UIScene`s for a specified `UIScene.ActivationState`.
             /// - Parameter state: The activation state of the scenes to find. Defaults to `.foregroundActive`.
-            /// - Returns: An array of `UIScene`s matching the state.
+            /// - Returns: An array of `UIScene`s matching the state. Window scenes that hold a key window come first.
             func scenes(for state: UIScene.ActivationState = .foregroundActive) -> [UIScene] {
-                sessions(for: state).compactMap(\.scene)
+                windowScenes(for: state).map { $0 as UIScene } + connectedScenes.filter { !($0 is UIWindowScene) && $0.activationState == state }
             }
 
             /// Finds the `UIWindowScene` for a specified `UIScene.ActivationState`.
             /// - Parameter state: The activation state of the window scene to find. Defaults to `.foregroundActive`.
-            /// - Returns: The first `UIWindowScene` matching the state, or `nil` if none is found.
+            /// - Returns: The first `UIWindowScene` matching the state, preferring a scene that holds a key window, or `nil` if none is found.
             func windowScene(for state: UIScene.ActivationState = .foregroundActive) -> UIWindowScene? {
-                scene(for: state) as? UIWindowScene
+                windowScenes(for: state).first
             }
 
             /// Finds all `UIWindowScene`s for a specified `UIScene.ActivationState`.
             /// - Parameter state: The activation state of the window scenes to find. Defaults to `.foregroundActive`.
-            /// - Returns: An array of `UIWindowScene`s matching the state.
+            /// - Returns: An array of `UIWindowScene`s matching the state. Scenes that hold a key window come first.
             func windowScenes(for state: UIScene.ActivationState = .foregroundActive) -> [UIWindowScene] {
-                scenes(for: state).compactMap { $0 as? UIWindowScene }
+                SceneLookup.scenes(in: connectedScenes.compactMap { $0 as? UIWindowScene }, for: state)
             }
 
             /// Finds the `UIWindow` for a specified `UIScene.ActivationState`.
+            ///
+            /// The search covers every scene in that state.
             /// - Parameter state: The activation state of the window to find. Defaults to `.foregroundActive`.
-            /// - Returns: The last `UIWindow` in the scene matching the state, or `nil` if none is found.
+            /// - Returns: The key window if one exists, otherwise the last window of the first scene that has windows, or `nil` if none is found.
             func window(for state: UIScene.ActivationState = .foregroundActive) -> UIWindow? {
-                windowScene(for: state)?.windows.last
+                SceneLookup.window(in: windowScenes(for: state), for: state)
             }
 
             /// Finds all `UIWindow`s for a specified `UIScene.ActivationState`.
             /// - Parameter state: The activation state of the windows to find. Defaults to `.foregroundActive`.
-            /// - Returns: An array of `UIWindow`s matching the state.
+            /// - Returns: The windows of every scene in that state. Windows of a scene that holds a key window come first.
             func windows(for state: UIScene.ActivationState = .foregroundActive) -> [UIWindow] {
-                windowScene(for: state)?.windows ?? []
+                SceneLookup.windows(in: windowScenes(for: state), for: state)
             }
 
             /// Finds the key `UIWindow` for a specified `UIScene.ActivationState`.
+            ///
+            /// The search covers every scene in that state.
             /// - Parameter state: The activation state of the key window to find. Defaults to `.foregroundActive`.
-            /// - Returns: The first key `UIWindow` in the scene matching the state, or `nil` if none is found.
+            /// - Returns: The first key `UIWindow` found in a scene matching the state, or `nil` if none is found.
             func keyWindow(for state: UIScene.ActivationState = .foregroundActive) -> UIWindow? {
-                windowScene(for: state)?.windows.first { $0.isKeyWindow }
+                SceneLookup.keyWindow(in: windowScenes(for: state), for: state)
             }
 
             /// Finds all key `UIWindow`s for a specified `UIScene.ActivationState`.
             /// - Parameter state: The activation state of the key windows to find. Defaults to `.foregroundActive`.
-            /// - Returns: An array of key `UIWindow`s matching the state.
+            /// - Returns: An array of key `UIWindow`s from every scene matching the state.
             func keyWindows(for state: UIScene.ActivationState = .foregroundActive) -> [UIWindow] {
-                windowScene(for: state)?.windows.filter(\.isKeyWindow) ?? []
+                SceneLookup.keyWindows(in: windowScenes(for: state), for: state)
             }
 
             /// Returns the topmost presented root view controller for the foreground active window (in case of a multi-window app).

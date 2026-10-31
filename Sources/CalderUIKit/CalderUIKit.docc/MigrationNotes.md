@@ -39,6 +39,8 @@ Child view controller helpers send each containment callback once, in the order 
 
 `SwiftUISceneDelegate.createRootView(_:)` now returns `AnyView`, so subclasses can override it to supply their root view; wrap the view in `AnyView`. The default root view is SwiftUI's `EmptyView`.
 
+The `UIApplication` scene and window lookups (`session(for:)`, `scene(for:)`, `windowScene(for:)`, `window(for:)`, `windows(for:)`, `keyWindow(for:)`, `keyWindows(for:)`, `topMostPresentedViewController(for:)`, and their plural forms) now search every scene in the requested activation state, such as both scenes of an iPad Split View, instead of one scene picked from an unordered set. Scenes that hold a key window come first, so `window(for:)` and `keyWindow(for:)` return the key window when any scene has one. The lookups read the application they are called on rather than `UIApplication.shared`.
+
 ### Application helpers
 
 `UIApplication.suspendApplication()` and `UIApplication.exitApplication(_:code:)` are deprecated. `suspendApplication()` no longer sends a private selector and does nothing. `exitApplication(_:code:)` waits without blocking the main thread and no longer suspends the app before exiting. Apps should let the user leave instead of suspending or terminating themselves.
