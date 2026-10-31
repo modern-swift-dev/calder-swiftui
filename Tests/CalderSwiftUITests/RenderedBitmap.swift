@@ -37,20 +37,32 @@
 
         /// Renders `view` at its ideal size, or returns `nil` when it produces no image.
         ///
-        /// A completely blank result is rendered again up to twice, because `ImageRenderer` has
-        /// intermittently produced uniform images on loaded CI simulators; a view that really is
-        /// blank still returns its blank bitmap.
+        /// A uniform result, whether fully transparent or a single opaque colour, is rendered again up
+        /// to twice and each retry is logged, because `ImageRenderer` has intermittently produced
+        /// uniform images on loaded CI simulators; a view that really is uniform still returns its
+        /// uniform bitmap.
         @MainActor init?(rendering view: some View) {
             let renderer = ImageRenderer(content: view)
             renderer.scale = 1
+            self.init(attempting: { renderer.cgImage })
+        }
+
+        /// Calls `render` until it produces a bitmap with more than one distinct pixel or `maxAttempts` is reached.
+        ///
+        /// Returns the last bitmap, uniform or not, and `nil` when `render` produces no image.
+        /// Each retry is reported to `log`, which prints by default.
+        @MainActor init?(attempting render: () -> CGImage?, maxAttempts: Int = 3, log: (String) -> Void = { print($0) }) {
             var rendered: RenderedBitmap?
-            for _ in 0 ..< 3 {
-                guard let image = renderer.cgImage, let bitmap = RenderedBitmap(image: image) else {
+            for attempt in 1 ... maxAttempts {
+                guard let image = render(), let bitmap = RenderedBitmap(image: image) else {
                     return nil
                 }
                 rendered = bitmap
-                if !bitmap.isBlank {
+                if !bitmap.isUniform {
                     break
+                }
+                if attempt < maxAttempts {
+                    log("RenderedBitmap: attempt \(attempt) of \(maxAttempts) rendered a uniform \(bitmap.width)x\(bitmap.height) image of \(bitmap.pixel(x: 0, y: 0)); rendering again")
                 }
             }
             guard let rendered else {
@@ -59,9 +71,12 @@
             self = rendered
         }
 
-        /// Whether every byte of the bitmap is zero, as in a fully transparent image.
-        private var isBlank: Bool {
-            bytes.allSatisfy { $0 == 0 }
+        /// Whether every pixel of the bitmap equals the first one, as in a fully transparent or single-colour image.
+        private var isUniform: Bool {
+            bytes.withUnsafeBytes { buffer in
+                let first = buffer.loadUnaligned(as: UInt32.self)
+                return stride(from: 4, to: buffer.count, by: 4).allSatisfy { buffer.loadUnaligned(fromByteOffset: $0, as: UInt32.self) == first }
+            }
         }
 
         /// Copies the pixels of `image`.
