@@ -14,6 +14,7 @@
         private var placement: ToolbarItemPlacement
         private var enabled: Bool
         private let variant: BarButtonStyle.Variant
+        private var accessibilityLabel: LocalizableText?
 
         /// Initializes a `ToolbarButton` with a custom label view, an action, and a placement.
         ///
@@ -39,14 +40,24 @@
 
         @ToolbarContentBuilder public var body: some ToolbarContent {
             ToolbarItem(placement: placement) {
-                Button(action: {
-                    action()
-                }, label: label)
-                    .buttonStyle(BarButtonStyle(variant: variant))
-                    .disabled(!enabled)
-                    .fixedSize(horizontal: true, vertical: true)
+                labelledButton
             }
             .disableSharedBackground(variant.sharedBackgroundDisabled)
+        }
+
+        @ViewBuilder private var labelledButton: some View {
+            let button = Button(action: {
+                action()
+            }, label: label)
+                .buttonStyle(BarButtonStyle(variant: variant))
+                .disabled(!enabled)
+                .fixedSize(horizontal: true, vertical: true)
+
+            if let accessibilityLabel {
+                button.accessibilityLabel(accessibilityLabel.text)
+            } else {
+                button
+            }
         }
     }
 
@@ -149,6 +160,94 @@
             self.label = {
                 Image(systemSymbol: symbol)
             }
+        }
+
+        /// Initializes a `ToolbarButton` with a custom image and a VoiceOver label.
+        ///
+        /// - Parameters:
+        ///   - placement: The placement of the toolbar item within the navigation bar.
+        ///   - variant: The bar button style variant. Defaults to `.regular`.
+        ///   - icon: The `Image` to display as the button's label.
+        ///   - accessibilityLabel: The text VoiceOver reads for the button, displayed unchanged.
+        ///   - enabled: A Boolean value that indicates whether the button is enabled. Defaults to `true`.
+        ///   - action: The action to perform when the button is tapped.
+        init(
+            placement: ToolbarItemPlacement,
+            variant: BarButtonStyle.Variant = .regular,
+            icon: Image,
+            accessibilityLabel: String,
+            enabled: Bool = true,
+            action: @escaping @Sendable @MainActor () -> Void
+        ) {
+            self.init(placement: placement, variant: variant, icon: icon, enabled: enabled, action: action)
+            self.accessibilityLabel = .verbatim(accessibilityLabel)
+        }
+
+        /// Initializes a `ToolbarButton` with a custom image and a localized VoiceOver label.
+        ///
+        /// SwiftUI looks up the label in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - placement: The placement of the toolbar item within the navigation bar.
+        ///   - variant: The bar button style variant. Defaults to `.regular`.
+        ///   - icon: The `Image` to display as the button's label.
+        ///   - accessibilityLabel: The localized text VoiceOver reads for the button.
+        ///   - enabled: A Boolean value that indicates whether the button is enabled. Defaults to `true`.
+        ///   - action: The action to perform when the button is tapped.
+        init(
+            placement: ToolbarItemPlacement,
+            variant: BarButtonStyle.Variant = .regular,
+            icon: Image,
+            accessibilityLabel: LocalizedStringResource,
+            enabled: Bool = true,
+            action: @escaping @Sendable @MainActor () -> Void
+        ) {
+            self.init(placement: placement, variant: variant, icon: icon, enabled: enabled, action: action)
+            self.accessibilityLabel = .localized(accessibilityLabel)
+        }
+
+        /// Initializes a `ToolbarButton` with an SF Symbols icon and a VoiceOver label.
+        ///
+        /// - Parameters:
+        ///   - placement: The placement of the toolbar item within the navigation bar.
+        ///   - variant: The bar button style variant. Defaults to `.regular`.
+        ///   - symbol: The `SFSymbol` to display as the button's label.
+        ///   - accessibilityLabel: The text VoiceOver reads for the button, displayed unchanged.
+        ///   - enabled: A Boolean value that indicates whether the button is enabled. Defaults to `true`.
+        ///   - action: The action to perform when the button is tapped.
+        init(
+            placement: ToolbarItemPlacement,
+            variant: BarButtonStyle.Variant = .regular,
+            symbol: SFSymbol,
+            accessibilityLabel: String,
+            enabled: Bool = true,
+            action: @escaping @Sendable @MainActor () -> Void
+        ) {
+            self.init(placement: placement, variant: variant, symbol: symbol, enabled: enabled, action: action)
+            self.accessibilityLabel = .verbatim(accessibilityLabel)
+        }
+
+        /// Initializes a `ToolbarButton` with an SF Symbols icon and a localized VoiceOver label.
+        ///
+        /// SwiftUI looks up the label in its bundle and table using the environment's locale.
+        ///
+        /// - Parameters:
+        ///   - placement: The placement of the toolbar item within the navigation bar.
+        ///   - variant: The bar button style variant. Defaults to `.regular`.
+        ///   - symbol: The `SFSymbol` to display as the button's label.
+        ///   - accessibilityLabel: The localized text VoiceOver reads for the button.
+        ///   - enabled: A Boolean value that indicates whether the button is enabled. Defaults to `true`.
+        ///   - action: The action to perform when the button is tapped.
+        init(
+            placement: ToolbarItemPlacement,
+            variant: BarButtonStyle.Variant = .regular,
+            symbol: SFSymbol,
+            accessibilityLabel: LocalizedStringResource,
+            enabled: Bool = true,
+            action: @escaping @Sendable @MainActor () -> Void
+        ) {
+            self.init(placement: placement, variant: variant, symbol: symbol, enabled: enabled, action: action)
+            self.accessibilityLabel = .localized(accessibilityLabel)
         }
     }
 

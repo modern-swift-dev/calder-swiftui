@@ -13,6 +13,18 @@
         }
       }
     },
+    "barcodeGenerator.imageLabel" : {
+      "comment" : "Accessibility label of a generated barcode image.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barcode"
+          }
+        }
+      }
+    },
     "barcodeScanner.permissionDenied.message" : {
       "comment" : "Explanation shown when camera access is off, telling the user to allow it in Settings.",
       "extractionState" : "manual",

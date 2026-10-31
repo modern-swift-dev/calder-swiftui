@@ -59,6 +59,11 @@ Invalid `InputText` and `InputPassword` fields draw their error border even when
 invalid message as its hint, as `InputText` does, instead of reading the placeholder only while it is
 visible and the invalid message as separate text.
 
+The `leftAccessory` image of `InputText` and `InputPassword` is hidden from VoiceOver, because it is
+decorative. `ToolbarButton` buttons built from an icon or a symbol read nothing useful to VoiceOver unless you
+use the new initializers that take an `accessibilityLabel`. ``BarcodeGeneratorView`` labels its image
+"Barcode", and ``GenericStateView`` hides its icons.
+
 `FormSwitch` and `FormDatePicker` use their row name as the control's hidden label, so VoiceOver
 announces the name with the control.
 

@@ -263,6 +263,7 @@
                             .imageScale(.medium)
                             .frame(width: 24, height: 24)
                             .foregroundColor(iconColor)
+                            .accessibilityHidden(true)
                     }
 
                     TextField(text: $text) {

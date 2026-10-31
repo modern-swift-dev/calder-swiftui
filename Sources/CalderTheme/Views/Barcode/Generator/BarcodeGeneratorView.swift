@@ -90,6 +90,7 @@
                 Group {
                     if let image = model.image {
                         image
+                            .accessibilityLabel(Text(LocalizedStringResource("barcodeGenerator.imageLabel", bundle: .module)))
                     } else if model.generationFailed {
                         VStack(spacing: .spacingSmall) {
                             Image(systemSymbol: .exclamationmarkTriangle)

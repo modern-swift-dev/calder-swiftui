@@ -104,6 +104,7 @@
                 icon
                     .foregroundStyle(tint)
                     .font(.title)
+                    .accessibilityHidden(true)
 
                 if let text {
                     text.text
