@@ -22,7 +22,18 @@
             }
         }
 
-        /// The text resolved for the current locale, for APIs that need a `String`.
+        /// The text as a resource that resolves in any locale.
+        ///
+        /// Verbatim text becomes a resource that resolves to exactly that string in every locale, so callers
+        /// can resolve every `LocalizableText` the same way, for example with `String(localized:)`.
+        var resource: LocalizedStringResource {
+            switch self {
+                case let .verbatim(string): LocalizedStringResource("\(string)", bundle: .module)
+                case let .localized(resource): resource
+            }
+        }
+
+        /// The text resolved for the process locale, which can differ from the locale the text renders in.
         var resolved: String {
             switch self {
                 case let .verbatim(string): string

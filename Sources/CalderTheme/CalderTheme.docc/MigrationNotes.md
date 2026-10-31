@@ -153,6 +153,31 @@ The scanner's unavailable and camera-access-denied messages and Open Settings bu
 ``BarcodeGeneratorView``'s "Unable to generate barcode" message, come from the CalderTheme string
 catalog and use the environment's locale. Their English text is unchanged.
 
+### Localized text properties
+
+The `String` properties that return text created from a `LocalizedStringResource` resolve it with the
+process locale, so they can differ from the text a view renders under `.environment(\.locale, ...)`. They
+are deprecated and have `LocalizedStringResource` replacements. Set the resource's `locale` to the one you
+need and resolve it with `String(localized:)`:
+
+```swift
+var resource = button.textResource
+resource.locale = Locale(identifier: "fr")
+let text = String(localized: resource)
+```
+
+A resource created from a `String` resolves to that string unchanged in every locale. Rendering is
+unchanged.
+
+| Deprecated property | Replacement |
+| --- | --- |
+| `FormButton.text`, `StatusPill.text` | `textResource` |
+| `FormField.name`, `FormFieldResponsive.name`, `FormSwitch.name`, `FormDatePicker.name` | `nameResource` |
+| `FormHeader.title`, `ToolbarTitle.title`, `SegmentedControl.Item.title`, `MessageBox.title` | `titleResource` |
+| `MessageBox.message` | `messageResource` |
+| `InputText.placeholder`, `InputPassword.placeholder` | `placeholderResource` |
+| `InputText.invalidMessage`, `InputPassword.invalidMessage` | `invalidMessageResource` |
+
 ### Migrating to the new names
 
 Misspelled names were corrected. The old names remain as deprecated type aliases, so existing

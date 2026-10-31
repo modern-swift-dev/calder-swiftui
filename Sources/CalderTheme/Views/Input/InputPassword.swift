@@ -22,8 +22,24 @@
         /// The placeholder text to display when the input field is empty.
         ///
         /// A placeholder created from a `LocalizedStringResource` is resolved for the current locale.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``placeholderResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use placeholderResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var placeholder: String {
             placeholderText.resolved
+        }
+
+        /// The placeholder text as a localized string resource.
+        ///
+        /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A placeholder created
+        /// from a `String` resolves to that string unchanged in every locale.
+        public var placeholderResource: LocalizedStringResource {
+            placeholderText.resource
         }
 
         /// An optional `Image` to display as a leading accessory in the text field.
@@ -39,9 +55,27 @@
         /// VoiceOver reads the message as the text field's hint. A message created from a
         /// `LocalizedStringResource` is resolved for the current locale. Assigning a string
         /// replaces it with a message displayed unchanged.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``invalidMessageResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use invalidMessageResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var invalidMessage: String? {
             get { invalidMessageText?.resolved }
             set { invalidMessageText = newValue.map(LocalizableText.verbatim) }
+        }
+
+        /// The message to display when the input is invalid, as a localized string resource, or `nil` for none.
+        ///
+        /// VoiceOver reads the message as the text field's hint. Set its `locale` to the locale you need and resolve it
+        /// with `String(localized:)`. A message created from a `String` resolves to that string unchanged
+        /// in every locale. Assigning a resource replaces the message.
+        public var invalidMessageResource: LocalizedStringResource? {
+            get { invalidMessageText?.resource }
+            set { invalidMessageText = newValue.map(LocalizableText.localized) }
         }
 
         /// A boolean indicating whether to display a border around the text view.

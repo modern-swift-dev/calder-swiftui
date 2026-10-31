@@ -11,43 +11,44 @@
         private static let error = LocalizedStringResource("messageBox.severity.error", bundle: .module)
 
         @Test func `form components offer localized labels`() {
-            #expect(FormHeader(title: Self.warning).title == "Warning")
-            #expect(FormField(name: Self.warning) { EmptyView() }.name == "Warning")
-            #expect(FormFieldResponsive(name: Self.warning) { _ in EmptyView() }.name == "Warning")
-            #expect(FormFieldResponsive(name: Self.warning).name == "Warning")
-            #expect(FormSwitch(name: Self.warning, value: .constant(true)).name == "Warning")
-            #expect(FormButton(text: Self.warning) {}.text == "Warning")
+            #expect(FormHeader(title: Self.warning).titleResource.resolvedText == "Warning")
+            #expect(FormField(name: Self.warning) { EmptyView() }.nameResource.resolvedText == "Warning")
+            #expect(FormFieldResponsive(name: Self.warning) { _ in EmptyView() }.nameResource.resolvedText == "Warning")
+            #expect(FormFieldResponsive(name: Self.warning).nameResource.resolvedText == "Warning")
+            #expect(FormSwitch(name: Self.warning, value: .constant(true)).nameResource.resolvedText == "Warning")
+            #expect(FormButton(text: Self.warning) {}.textResource.resolvedText == "Warning")
             #if !os(tvOS)
-                #expect(FormDatePicker(name: Self.warning, value: .constant(Date())).name == "Warning")
+                #expect(FormDatePicker(name: Self.warning, value: .constant(Date())).nameResource.resolvedText == "Warning")
             #endif
         }
 
         @Test func `form components keep string labels verbatim`() {
-            #expect(FormHeader(title: "messageBox.severity.warning").title == "messageBox.severity.warning")
-            #expect(FormSwitch(name: "messageBox.severity.warning", value: .constant(true)).name == "messageBox.severity.warning")
-            #expect(FormButton(text: "messageBox.severity.warning") {}.text == "messageBox.severity.warning")
+            #expect(FormHeader(title: "messageBox.severity.warning").titleResource.resolvedText == "messageBox.severity.warning")
+            #expect(FormSwitch(name: "messageBox.severity.warning", value: .constant(true)).nameResource.resolvedText == "messageBox.severity.warning")
+            #expect(FormButton(text: "messageBox.severity.warning") {}.textResource.resolvedText == "messageBox.severity.warning")
         }
 
         @Test func `text inputs offer a localized placeholder and invalid message`() {
             let text = InputText(text: .constant(""), placeholder: Self.warning, invalid: true, invalidMessage: Self.error)
             let password = InputPassword(text: .constant(""), placeholder: Self.warning, invalid: true, invalidMessage: Self.error)
 
-            #expect(text.placeholder == "Warning")
-            #expect(text.invalidMessage == "Error")
-            #expect(password.placeholder == "Warning")
-            #expect(password.invalidMessage == "Error")
-            #expect(InputText(text: .constant(""), placeholder: Self.warning).invalidMessage == nil)
+            #expect(text.placeholderResource.resolvedText == "Warning")
+            #expect(text.invalidMessageResource?.resolvedText == "Error")
+            #expect(password.placeholderResource.resolvedText == "Warning")
+            #expect(password.invalidMessageResource?.resolvedText == "Error")
+            #expect(InputText(text: .constant(""), placeholder: Self.warning).invalidMessageResource == nil)
         }
 
         @Test func `standard text fields offer a localized placeholder`() {
-            #expect(InputText(text: .constant(""), placeholder: Self.warning, axis: .vertical).placeholder == "Warning")
-            #expect(InputText(Self.warning, text: .constant("")).placeholder == "Warning")
+            #expect(InputText(text: .constant(""), placeholder: Self.warning, axis: .vertical).placeholderResource.resolvedText == "Warning")
+            #expect(InputText(Self.warning, text: .constant("")).placeholderResource.resolvedText == "Warning")
             #if canImport(UIKit) && !os(watchOS)
                 _ = InputNumber(Self.warning, value: .constant(1.5)).body
                 _ = InputNumber(value: .constant(1.5), placeholder: Self.warning).body
             #endif
         }
 
+        @available(*, deprecated, message: "Covers the deprecated invalidMessage setter.")
         @Test func `assigning a string invalid message keeps it verbatim`() {
             var text = InputText(text: .constant(""), placeholder: Self.warning, invalidMessage: Self.error)
             text.invalidMessage = "messageBox.severity.error"

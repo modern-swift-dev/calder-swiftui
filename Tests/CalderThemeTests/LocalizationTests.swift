@@ -20,8 +20,8 @@
         @Test func `string message box text is kept verbatim`() {
             let box = MessageBox(variant: .info, title: "messageBox.severity.warning", message: "messageBox.severity.error")
 
-            #expect(box.title == "messageBox.severity.warning")
-            #expect(box.message == "messageBox.severity.error")
+            #expect(box.titleResource.resolvedText == "messageBox.severity.warning")
+            #expect(box.messageResource.resolvedText == "messageBox.severity.error")
         }
 
         @Test func `localized message box text is looked up`() {
@@ -31,8 +31,8 @@
                 message: LocalizedStringResource("messageBox.severity.error", bundle: .module)
             )
 
-            #expect(box.title == "Warning")
-            #expect(box.message == "Error")
+            #expect(box.titleResource.resolvedText == "Warning")
+            #expect(box.messageResource.resolvedText == "Error")
         }
 
         /// A catalog entry whose English value differs from its key, so a lookup is observable.
@@ -60,15 +60,15 @@
         }
 
         @Test func `status pill offers localized text`() {
-            #expect(StatusPill(text: "messageBox.severity.warning", variant: .warn).text == "messageBox.severity.warning")
-            #expect(StatusPill(text: Self.warning, variant: .warn).text == "Warning")
-            #expect(StatusPill(text: Self.warning, background: .red, foreground: .white).text == "Warning")
+            #expect(StatusPill(text: "messageBox.severity.warning", variant: .warn).textResource.resolvedText == "messageBox.severity.warning")
+            #expect(StatusPill(text: Self.warning, variant: .warn).textResource.resolvedText == "Warning")
+            #expect(StatusPill(text: Self.warning, background: .red, foreground: .white).textResource.resolvedText == "Warning")
         }
 
         #if !os(watchOS)
             @Test func `toolbar title offers a localized title`() {
-                #expect(ToolbarTitle(title: "messageBox.severity.warning").title == "messageBox.severity.warning")
-                #expect(ToolbarTitle(title: Self.warning).title == "Warning")
+                #expect(ToolbarTitle(title: "messageBox.severity.warning").titleResource.resolvedText == "messageBox.severity.warning")
+                #expect(ToolbarTitle(title: Self.warning).titleResource.resolvedText == "Warning")
             }
 
             @Test func `toolbar button and menu offer localized text`() {
@@ -79,8 +79,8 @@
         #endif
 
         @Test func `selection items offer localized titles`() {
-            #expect(SegmentedControl<Int>.Item(id: 1, title: "messageBox.severity.warning").title == "messageBox.severity.warning")
-            #expect(SegmentedControl<Int>.Item(id: 1, title: Self.warning).title == "Warning")
+            #expect(SegmentedControl<Int>.Item(id: 1, title: "messageBox.severity.warning").titleResource.resolvedText == "messageBox.severity.warning")
+            #expect(SegmentedControl<Int>.Item(id: 1, title: Self.warning).titleResource.resolvedText == "Warning")
             #expect(SegmentedControl<Int>.Item(id: 1, title: Self.warning) == SegmentedControl<Int>.Item(id: 1, title: Self.warning))
             #expect(CheckboxGroup.Item(id: 1, text: Self.warning).text == "Warning")
             #expect(RadioButtonGroup.Item(id: 1, text: Self.warning).text == "Warning")

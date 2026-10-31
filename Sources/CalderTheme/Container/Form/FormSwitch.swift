@@ -15,8 +15,24 @@
         /// The name or label for the switch field.
         ///
         /// A name created from a `LocalizedStringResource` is resolved for the current locale.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``nameResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use nameResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var name: String {
             nameText.resolved
+        }
+
+        /// The name as a localized string resource.
+        ///
+        /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A name created
+        /// from a `String` resolves to that string unchanged in every locale.
+        public var nameResource: LocalizedStringResource {
+            nameText.resource
         }
 
         /// A binding to the boolean value that the switch controls.

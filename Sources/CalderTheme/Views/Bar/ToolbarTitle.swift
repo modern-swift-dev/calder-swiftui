@@ -13,8 +13,24 @@
             /// The toolbar's title.
             ///
             /// A title created from a `LocalizedStringResource` is resolved for the current locale.
+            ///
+            /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+            ///   differ from the locale the view renders in. Use ``titleResource``.
+            @available(
+                *,
+                deprecated,
+                message: "Resolves with the process locale, which can differ from the rendered text. Use titleResource: set its locale to the one you need and resolve it with String(localized:)."
+            )
             public var title: String {
                 titleText.resolved
+            }
+
+            /// The title as a localized string resource.
+            ///
+            /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A title created
+            /// from a `String` resolves to that string unchanged in every locale.
+            public var titleResource: LocalizedStringResource {
+                titleText.resource
             }
 
             /// Initializes a `ToolbarTitle` with the specified title string.
