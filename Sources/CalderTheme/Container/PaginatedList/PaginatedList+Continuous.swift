@@ -11,8 +11,9 @@
         /// A SwiftUI view that displays a continuous, non-grouped list of paginated data.
         ///
         /// This view works with a `PaginatedList.DataSource` to load and display data incrementally,
-        /// showing a loading indicator at the end when more data is available. When a next-page
-        /// request fails, the indicator is replaced by a row that retries the failed page.
+        /// showing a loading indicator after the last item when more data is available. The indicator
+        /// requests the next page again after every loaded page, including pages that add no new items.
+        /// When a next-page request fails, the indicator is replaced by a row that retries the failed page.
         struct Continuous<DataType: Identifiable & Codable & Sendable, Content: View, HeaderContent: View, FooterView: View>: View {
             /// The data source responsible for fetching and managing the paginated data.
             @Bindable var dataSource: DataSource<DataType>
@@ -120,30 +121,32 @@
                             #if !os(macOS) && !os(watchOS) && !os(tvOS)
                                 .listRowSpacing(0)
                             #endif
+                        }
 
-                            if dataSource.hasNext, dataSource.isLast(item.id) {
-                                Group {
-                                    if dataSource.nextPageError != nil {
-                                        RetryState {
-                                            Task { @MainActor in
-                                                await dataSource.next()
-                                            }
+                        // A page can add no new items, so the trigger follows all items and
+                        // restarts after every loaded page.
+                        if dataSource.hasNext {
+                            Group {
+                                if dataSource.nextPageError != nil {
+                                    RetryState {
+                                        Task { @MainActor in
+                                            await dataSource.next()
                                         }
-                                    } else {
-                                        LoadingState()
-                                            .task { @MainActor in
-                                                await dataSource.next()
-                                            }
                                     }
+                                } else {
+                                    LoadingState()
+                                        .task(id: dataSource.loadedNextPageCount) { @MainActor in
+                                            await dataSource.next()
+                                        }
                                 }
-                                .listRowInsets(EdgeInsets())
-                                #if !os(macOS) && !os(watchOS) && !os(tvOS)
-                                    .listRowSpacing(0)
-                                #endif
-                                #if !os(watchOS) && !os(tvOS)
-                                .listRowSeparator(.hidden)
-                                #endif
                             }
+                            .listRowInsets(EdgeInsets())
+                            #if !os(macOS) && !os(watchOS) && !os(tvOS)
+                                .listRowSpacing(0)
+                            #endif
+                            #if !os(watchOS) && !os(tvOS)
+                            .listRowSeparator(.hidden)
+                            #endif
                         }
                     }
 

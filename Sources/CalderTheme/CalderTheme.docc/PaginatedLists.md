@@ -123,6 +123,8 @@ Reaching the end of the list again never reloads the first page. The failure is 
 `nextPageError`, and the continuous and grouped lists show a row that retries the failed page.
 The row's text comes from the CalderTheme string catalog.
 The grouped list requests the next page when its end is reached, whichever sections the page fills.
+Every list requests the following page after a page that adds no new items, including an empty
+first page.
 
 ### Cancel and replace content
 
