@@ -142,31 +142,30 @@
             }
 
             /// Hook for setting up the notifications subsystem *after* calling `UIApplication.shared.registerForRemoteNotifications()`.
-            /// Sets up observers for app foreground and active states to check notification permissions.
+            ///
+            /// Checks the notification permissions once now, and again each time the app becomes active. Calling this
+            /// method again replaces the earlier subscription instead of adding a second one, so each activation
+            /// still triggers a single check. A foreground transition posts both `willEnterForeground` and
+            /// `didBecomeActive`, and only `didBecomeActive` triggers a check.
             open func didRegisterForRemoteNotifications() {
-                Task { @MainActor [weak self] in
-                    guard let self else {
-                        return
-                    }
+                cancellables.removeAll()
 
-                    NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
-                        .receive(on: RunLoop.main)
-                        .sink { [weak self] _ in
+                NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+                    .sink { [weak self] _ in
+                        MainActor.assumeIsolated {
                             self?.checkPermissions()
-                        }.store(in: &self.cancellables)
-
-                    NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
-                        .receive(on: RunLoop.main)
-                        .sink { [weak self] _ in
-                            self?.checkPermissions()
-                        }.store(in: &self.cancellables)
-                }
+                        }
+                    }.store(in: &cancellables)
 
                 checkPermissions()
             }
 
+            /// The number of permission checks started, so tests can verify how often notifications trigger one.
+            private(set) var permissionCheckCount = 0
+
             /// Checks the current notification permissions status and updates `hasRequestedAuthorization` and `isEnabled` accordingly.
             private func checkPermissions() {
+                permissionCheckCount += 1
                 Task { @MainActor [weak self] in
                     guard let self else {
                         return

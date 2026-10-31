@@ -2,6 +2,7 @@
     @testable import CalderUIKit
     import Foundation
     import Testing
+    import UIKit
     import UserNotifications
 
     @Suite(.timeLimit(.minutes(1)))
@@ -73,6 +74,30 @@
                     })
                 }
             }
+        }
+
+        @Test func `repeated registration does not duplicate subscriptions`() {
+            let service = UserNotificationService(delegate: nil)
+            service.didRegisterForRemoteNotifications()
+            service.didRegisterForRemoteNotifications()
+            service.didRegisterForRemoteNotifications()
+            let before = service.permissionCheckCount
+
+            NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
+
+            #expect(service.permissionCheckCount == before + 1)
+        }
+
+        @Test func `a foreground transition checks permissions once`() {
+            let service = UserNotificationService(delegate: nil)
+            service.didRegisterForRemoteNotifications()
+            let before = service.permissionCheckCount
+
+            // Returning to the foreground posts both notifications.
+            NotificationCenter.default.post(name: UIApplication.willEnterForegroundNotification, object: nil)
+            NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
+
+            #expect(service.permissionCheckCount == before + 1)
         }
     }
 #endif

@@ -99,6 +99,8 @@ Generated barcodes use whole-number scale factors with nearest-neighbour samplin
 
 Notification callbacks complete even when the service's weak delegate has been released or cleared. Foreground notifications use no presentation options in that case.
 
+`UserNotificationService.didRegisterForRemoteNotifications()` now replaces the service's subscriptions each time it runs, so overrides or callers that run it again no longer receive each notification twice, and it subscribes before returning. The service checks the notification permissions when the app becomes active and no longer also on `willEnterForegroundNotification`, so a foreground transition triggers one check instead of two.
+
 ### Web content
 
 `UIContentSizeCategory.adjust(webView:)` now scales web text with the category. It sets `-webkit-text-size-adjust` to the body text style's size for the category relative to its size at `large`, such as `124%` for `extraExtraLarge`, instead of always `100%`.
