@@ -118,11 +118,97 @@
             #expect(text.invalidMessageResource == nil)
         }
 
+        @Test func `list row body exposes resources`() throws {
+            let greeting = try GreetingBundle()
+
+            let body = ListRowBody(title: greeting.resource, subtitle: greeting.resource, caption: greeting.resource)
+            #expect(resolved(body.titleResource, in: german) == "Hallo")
+            #expect(try resolved(#require(body.subtitleResource), in: german) == "Hallo")
+            #expect(try resolved(#require(body.captionResource), in: german) == "Hallo")
+            #expect(ListRowBody(title: "Plain").subtitleResource == nil)
+            #expect(ListRowBody(title: "Plain").captionResource == nil)
+            #expect(resolved(ListRowBody(title: "Plain").titleResource, in: german) == "Plain")
+        }
+
+        @Test func `selection items expose resources`() throws {
+            let greeting = try GreetingBundle()
+
+            #expect(resolved(CheckboxGroup.Item(id: 1, text: greeting.resource).textResource, in: german) == "Hallo")
+            #expect(resolved(RadioButtonGroup.Item(id: 1, text: greeting.resource).textResource, in: german) == "Hallo")
+            #expect(resolved(CheckboxGroup.Item(id: 1, text: "Plain").textResource, in: german) == "Plain")
+            #expect(resolved(RadioButtonGroup.Item(id: 1, text: "Plain").textResource, in: german) == "Plain")
+        }
+
+        @Test func `assigning a selection item resource replaces it`() throws {
+            let greeting = try GreetingBundle()
+            var checkbox = CheckboxGroup.Item(id: 1, text: "Old")
+            var radio = RadioButtonGroup.Item(id: 1, text: "Old")
+
+            checkbox.textResource = greeting.resource
+            radio.textResource = greeting.resource
+
+            #expect(resolved(checkbox.textResource, in: german) == "Hallo")
+            #expect(resolved(radio.textResource, in: german) == "Hallo")
+        }
+
+        @Test func `percent bar exposes its suffix as a resource`() throws {
+            let greeting = try GreetingBundle()
+
+            #expect(try resolved(#require(PercentBar(value: 1, total: 2, text: greeting.resource).textResource), in: german) == "Hallo")
+            #expect(try resolved(#require(PercentBar(value: 1, total: 2, text: "Plain").textResource), in: german) == "Plain")
+            #expect(PercentBar(value: 1, total: 2).textResource == nil)
+        }
+
+        @Test func `charts expose label resources`() throws {
+            let greeting = try GreetingBundle()
+            let g = greeting.resource
+
+            let line = LineChart(title: g, xAxisLabel: g, leftYAxisTitle: g, points: [])
+            let vertical = VerticalBarChart(title: g, xAxisLabel: g, leftYAxisTitle: g, points: [])
+            let horizontal = HorizontalBarChart(xAxisLabel: g, leftYAxisTitle: g, points: [])
+            let pareto = ParetoChart(title: g, xAxisLabel: g, leftYAxisTitle: g, rightYAxisTitle: g, points: [])
+            let resources = [
+                line.titleResource, line.xAxisLabelResource, line.yAxisTitleResource,
+                vertical.titleResource, vertical.xAxisLabelResource, vertical.yAxisTitleResource,
+                horizontal.xAxisLabelResource, horizontal.yAxisTitleResource,
+                pareto.titleResource, pareto.xAxisLabelResource, pareto.leftYAxisTitleResource, pareto.rightYAxisTitleResource
+            ]
+
+            #expect(resources.map { resolved($0, in: german) } == Array(repeating: "Hallo", count: resources.count))
+        }
+
+        @Test func `string charts expose their labels verbatim`() {
+            let chart = LineChart(title: "100% %@", xAxisLabel: "X", leftYAxisTitle: "Y", points: [])
+
+            #expect(resolved(chart.titleResource, in: german) == "100% %@")
+            #expect(resolved(chart.xAxisLabelResource, in: german) == "X")
+        }
+
+        @Test func `assigning a chart label resource replaces it`() throws {
+            let greeting = try GreetingBundle()
+            var chart = LineChart(title: "Old", xAxisLabel: "Old", leftYAxisTitle: "Old", points: [])
+
+            chart.titleResource = greeting.resource
+            chart.xAxisLabelResource = greeting.resource
+            chart.yAxisTitleResource = greeting.resource
+
+            #expect(resolved(chart.titleResource, in: german) == "Hallo")
+            #expect(resolved(chart.xAxisLabelResource, in: german) == "Hallo")
+            #expect(resolved(chart.yAxisTitleResource, in: german) == "Hallo")
+        }
+
         @available(*, deprecated, message: "Covers the deprecated String properties.")
         @Test func `deprecated string properties still resolve`() {
             #expect(FormButton(text: "Plain") {}.text == "Plain")
             #expect(FormHeader(title: "Plain").title == "Plain")
             #expect(MessageBox(variant: .info, title: "Plain", message: "Body").message == "Body")
+            #expect(ListRowBody(title: "Plain", subtitle: "Sub", caption: "Cap").title == "Plain")
+            #expect(ListRowBody(title: "Plain", subtitle: "Sub", caption: "Cap").subtitle == "Sub")
+            #expect(ListRowBody(title: "Plain", subtitle: "Sub", caption: "Cap").caption == "Cap")
+            #expect(CheckboxGroup.Item(id: 1, text: "Plain").text == "Plain")
+            #expect(RadioButtonGroup.Item(id: 1, text: "Plain").text == "Plain")
+            #expect(PercentBar(value: 1, total: 2, text: "Plain").text == "Plain")
+            #expect(LineChart(title: "T", xAxisLabel: "X", leftYAxisTitle: "Y", points: []).title == "T")
         }
     }
 #endif

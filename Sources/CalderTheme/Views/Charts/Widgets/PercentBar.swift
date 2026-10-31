@@ -26,8 +26,24 @@
         /// An optional suffix text to display after the numerical values (e.g., "values").
         ///
         /// A suffix created from a `LocalizedStringResource` is resolved for the current locale.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``textResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use textResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var text: String? {
             unit?.resolved
+        }
+
+        /// The suffix text as a localized string resource, or `nil` for none.
+        ///
+        /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A suffix created
+        /// from a `String` resolves to that string unchanged in every locale.
+        public var textResource: LocalizedStringResource? {
+            unit?.resource
         }
 
         /// A flag to determine if the percentage should be displayed.

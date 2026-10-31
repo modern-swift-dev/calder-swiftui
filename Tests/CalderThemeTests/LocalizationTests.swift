@@ -42,21 +42,21 @@
             let verbatim = ListRowBody(title: "messageBox.severity.warning", subtitle: "a", caption: "b")
             let localized = ListRowBody(title: Self.warning, subtitle: Self.warning, caption: Self.warning)
 
-            #expect(verbatim.title == "messageBox.severity.warning")
-            #expect(localized.title == "Warning")
-            #expect(localized.subtitle == "Warning")
-            #expect(localized.caption == "Warning")
-            #expect(ListRowBody(title: Self.warning).subtitle == nil)
+            #expect(verbatim.titleResource.resolvedText == "messageBox.severity.warning")
+            #expect(localized.titleResource.resolvedText == "Warning")
+            #expect(localized.subtitleResource?.resolvedText == "Warning")
+            #expect(localized.captionResource?.resolvedText == "Warning")
+            #expect(ListRowBody(title: Self.warning).subtitleResource == nil)
         }
 
         @Test func `card list row offers localized text`() {
             let row = ListRow(title: Self.warning, subtitle: Self.warning, caption: Self.warning, detail: Self.warning)
             let body = row.content()
 
-            #expect(body.title == "Warning")
-            #expect(body.subtitle == "Warning")
-            #expect(body.caption == "Warning")
-            #expect(ListRow(title: "messageBox.severity.warning").content().title == "messageBox.severity.warning")
+            #expect(body.titleResource.resolvedText == "Warning")
+            #expect(body.subtitleResource?.resolvedText == "Warning")
+            #expect(body.captionResource?.resolvedText == "Warning")
+            #expect(ListRow(title: "messageBox.severity.warning").content().titleResource.resolvedText == "messageBox.severity.warning")
         }
 
         @Test func `status pill offers localized text`() {
@@ -82,18 +82,19 @@
             #expect(SegmentedControl<Int>.Item(id: 1, title: "messageBox.severity.warning").titleResource.resolvedText == "messageBox.severity.warning")
             #expect(SegmentedControl<Int>.Item(id: 1, title: Self.warning).titleResource.resolvedText == "Warning")
             #expect(SegmentedControl<Int>.Item(id: 1, title: Self.warning) == SegmentedControl<Int>.Item(id: 1, title: Self.warning))
-            #expect(CheckboxGroup.Item(id: 1, text: Self.warning).text == "Warning")
-            #expect(RadioButtonGroup.Item(id: 1, text: Self.warning).text == "Warning")
+            #expect(CheckboxGroup.Item(id: 1, text: Self.warning).textResource.resolvedText == "Warning")
+            #expect(RadioButtonGroup.Item(id: 1, text: Self.warning).textResource.resolvedText == "Warning")
         }
 
+        @available(*, deprecated, message: "Covers the deprecated String setters.")
         @Test func `assigning a string to a selection item keeps it verbatim`() {
             var checkbox = CheckboxGroup.Item(id: 1, text: Self.warning)
             checkbox.text = "messageBox.severity.error"
             var radio = RadioButtonGroup.Item(id: 1, text: Self.warning)
             radio.text = "messageBox.severity.error"
 
-            #expect(checkbox.text == "messageBox.severity.error")
-            #expect(radio.text == "messageBox.severity.error")
+            #expect(checkbox.textResource.resolvedText == "messageBox.severity.error")
+            #expect(radio.textResource.resolvedText == "messageBox.severity.error")
         }
 
         #if os(iOS)

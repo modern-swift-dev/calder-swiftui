@@ -17,22 +17,70 @@
         /// The primary title text for the row.
         ///
         /// A title created from a `LocalizedStringResource` is resolved for the current locale.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``titleResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use titleResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var title: String {
             titleText.resolved
+        }
+
+        /// The title as a localized string resource.
+        ///
+        /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A title created
+        /// from a `String` resolves to that string unchanged in every locale.
+        public var titleResource: LocalizedStringResource {
+            titleText.resource
         }
 
         /// An optional secondary subtitle text for the row.
         ///
         /// A subtitle created from a `LocalizedStringResource` is resolved for the current locale.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``subtitleResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use subtitleResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var subtitle: String? {
             subtitleText?.resolved
+        }
+
+        /// The subtitle as a localized string resource, or `nil` for none.
+        ///
+        /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A subtitle created
+        /// from a `String` resolves to that string unchanged in every locale.
+        public var subtitleResource: LocalizedStringResource? {
+            subtitleText?.resource
         }
 
         /// An optional caption text, usually smaller and less prominent, for the row.
         ///
         /// A caption created from a `LocalizedStringResource` is resolved for the current locale.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``captionResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use captionResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var caption: String? {
             captionText?.resolved
+        }
+
+        /// The caption as a localized string resource, or `nil` for none.
+        ///
+        /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A caption created
+        /// from a `String` resolves to that string unchanged in every locale.
+        public var captionResource: LocalizedStringResource? {
+            captionText?.resource
         }
 
         /// Initializes a new `ListRowBody` view that displays its text verbatim.

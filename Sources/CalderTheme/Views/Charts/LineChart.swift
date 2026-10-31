@@ -44,27 +44,78 @@
         ///
         /// A title created from a `LocalizedStringResource` is resolved for the current locale.
         /// Assigning a string replaces it with a title displayed unchanged.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``titleResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use titleResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var title: String {
             get { titleText.resolved }
             set { titleText = .verbatim(newValue) }
+        }
+
+        /// The title as a localized string resource.
+        ///
+        /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A title created
+        /// from a `String` resolves to that string unchanged in every locale. Assigning a resource replaces it.
+        public var titleResource: LocalizedStringResource {
+            get { titleText.resource }
+            set { titleText = .localized(newValue) }
         }
 
         /// The label for the X-axis.
         ///
         /// A label created from a `LocalizedStringResource` is resolved for the current locale.
         /// Assigning a string replaces it with a label displayed unchanged.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``xAxisLabelResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use xAxisLabelResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var xAxisLabel: String {
             get { xAxisLabelText.resolved }
             set { xAxisLabelText = .verbatim(newValue) }
+        }
+
+        /// The label as a localized string resource.
+        ///
+        /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A label created
+        /// from a `String` resolves to that string unchanged in every locale. Assigning a resource replaces it.
+        public var xAxisLabelResource: LocalizedStringResource {
+            get { xAxisLabelText.resource }
+            set { xAxisLabelText = .localized(newValue) }
         }
 
         /// The label for the Y-axis (value count).
         ///
         /// A label created from a `LocalizedStringResource` is resolved for the current locale.
         /// Assigning a string replaces it with a label displayed unchanged.
+        ///
+        /// - Note: Deprecated because it resolves a `LocalizedStringResource` with the process locale, which can
+        ///   differ from the locale the view renders in. Use ``yAxisTitleResource``.
+        @available(
+            *,
+            deprecated,
+            message: "Resolves with the process locale, which can differ from the rendered text. Use yAxisTitleResource: set its locale to the one you need and resolve it with String(localized:)."
+        )
         public var yAxisTitle: String {
             get { yAxisTitleText.resolved }
             set { yAxisTitleText = .verbatim(newValue) }
+        }
+
+        /// The title as a localized string resource.
+        ///
+        /// Set its `locale` to the locale you need and resolve it with `String(localized:)`. A title created
+        /// from a `String` resolves to that string unchanged in every locale. Assigning a resource replaces it.
+        public var yAxisTitleResource: LocalizedStringResource {
+            get { yAxisTitleText.resource }
+            set { yAxisTitleText = .localized(newValue) }
         }
 
         /// The data points to be displayed in the chart.

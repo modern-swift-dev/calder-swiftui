@@ -22,8 +22,8 @@
 
             #expect(String(localized: verbatim.progressText(locale: Self.english)) == "3 / 1,200 messageBox.severity.warning")
             #expect(String(localized: localized.progressText(locale: Self.english)) == "3 / 1,200 Warning")
-            #expect(verbatim.text == "messageBox.severity.warning")
-            #expect(localized.text == "Warning")
+            #expect(verbatim.textResource?.resolvedText == "messageBox.severity.warning")
+            #expect(localized.textResource?.resolvedText == "Warning")
         }
 
         #if os(iOS)
@@ -65,17 +65,21 @@
                 title: Self.warning, xAxisLabel: Self.warning, leftYAxisTitle: Self.warning, rightYAxisTitle: Self.warning, points: []
             )
 
-            #expect([line.title, line.xAxisLabel, line.yAxisTitle] == ["Warning", "Warning", "Warning"])
-            #expect([vertical.title, vertical.xAxisLabel, vertical.yAxisTitle] == ["Warning", "Warning", "Warning"])
-            #expect([horizontal.xAxisLabel, horizontal.yAxisTitle] == ["Warning", "Warning"])
-            #expect([pareto.title, pareto.xAxisLabel, pareto.leftYAxisTitle, pareto.rightYAxisTitle] == ["Warning", "Warning", "Warning", "Warning"])
+            #expect([line.titleResource, line.xAxisLabelResource, line.yAxisTitleResource].map(\.resolvedText) == ["Warning", "Warning", "Warning"])
+            #expect([vertical.titleResource, vertical.xAxisLabelResource, vertical.yAxisTitleResource].map(\.resolvedText) == ["Warning", "Warning", "Warning"])
+            #expect([horizontal.xAxisLabelResource, horizontal.yAxisTitleResource].map(\.resolvedText) == ["Warning", "Warning"])
+            #expect(
+                [pareto.titleResource, pareto.xAxisLabelResource, pareto.leftYAxisTitleResource, pareto.rightYAxisTitleResource].map(\.resolvedText)
+                    == ["Warning", "Warning", "Warning", "Warning"]
+            )
         }
 
+        @available(*, deprecated, message: "Covers the deprecated String setters.")
         @Test func `assigning a string chart label keeps it verbatim`() {
             var chart = LineChart(title: Self.warning, xAxisLabel: Self.warning, leftYAxisTitle: Self.warning, points: [])
             chart.title = "messageBox.severity.error"
 
-            #expect(chart.title == "messageBox.severity.error")
+            #expect(chart.titleResource.resolvedText == "messageBox.severity.error")
         }
     }
 #endif

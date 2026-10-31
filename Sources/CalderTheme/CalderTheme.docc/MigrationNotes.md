@@ -191,6 +191,15 @@ unchanged.
 | `MessageBox.message` | `messageResource` |
 | `InputText.placeholder`, `InputPassword.placeholder` | `placeholderResource` |
 | `InputText.invalidMessage`, `InputPassword.invalidMessage` | `invalidMessageResource` |
+| `ListRowBody.title` | `titleResource` |
+| `ListRowBody.subtitle` | `subtitleResource` |
+| `ListRowBody.caption` | `captionResource` |
+| `CheckboxGroup.Item.text`, `RadioButtonGroup.Item.text`, `PercentBar.text` | `textResource` |
+| `LineChart.title`, `VerticalBarChart.title`, `ParetoChart.title` | `titleResource` |
+| `LineChart.xAxisLabel`, `VerticalBarChart.xAxisLabel`, `HorizontalBarChart.xAxisLabel`, `ParetoChart.xAxisLabel` | `xAxisLabelResource` |
+| `LineChart.yAxisTitle`, `VerticalBarChart.yAxisTitle`, `HorizontalBarChart.yAxisTitle` | `yAxisTitleResource` |
+| `ParetoChart.leftYAxisTitle` | `leftYAxisTitleResource` |
+| `ParetoChart.rightYAxisTitle` | `rightYAxisTitleResource` |
 
 ### Migrating to the new names
 
