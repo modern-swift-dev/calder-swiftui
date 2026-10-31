@@ -319,6 +319,30 @@
             #expect(source.refreshError == nil)
         }
 
+        @Test func `refresh of a displayed list without items keeps it displayed`() async {
+            let source = PaginatedList.DataSource<Item>(items: [])
+            await source.configureAndLoad(firstPageLoader: { .init(next: nil, hasNext: true, results: []) }, nextPageLoader: { _ in .init(results: []) })
+            if case .displaying = source.state {} else {
+                Issue.record("An empty page with a next page must be displayed, got \(source.state)")
+            }
+            let loader = Loader()
+            let refresh = Task {
+                await source.configureAndLoad(firstPageLoader: { try await loader.load() }, nextPageLoader: { _ in .init(results: []) })
+            }
+            await loader.waitUntilStarted()
+            if case .displaying = source.state {} else {
+                Issue.record("A refresh must keep the displayed list, got \(source.state)")
+            }
+
+            loader.finish(failing: true)
+            await refresh.value
+            #expect(source.refreshError is Failure)
+            #expect(source.hasNext)
+            if case .displaying = source.state {} else {
+                Issue.record("A failed refresh must keep the displayed list, got \(source.state)")
+            }
+        }
+
         @Test func `failed refresh keeps the items and pagination and exposes the error`() async {
             let source = PaginatedList.DataSource<Item>(items: [])
             await source.configureAndLoad(firstPageLoader: { .init(count: 7, next: nil, hasNext: true, results: [Item(id: 1)]) }, nextPageLoader: { _ in .init(results: [Item(id: 2)]) })

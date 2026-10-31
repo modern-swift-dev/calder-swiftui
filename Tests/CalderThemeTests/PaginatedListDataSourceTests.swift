@@ -79,6 +79,28 @@
             expectEmpty(source.state)
         }
 
+        @Test func `empty items with a next page are not the empty state`() async throws {
+            let nextURL = try #require(URL(string: "https://example.com/next"))
+            let source = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
+            await source.configureAndLoad {
+                PaginatedList.Results(next: nextURL, hasNext: true, results: [item(1)])
+            } nextPageLoader: { _ in
+                PaginatedList.Results(results: [item(2)])
+            }
+
+            source.remove(id: 1)
+            #expect(source.items.isEmpty)
+            expectDisplaying(source.state)
+
+            source.replaceAll(PaginatedList.Results(next: nextURL, hasNext: true, results: []))
+            expectDisplaying(source.state)
+
+            await source.next()
+            #expect(ids(source) == [2])
+            source.remove(id: 2)
+            expectEmpty(source.state)
+        }
+
         @Test func `upsert appends prepends and updates existing item`() {
             let source = PaginatedList.DataSource(items: [
                 item(2)

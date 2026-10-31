@@ -64,6 +64,37 @@
             #expect(source.items.map(\.id) == [1])
         }
 
+        @Test func `a state view shows the list and loads the next page after an empty first page`() async throws {
+            let server = PageServer(pages: [[], [Entry(id: 1)]])
+            let source = PaginatedList.DataSource<Entry>(items: [])
+            await source.configureAndLoad {
+                server.page(0)
+            } nextPageLoader: { _ in
+                server.requests += 1
+                return server.page(server.requests)
+            }
+
+            let window = makeWindow(rootView: StateList(source: source))
+            defer { window.close() }
+            let content = try #require(window.contentView)
+            _ = await settles(content) { !source.hasNext }
+
+            #expect(server.requests == 1)
+            #expect(source.items.map(\.id) == [1])
+        }
+
+        private struct StateList: View {
+            let source: PaginatedList.DataSource<Entry>
+
+            var body: some View {
+                GenericStateView(state: source.state) {
+                    PaginatedList.Continuous(dataSource: source) { entry in
+                        Text(verbatim: "\(entry.wrappedValue.id)")
+                    }
+                }
+            }
+        }
+
         private func loadUntilLastPage(from server: PageServer, in kind: ListKind) async throws -> PaginatedList.DataSource<Entry> {
             let source = PaginatedList.DataSource<Entry>(items: [])
             await source.configureAndLoad {

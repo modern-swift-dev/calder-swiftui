@@ -17,6 +17,10 @@ count, and page and sets `refreshError` instead of clearing the list; show that 
 for example in an alert. A failed first load with no loaded items sets `state` to `.error` with
 the error's `localizedDescription`, so ``GenericStateView`` shows the message.
 
+The data source's state is `.empty` only when no items are loaded and no next page remains. When
+the loaded items are empty but the server has more pages, the state is `.displaying`, so the list
+shows its loading row and requests the next page.
+
 ### Forms and inputs
 
 `InputPassword` hides its text by default. Pass `isSecuredEntry: false` to start with the

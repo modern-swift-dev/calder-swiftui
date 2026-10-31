@@ -52,12 +52,12 @@
 
             /// The error from the most recent failed refresh, if any.
             ///
-            /// A refresh is a first-page load, such as ``reload()``, that starts while items are
-            /// loaded. The items stay visible and ``state`` stays `.displaying` while it loads. When
-            /// it fails, the source keeps the items, count, and page, so pagination continues, and
-            /// stores the error here. The error is cleared when a reload starts, and when the source
-            /// is replaced or cleared. Cancellation does not set it. A failed first load with no
-            /// loaded items sets ``state`` to `.error` with the error's description instead.
+            /// A refresh is a first-page load, such as ``reload()``, that starts while ``state`` is
+            /// `.displaying`. The items stay visible and ``state`` stays `.displaying` while it loads.
+            /// When it fails, the source keeps the items, count, and page, so pagination continues,
+            /// and stores the error here. The error is cleared when a reload starts, and when the
+            /// source is replaced or cleared. Cancellation does not set it. A failed first load in any
+            /// other state sets ``state`` to `.error` with the error's description instead.
             public private(set) var refreshError: (any Error)?
 
             /// The number of next pages loaded, which lists use to request another page after each one.
@@ -268,8 +268,8 @@
 
             /// Loads the first page again, ignoring results from all earlier requests.
             ///
-            /// While items are loaded, the reload is a refresh: the items stay visible, and a failure
-            /// keeps them and sets ``refreshError``. Without loaded items, the state is `.loading`
+            /// While the state is `.displaying`, the reload is a refresh: the items stay visible, and a
+            /// failure keeps them and sets ``refreshError``. In other states, the state is `.loading`
             /// and a failure sets it to `.error` with the error's description.
             /// If the reload is cancelled, the source restores the page and state it had before
             /// loading, so pagination continues and the reload can be retried.
@@ -283,9 +283,9 @@
 
             /// Loads the first page of data if no page is currently loaded.
             ///
-            /// Sets the state to `.loading` unless items are loaded, performs the `firstPageLoader`
+            /// Sets the state to `.loading` unless it is `.displaying`, performs the `firstPageLoader`
             /// operation, and updates the `items` and `state` based on the result. A failure sets the
-            /// state to `.error` with the error's description, or keeps loaded items and sets
+            /// state to `.error` with the error's description, or keeps displayed items and sets
             /// ``refreshError``. Cancellation keeps the items and restores the state from before
             /// loading, so the load can be retried.
             public func load() async {
@@ -299,7 +299,11 @@
                 if cancellationRestorePoint == nil {
                     cancellationRestorePoint = (currentPage, state)
                 }
-                let isRefreshing = !items.isEmpty
+                let isRefreshing = if case .displaying = state {
+                    true
+                } else {
+                    false
+                }
                 currentPage = nil
                 let requestId = currentRequestId
                 isLoadingFirstPage = true
@@ -361,11 +365,13 @@
                 refreshError = nil
             }
 
-            /// Recalculates the current view state based on the number of loaded items.
+            /// Recalculates the current view state based on the loaded items and pages.
             ///
-            /// If `items` is empty, the state is set to `.empty()`; otherwise, it's set to `.displaying`.
+            /// If `items` is empty and no next page remains, the state is set to `.empty()`;
+            /// otherwise, it's set to `.displaying`, so a list shows its loading row and
+            /// requests the next page.
             func calculateViewState() {
-                if items.isEmpty {
+                if items.isEmpty, !hasNext {
                     state = .empty()
                     return
                 }

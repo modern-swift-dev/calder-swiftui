@@ -149,7 +149,8 @@ loaded instead of inserting a duplicate ID.
 
 `PaginatedList.DataSource.count` is the total reported by the server. Every loaded page that
 includes a count updates it, while local edits leave it unchanged. Use `items.count` for the number
-of loaded items. A data source created with no items starts in the empty state.
+of loaded items. A data source created with no items starts in the empty state. A data source
+with no items but a next page stays in the displaying state, so the list requests that page.
 
 `PaginatedList.Results` encodes `hasNext`. Decoding uses an explicit `hasNext` value when present
 and otherwise derives it from `next` and `results`, so cursor-based APIs can return `hasNext`
