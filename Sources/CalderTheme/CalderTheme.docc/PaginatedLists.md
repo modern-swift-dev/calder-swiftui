@@ -154,6 +154,10 @@ with a `Results` page makes it the current page; replacing with values ends pagi
 `PaginatedList.DataSource.append(item:after:)` moves and updates an item that is already
 loaded instead of inserting a duplicate ID.
 
+A data source created with `PaginatedList.DataSource.init(items:)` holds in-memory items and has
+no page loaders, so `reload()` and `load()` change nothing until you call
+`configureAndLoad(firstPageLoader:nextPageLoader:)`. Use `replaceAll(values:)` to change its items.
+
 ### Count items and decode pages
 
 `PaginatedList.DataSource.count` is the total reported by the server. Every loaded page that

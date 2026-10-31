@@ -25,6 +25,11 @@ shows its loading row and requests the next page.
 selected items removed from the data source, or missing after a reload, are deselected, and the
 remaining selected items take their newly loaded values.
 
+A data source created with `init(items:)` keeps its items when it reloads: `reload()` and `load()`
+do nothing until you call `configureAndLoad(firstPageLoader:nextPageLoader:)`. Previously a reload
+brought back the items passed to the initializer, undoing later edits such as `replaceAll(values:)`.
+To reset an in-memory source, call `replaceAll(values:)` with the items you want.
+
 Paginated list items no longer need to be `Codable`: the data source and lists require only
 `Identifiable` and `Sendable`. `PaginatedList.Results` is `Codable` when its items are, so existing
 decoding code is unchanged.

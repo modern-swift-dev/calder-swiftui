@@ -83,10 +83,9 @@
             /// before both.
             private var cancellationRestorePoint: (page: Results<DataType>?, state: GenericState)?
 
-            /// A closure responsible for loading the first page of data.
-            private var firstPageLoader: @MainActor @Sendable () async throws -> Results<DataType> = {
-                Results<DataType>(results: [])
-            }
+            /// A closure responsible for loading the first page of data, or `nil` for a data source
+            /// created from in-memory items that hasn't been configured with page loaders.
+            private var firstPageLoader: (@MainActor @Sendable () async throws -> Results<DataType>)?
 
             /// A closure responsible for loading subsequent pages of data.
             private var nextPageLoader: @MainActor @Sendable (Results<DataType>) async throws -> Results<DataType> = { _ in
@@ -96,6 +95,10 @@
             /// Initializes a new `DataSource` with a given array of items.
             ///
             /// The initial state is `.empty` when `items` is empty and `.displaying` otherwise.
+            /// The items form a final page, and the source has no page loaders: ``reload()``,
+            /// `reload() async`, and ``load()`` return immediately and change nothing, so items set
+            /// with methods such as ``replaceAll(values:)`` stay in place. Call
+            /// ``configureAndLoad(firstPageLoader:nextPageLoader:)`` to load pages instead.
             /// - Parameter items: The initial array of data items.
             public init(
                 items: [DataType]
@@ -104,9 +107,6 @@
                 state = items.isEmpty ? .empty() : .displaying
                 currentPage = .init(results: items)
                 count = items.count
-                self.firstPageLoader = {
-                    .init(results: items)
-                }
             }
 
             /// Configures the data source with custom page loading closures and initiates a reload.
@@ -267,6 +267,9 @@
             }
 
             /// Reloads the data from the first page in a non-async context.
+            ///
+            /// Like `reload() async`, this does nothing for a data source created with
+            /// ``init(items:)`` and never configured with page loaders.
             public func reload() {
                 Task { @MainActor [weak self] in
                     await self?.reload()
@@ -275,20 +278,27 @@
 
             /// Loads the first page again, ignoring results from all earlier requests.
             ///
+            /// A data source created with ``init(items:)`` and never configured with page loaders
+            /// returns immediately: its items, state, count, page, ``refreshError``, and
+            /// ``nextPageError`` are unchanged.
+            ///
             /// While the state is `.displaying`, the reload is a refresh: the items stay visible, and a
             /// failure keeps them and sets ``refreshError``. In other states, the state is `.loading`
             /// and a failure sets it to `.error` with the error's description.
             /// If the reload is cancelled, the source restores the page and state it had before
             /// loading, so pagination continues and the reload can be retried.
             public func reload() async {
-                guard !Task.isCancelled else {
+                guard let firstPageLoader, !Task.isCancelled else {
                     return
                 }
                 invalidateRequests()
-                await loadFirstPage()
+                await loadFirstPage(with: firstPageLoader)
             }
 
             /// Loads the first page of data if no page is currently loaded.
+            ///
+            /// A data source created with ``init(items:)`` and never configured with page loaders
+            /// returns immediately and changes nothing.
             ///
             /// Sets the state to `.loading` unless it is `.displaying`, performs the `firstPageLoader`
             /// operation, and updates the `items` and `state` based on the result. A failure sets the
@@ -296,13 +306,15 @@
             /// ``refreshError``. Cancellation keeps the items and restores the state from before
             /// loading, so the load can be retried.
             public func load() async {
-                guard currentPage == nil, !isLoadingFirstPage, !Task.isCancelled else {
+                guard let firstPageLoader, currentPage == nil, !isLoadingFirstPage, !Task.isCancelled else {
                     return
                 }
-                await loadFirstPage()
+                await loadFirstPage(with: firstPageLoader)
             }
 
-            private func loadFirstPage() async {
+            private func loadFirstPage(
+                with firstPageLoader: @MainActor @Sendable () async throws -> Results<DataType>
+            ) async {
                 if cancellationRestorePoint == nil {
                     cancellationRestorePoint = (currentPage, state)
                 }

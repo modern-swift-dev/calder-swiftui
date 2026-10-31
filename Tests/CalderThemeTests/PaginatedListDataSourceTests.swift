@@ -315,6 +315,64 @@
             #expect(message == PaginatedListDataSourceTestError.failed.localizedDescription)
         }
 
+        @Test func `reload keeps replaced items in a data source created from items`() async {
+            let source = PaginatedList.DataSource(items: [item(1), item(2)])
+            source.replaceAll(values: [item(3)])
+
+            await source.reload()
+
+            #expect(ids(source) == [3])
+            #expect(source.count == 1)
+            expectDisplaying(source.state)
+        }
+
+        @Test func `reload leaves an in-memory data source unchanged`() async {
+            let source = PaginatedList.DataSource(items: [item(1), item(2)])
+            source.removeAll()
+
+            await source.reload()
+            startReload(source)
+            await Task.yield()
+
+            #expect(source.items.isEmpty)
+            #expect(source.count == nil)
+            #expect(!source.hasNext)
+            #expect(source.refreshError == nil)
+            #expect(source.nextPageError == nil)
+            expectEmpty(source.state)
+        }
+
+        @Test func `load does not restore the initial items of an in-memory data source`() async {
+            let source = PaginatedList.DataSource(items: [item(1)])
+            source.removeAll()
+
+            await source.load()
+
+            #expect(source.items.isEmpty)
+            expectEmpty(source.state)
+        }
+
+        @Test func `reload after configure and load still loads pages`() async {
+            let loader = FirstPageLoader()
+            let source = PaginatedList.DataSource(items: [item(7)])
+            await source.configureAndLoad {
+                await loader.next()
+            } nextPageLoader: { _ in
+                PaginatedList.Results(results: [])
+            }
+            source.replaceAll(values: [item(8)])
+
+            await source.reload()
+
+            #expect(await loader.loadCount() == 2)
+            #expect(ids(source) == [3])
+        }
+
+        /// Calls the synchronous `reload()` overload.
+        private func startReload(_ source: PaginatedList.DataSource<PaginatedListTestItem>) {
+            source.reload()
+        }
+
         private func item(_ id: Int, title: String? = nil) -> PaginatedListTestItem {
             PaginatedListTestItem(id: id, title: title ?? "\(id)")
         }
