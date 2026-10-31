@@ -1,4 +1,4 @@
-#if os(iOS) || targetEnvironment(macCatalyst)
+#if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
     @testable import CalderUIKit
     import Foundation
     import Testing

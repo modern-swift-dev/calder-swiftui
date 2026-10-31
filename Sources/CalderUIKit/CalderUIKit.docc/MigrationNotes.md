@@ -107,6 +107,8 @@ Notification callbacks complete even when the service's weak delegate has been r
 
 `UserNotificationService.didRegisterForRemoteNotifications()` now replaces the service's subscriptions each time it runs, so overrides or callers that run it again no longer receive each notification twice, and it subscribes before returning. The service checks the notification permissions when the app becomes active and no longer also on `willEnterForegroundNotification`, so a foreground transition triggers one check instead of two.
 
+`UserNotificationService` and `UserNotificationServiceDelegate` are now also available on visionOS, in addition to iOS and Mac Catalyst.
+
 ### Web content
 
 `UIContentSizeCategory.adjust(webView:)` now scales web text with the category. It sets `-webkit-text-size-adjust` to the body text style's size for the category relative to its size at `large`, such as `124%` for `extraExtraLarge`, instead of always `100%`.

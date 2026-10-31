@@ -1,5 +1,5 @@
 #if canImport(Darwin)
-    #if os(iOS) || targetEnvironment(macCatalyst)
+    #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
 
         import Combine
         import Foundation
@@ -41,6 +41,8 @@
 
         /// A service class for managing user notifications, including authorization, remote notifications, and local notifications.
         /// All state and delegate interactions are isolated to the main actor.
+        ///
+        /// The service is available on iOS, Mac Catalyst, and visionOS.
         @MainActor open class UserNotificationService: NSObject {
 
             /// The delegate for handling notification-related events.
