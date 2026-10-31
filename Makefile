@@ -29,7 +29,7 @@ documentation:
 
 test-macos: 
 	set -o pipefail && \
-	swift test | mint run --no-install cpisciotta/xcbeautify -q
+	TZ=UTC swift test | mint run --no-install cpisciotta/xcbeautify -q
 
 test-ios:
 	set -o pipefail && \
@@ -41,19 +41,19 @@ test: test-macos test-ios test-tvos test-watchos test-visionos
 
 test-tvos:
 	set -o pipefail && \
-	xcodebuild test \
+	TEST_RUNNER_TZ=UTC xcodebuild test \
 		-scheme "$(SCHEME)" \
 		-destination "$(TVOS_DESTINATION)" | mint run --no-install cpisciotta/xcbeautify -q
 
 test-watchos:
 	set -o pipefail && \
-	xcodebuild test \
+	TEST_RUNNER_TZ=UTC xcodebuild test \
 		-scheme "$(SCHEME)" \
 		-destination "$(WATCHOS_DESTINATION)" | mint run --no-install cpisciotta/xcbeautify -q
 
 test-visionos:
 	set -o pipefail && \
-	xcodebuild test \
+	TEST_RUNNER_TZ=UTC xcodebuild test \
 		-scheme "$(SCHEME)" \
 		-destination "$(VISIONOS_DESTINATION)" | mint run --no-install cpisciotta/xcbeautify -q
 
