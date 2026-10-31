@@ -113,6 +113,10 @@ Charts without data points show an empty state instead of empty axes. By default
 `GenericState.empty` with a localized "No data" message; pass `emptyState:` to show another
 ``GenericState``, or `.displaying` to keep drawing the empty axes.
 
+To let people select from a chart, pass a `selection` binding: the selected category for
+``VerticalBarChart`` and ``HorizontalBarChart``, or the selected date for ``LineChart``. Setting the
+binding highlights the selection. Charts without a binding are drawn as before.
+
 Create Pareto chart categories with ``ParetoChart/RawDataPoint/init(name:value:)`` and pass
 them to the chart initializer. The chart plots categories in descending order of value, keeping
 the input order for ties, and clamps negative values to zero.

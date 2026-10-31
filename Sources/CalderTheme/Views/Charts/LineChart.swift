@@ -73,6 +73,14 @@
         /// The state shown instead of the chart when there are no data points, or `nil` for the default.
         private let emptyState: GenericState?
 
+        /// The binding to the selected date, or `nil` when people can't select from the chart.
+        let selection: Binding<Date?>?
+
+        /// The selected date, or `nil` when nothing is selected or the chart has no selection binding.
+        var selectedDate: Date? {
+            selection?.wrappedValue
+        }
+
         /// A data point paired with its position, so points sharing a date keep distinct identities.
         struct PlottedPoint: Identifiable {
             /// The position of the point in the input data.
@@ -102,6 +110,9 @@
         ///   - xAxisLabel: The label for the X-axis, displayed unchanged.
         ///   - leftYAxisTitle: The label for the Y-axis, displayed unchanged.
         ///   - points: An array of `DataPoint` to display. Several points may share a date.
+        ///   - selection: A binding to the selected date, or `nil` (the default) for a chart that people
+        ///     can't select from. The chart writes the date people select along the X-axis and draws a rule
+        ///     at the selected date.
         ///   - emptyState: The state shown instead of the chart when there are no data points. Defaults to
         ///     `nil`, which shows `GenericState.empty` with a localized "No data" message.
         public init(
@@ -110,6 +121,7 @@
             xAxisLabel: String,
             leftYAxisTitle: String,
             points: [DataPoint],
+            selection: Binding<Date?>? = nil,
             emptyState: GenericState? = nil
         ) {
             self.init(
@@ -118,6 +130,7 @@
                 xAxisLabelText: .verbatim(xAxisLabel),
                 yAxisTitleText: .verbatim(leftYAxisTitle),
                 points: points,
+                selection: selection,
                 emptyState: emptyState
             )
         }
@@ -132,6 +145,9 @@
         ///   - xAxisLabel: The localized label for the X-axis.
         ///   - leftYAxisTitle: The localized label for the Y-axis.
         ///   - points: An array of `DataPoint` to display. Several points may share a date.
+        ///   - selection: A binding to the selected date, or `nil` (the default) for a chart that people
+        ///     can't select from. The chart writes the date people select along the X-axis and draws a rule
+        ///     at the selected date.
         ///   - emptyState: The state shown instead of the chart when there are no data points. Defaults to
         ///     `nil`, which shows `GenericState.empty` with a localized "No data" message.
         public init(
@@ -140,6 +156,7 @@
             xAxisLabel: LocalizedStringResource,
             leftYAxisTitle: LocalizedStringResource,
             points: [DataPoint],
+            selection: Binding<Date?>? = nil,
             emptyState: GenericState? = nil
         ) {
             self.init(
@@ -148,6 +165,7 @@
                 xAxisLabelText: .localized(xAxisLabel),
                 yAxisTitleText: .localized(leftYAxisTitle),
                 points: points,
+                selection: selection,
                 emptyState: emptyState
             )
         }
@@ -158,8 +176,10 @@
             xAxisLabelText: LocalizableText,
             yAxisTitleText: LocalizableText,
             points: [DataPoint],
+            selection: Binding<Date?>?,
             emptyState: GenericState?
         ) {
+            self.selection = selection
             self.emptyState = emptyState
             self.titleText = titleText
             self.nbMarks = nbMarks
@@ -212,7 +232,15 @@
                                 .frame(width: 10, height: 10)
                         }
                     }
+
+                    // Rule at the selected date
+                    if let selectedDate {
+                        RuleMark(x: .value(xAxisLabelText.text, selectedDate))
+                            .lineStyle(StrokeStyle(lineWidth: 1))
+                            .foregroundStyle(theme.text3)
+                    }
                 }
+                .chartXSelection(optional: selection)
                 .chartYAxisLabel(position: .leading) {
                     yAxisTitleText.text
                         .font(.caption)
