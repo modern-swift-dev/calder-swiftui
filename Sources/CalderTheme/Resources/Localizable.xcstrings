@@ -73,6 +73,18 @@
         }
       }
     },
+    "laneChart.time" : {
+      "comment" : "Audio Graphs title of the time axis of a lane chart, which holds the start and end of each task.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        }
+      }
+    },
     "messageBox.severity.error" : {
       "comment" : "Accessibility label announced for the icon of an error message box.",
       "extractionState" : "manual",

@@ -104,6 +104,11 @@ names stay `String` values. Bar annotations, ``PercentBar`` counts, ``Percentage
 Pareto percentage axis are formatted for the environment's locale. ``PercentBar`` combines its
 counts and suffix with a catalog string, so translations can reorder them.
 
+Charts support Audio Graphs. ``VerticalBarChart``, ``HorizontalBarChart``, ``LineChart``, and
+``ParetoChart`` describe their axes and values to VoiceOver with localized titles and
+locale-formatted values. The Pareto cumulative line is read as percentages, such as "100%", instead
+of the bar-axis value it is plotted at.
+
 Create Pareto chart categories with ``ParetoChart/RawDataPoint/init(name:value:)`` and pass
 them to the chart initializer. The chart plots categories in descending order of value, keeping
 the input order for ties, and clamps negative values to zero.

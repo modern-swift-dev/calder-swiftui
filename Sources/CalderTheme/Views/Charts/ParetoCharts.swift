@@ -1,4 +1,5 @@
 #if canImport(SwiftUI)
+    import Accessibility
     import CalderUIKit
     import Charts
     import Foundation
@@ -40,6 +41,8 @@
             var name: String
             /// The absolute value associated with the category (left Y-axis).
             var value: Int
+            /// The cumulative share of the total, from `0` to `1`, described as a percentage.
+            var share: Double
             /// The cumulative percentage value, scaled to the maximum value (right Y-axis).
             var cumulated: Double
         }
@@ -102,6 +105,8 @@
         /// The points are plotted in descending order of value, as a Pareto chart requires.
         /// Points with equal values keep their input order, and points may share a name.
         /// Bar values and the percentage axis are formatted for the environment's locale.
+        /// The chart provides an Audio Graphs descriptor, and VoiceOver reads the cumulative line
+        /// as percentages.
         /// - Parameters:
         ///   - title: The title of the chart, displayed unchanged.
         ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
@@ -133,6 +138,8 @@
         /// The points are plotted in descending order of value, as a Pareto chart requires.
         /// Points with equal values keep their input order, and points may share a name.
         /// Bar values and the percentage axis are formatted for the environment's locale.
+        /// The chart provides an Audio Graphs descriptor, and VoiceOver reads the cumulative line
+        /// as percentages.
         /// - Parameters:
         ///   - title: The localized title of the chart.
         ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
@@ -202,6 +209,7 @@
                         .lineStyle(StrokeStyle(lineWidth: 2))
                         .foregroundStyle(theme.error)
                         .interpolationMethod(.linear)
+                        .accessibilityValue(Text(data.share, format: .percent.locale(locale)))
                     }
 
                     // Circle Markers on Line Chart
@@ -216,6 +224,7 @@
                                 .fill(theme.error)
                                 .frame(width: 10, height: 10)
                         }
+                        .accessibilityValue(Text(data.share, format: .percent.locale(locale)))
                     }
                 }
                 .chartYAxisLabel(position: .leading) {
@@ -277,6 +286,7 @@
                             .foregroundStyle(theme.background3.opacity(0.25))
                     }
                 }
+                .accessibilityChartDescriptor(chartDescriptor(locale: locale))
             }
             .chartYScale(domain: 0 ... max(1, maxValue))
             .chartLegend(.visible)
@@ -297,6 +307,45 @@
             }
             values.append(maxValue)
             return values
+        }
+
+        /// The Audio Graphs description of the chart: one bar per category in plotted order, with the
+        /// values on the left Y-axis. Each point's cumulative share is an additional value, described
+        /// as a percentage on an axis titled with the right Y-axis title.
+        /// - Parameter locale: The locale used to resolve localized labels and format values.
+        /// - Returns: The chart's descriptor.
+        func chartDescriptor(locale: Locale) -> ChartDescriptor {
+            let title = ChartDescriptor.string(titleText, locale: locale)
+            let xAxisTitle = ChartDescriptor.string(xAxisLabelText, locale: locale)
+            let valueTitle = ChartDescriptor.string(leftYAxisTitleText, locale: locale)
+            let shareTitle = ChartDescriptor.string(rightYAxisTitleText, locale: locale)
+            let points = dataPoints.map { (name: $0.name, value: Double($0.value), share: $0.share) }
+            let range = 0 ... Double(max(1, maxValue))
+            let gridlines = markValues().map(Double.init)
+            return ChartDescriptor {
+                AXChartDescriptor(
+                    title: title,
+                    xAxis: AXCategoricalDataAxisDescriptor(title: xAxisTitle, categoryOrder: ChartDescriptor.categories(points.map(\.name))),
+                    yAxis: AXNumericDataAxisDescriptor(
+                        title: valueTitle,
+                        range: range,
+                        gridlinePositions: gridlines,
+                        valueDescriptionProvider: ChartDescriptor.numberDescription(locale: locale)
+                    ),
+                    additionalAxes: [
+                        AXNumericDataAxisDescriptor(title: shareTitle, range: 0 ... 1, gridlinePositions: []) { share in
+                            share.formatted(.percent.locale(locale))
+                        }
+                    ],
+                    series: [
+                        AXDataSeriesDescriptor(
+                            name: valueTitle,
+                            isContinuous: false,
+                            dataPoints: points.map { AXDataPoint(x: $0.name, y: $0.value, additionalValues: [.number($0.share)]) }
+                        )
+                    ]
+                )
+            }
         }
 
         /// Converts a Y-axis value to a formatted percentage string for the right axis.
@@ -322,11 +371,13 @@
             var cumulativeSum = 0
             return sorted { $0.value > $1.value }.enumerated().map { index, point in
                 cumulativeSum += point.value
+                let share = total == 0 ? 0 : Double(cumulativeSum) / Double(total)
                 return .init(
                     id: index,
                     name: point.name,
                     value: point.value,
-                    cumulated: total == 0 ? 0 : Double(cumulativeSum) / Double(total) * Double(maxValue)
+                    share: share,
+                    cumulated: share * Double(maxValue)
                 )
             }
         }

@@ -1,4 +1,5 @@
 #if canImport(SwiftUI)
+    import Accessibility
     import CalderStdLib
     import CalderUIKit
     import Charts
@@ -10,6 +11,9 @@
 
         /// The current theme, injected via Environment.
         @Environment(\.theme) var theme
+
+        /// The locale used to describe the chart's values to Audio Graphs.
+        @Environment(\.locale) private var locale
 
         /// Represents a data point for the line chart.
         public struct DataPoint {
@@ -87,6 +91,8 @@
         }
 
         /// Initializes the line chart with given data points.
+        ///
+        /// The chart provides an Audio Graphs descriptor with its title, axes, and values.
         /// - Parameters:
         ///   - title: The title of the chart, displayed unchanged.
         ///   - nbMarks: The desired number of marks on the Y-axis. Defaults to 5.
@@ -112,6 +118,7 @@
         /// Initializes the line chart with localized labels.
         ///
         /// SwiftUI looks up each label in its bundle and table using the environment's locale.
+        /// The chart provides an Audio Graphs descriptor with its title, axes, and values.
         /// - Parameters:
         ///   - title: The localized title of the chart.
         ///   - nbMarks: The desired number of marks on the Y-axis. Defaults to 5.
@@ -208,8 +215,44 @@
                             .foregroundStyle(theme.background3.opacity(0.25))
                     }
                 }
+                .accessibilityChartDescriptor(chartDescriptor(locale: locale))
             }
             .padding(.spacingLarge)
+        }
+
+        /// The Audio Graphs description of the chart: one continuous series of the data points, in
+        /// input order, with dates on the X-axis described as abbreviated dates.
+        /// - Parameter locale: The locale used to resolve localized labels and format values and dates.
+        /// - Returns: The chart's descriptor.
+        func chartDescriptor(locale: Locale) -> ChartDescriptor {
+            let title = ChartDescriptor.string(titleText, locale: locale)
+            let xAxisTitle = ChartDescriptor.string(xAxisLabelText, locale: locale)
+            let yAxisTitle = ChartDescriptor.string(yAxisTitleText, locale: locale)
+            let points = plottedPoints.map { (date: $0.date.timeIntervalSince1970, value: Double($0.value)) }
+            let dates = points.map(\.date)
+            let dateRange = (dates.min() ?? 0) ... (dates.max() ?? 0)
+            let dateStyle = Date.FormatStyle(date: .abbreviated, time: .omitted, locale: locale)
+            return ChartDescriptor {
+                AXChartDescriptor(
+                    title: title,
+                    xAxis: AXNumericDataAxisDescriptor(title: xAxisTitle, range: dateRange, gridlinePositions: []) { value in
+                        Date(timeIntervalSince1970: value).formatted(dateStyle)
+                    },
+                    yAxis: AXNumericDataAxisDescriptor(
+                        title: yAxisTitle,
+                        range: ChartDescriptor.zeroBasedRange(points.map(\.value)),
+                        gridlinePositions: [],
+                        valueDescriptionProvider: ChartDescriptor.numberDescription(locale: locale)
+                    ),
+                    series: [
+                        AXDataSeriesDescriptor(
+                            name: yAxisTitle,
+                            isContinuous: true,
+                            dataPoints: points.map { AXDataPoint(x: $0.date, y: $0.value) }
+                        )
+                    ]
+                )
+            }
         }
 
     }

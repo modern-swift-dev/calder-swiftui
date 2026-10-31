@@ -1,4 +1,5 @@
 #if canImport(SwiftUI)
+    import Accessibility
     import CalderStdLib
     import CalderUIKit
     import Charts
@@ -6,7 +7,12 @@
     import SwiftUI
 
     /// A SwiftUI view representing a lane chart, useful for visualizing timelines or gantt-like data.
+    ///
+    /// The chart provides an Audio Graphs descriptor with the start and end of each task.
     struct LaneChartView: View {
+
+        /// The locale used to describe the chart's values to Audio Graphs.
+        @Environment(\.locale) private var locale
 
         /// Represents a data point for the lane chart.
         struct DataPoint: Identifiable {
@@ -28,6 +34,8 @@
         static let taskLabel = LocalizedStringResource("laneChart.task", bundle: .module)
         /// The chart label of a task's colour category.
         static let categoryLabel = LocalizedStringResource("laneChart.category", bundle: .module)
+        /// The Audio Graphs title of the time axis.
+        static let timeLabel = LocalizedStringResource("laneChart.time", bundle: .module)
 
         /// The array of data points to display in the chart.
         let data: [DataPoint]
@@ -51,8 +59,45 @@
                 }
                 .chartLegend(.hidden)
                 .chartScrollableAxes(.horizontal) // Allows horizontal scrolling for long timelines
+                .accessibilityChartDescriptor(chartDescriptor(locale: locale))
             }
             .padding(.spacingLarge)
+        }
+
+        /// The Audio Graphs description of the chart: the tasks on a category axis, and a start series
+        /// and an end series on a time axis described as dates and times.
+        /// - Parameter locale: The locale used to resolve labels and format dates.
+        /// - Returns: The chart's descriptor.
+        func chartDescriptor(locale: Locale) -> ChartDescriptor {
+            let taskTitle = ChartDescriptor.string(Self.taskLabel, locale: locale)
+            let timeTitle = ChartDescriptor.string(Self.timeLabel, locale: locale)
+            let startTitle = ChartDescriptor.string(Self.startLabel, locale: locale)
+            let endTitle = ChartDescriptor.string(Self.endLabel, locale: locale)
+            let tasks = data.map { (name: $0.name, start: $0.start.timeIntervalSince1970, end: $0.end.timeIntervalSince1970) }
+            let times = tasks.flatMap { [$0.start, $0.end] }
+            let range = (times.min() ?? 0) ... (times.max() ?? 0)
+            let timeStyle = Date.FormatStyle(date: .abbreviated, time: .shortened, locale: locale)
+            return ChartDescriptor {
+                AXChartDescriptor(
+                    title: nil,
+                    xAxis: AXCategoricalDataAxisDescriptor(title: taskTitle, categoryOrder: ChartDescriptor.categories(tasks.map(\.name))),
+                    yAxis: AXNumericDataAxisDescriptor(title: timeTitle, range: range, gridlinePositions: []) { value in
+                        Date(timeIntervalSince1970: value).formatted(timeStyle)
+                    },
+                    series: [
+                        AXDataSeriesDescriptor(
+                            name: startTitle,
+                            isContinuous: false,
+                            dataPoints: tasks.map { AXDataPoint(x: $0.name, y: $0.start) }
+                        ),
+                        AXDataSeriesDescriptor(
+                            name: endTitle,
+                            isContinuous: false,
+                            dataPoints: tasks.map { AXDataPoint(x: $0.name, y: $0.end) }
+                        )
+                    ]
+                )
+            }
         }
     }
 

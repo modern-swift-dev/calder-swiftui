@@ -1,4 +1,5 @@
 #if canImport(SwiftUI)
+    import Accessibility
     import CalderUIKit
     import Charts
     import Foundation
@@ -9,6 +10,9 @@
 
         /// The current theme, injected via Environment.
         @Environment(\.theme) var theme
+
+        /// The locale used to describe the chart's values to Audio Graphs.
+        @Environment(\.locale) private var locale
 
         /// Represents a data point for the horizontal bar chart.
         public struct DataPoint {
@@ -69,6 +73,7 @@
         /// Initializes the horizontal bar chart with given data points.
         ///
         /// Each bar is annotated with its value, formatted for the environment's locale.
+        /// The chart provides an Audio Graphs descriptor with its axes and values.
         /// - Parameters:
         ///   - xAxisLabel: The label for the category axis, displayed unchanged.
         ///   - leftYAxisTitle: The label for the value axis, displayed unchanged.
@@ -85,6 +90,7 @@
         ///
         /// SwiftUI looks up each label in its bundle and table using the environment's locale.
         /// Each bar is annotated with its value, formatted for the environment's locale.
+        /// The chart provides an Audio Graphs descriptor with its axes and values.
         /// - Parameters:
         ///   - xAxisLabel: The localized label for the category axis.
         ///   - leftYAxisTitle: The localized label for the value axis.
@@ -122,9 +128,38 @@
                     }
                 }
                 .chartLegend(.hidden)
-
+                .accessibilityChartDescriptor(chartDescriptor(locale: locale))
             }
             .padding(.spacingLarge)
+        }
+
+        /// The Audio Graphs description of the chart: one bar per data point, in input order, with
+        /// the categories on the descriptor's X-axis and the values on its Y-axis.
+        /// - Parameter locale: The locale used to resolve localized labels and format values.
+        /// - Returns: The chart's descriptor.
+        func chartDescriptor(locale: Locale) -> ChartDescriptor {
+            let categoryTitle = ChartDescriptor.string(xAxisLabelText, locale: locale)
+            let valueTitle = ChartDescriptor.string(yAxisTitleText, locale: locale)
+            let points = plottedPoints.map { (name: $0.name, value: Double($0.value)) }
+            return ChartDescriptor {
+                AXChartDescriptor(
+                    title: nil,
+                    xAxis: AXCategoricalDataAxisDescriptor(title: categoryTitle, categoryOrder: ChartDescriptor.categories(points.map(\.name))),
+                    yAxis: AXNumericDataAxisDescriptor(
+                        title: valueTitle,
+                        range: ChartDescriptor.zeroBasedRange(points.map(\.value)),
+                        gridlinePositions: [],
+                        valueDescriptionProvider: ChartDescriptor.numberDescription(locale: locale)
+                    ),
+                    series: [
+                        AXDataSeriesDescriptor(
+                            name: valueTitle,
+                            isContinuous: false,
+                            dataPoints: points.map { AXDataPoint(x: $0.name, y: $0.value) }
+                        )
+                    ]
+                )
+            }
         }
     }
 

@@ -1,4 +1,5 @@
 #if canImport(SwiftUI)
+    import Accessibility
     import CalderUIKit
     import Charts
     import Foundation
@@ -9,6 +10,9 @@
 
         /// The current theme, injected via Environment.
         @Environment(\.theme) var theme
+
+        /// The locale used to describe the chart's values to Audio Graphs.
+        @Environment(\.locale) private var locale
 
         /// Represents a data point for the vertical bar chart.
         public struct DataPoint {
@@ -94,6 +98,7 @@
         /// Initializes the vertical bar chart with given data points.
         ///
         /// Each bar is annotated with its value, formatted for the environment's locale.
+        /// The chart provides an Audio Graphs descriptor with its title, axes, and values.
         /// - Parameters:
         ///   - title: The title of the chart, displayed unchanged.
         ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
@@ -120,6 +125,7 @@
         ///
         /// SwiftUI looks up each label in its bundle and table using the environment's locale.
         /// Each bar is annotated with its value, formatted for the environment's locale.
+        /// The chart provides an Audio Graphs descriptor with its title, axes, and values.
         /// - Parameters:
         ///   - title: The localized title of the chart.
         ///   - nbMarks: The number of marks on the Y-axis. Defaults to 5.
@@ -216,11 +222,44 @@
                             .foregroundStyle(theme.background3.opacity(0.25))
                     }
                 }
+                .accessibilityChartDescriptor(chartDescriptor(locale: locale))
             }
             .chartYScale(domain: yDomain)
             .chartLegend(.visible)
             .chartLegend(position: .bottom, alignment: .center, spacing: .spacingSmall)
             .padding(.spacingLarge)
+        }
+
+        /// The Audio Graphs description of the chart: one bar per data point, in input order, on a
+        /// category axis, with the value axis from ``minValue`` to ``maxValue``.
+        /// - Parameter locale: The locale used to resolve localized labels and format values.
+        /// - Returns: The chart's descriptor.
+        func chartDescriptor(locale: Locale) -> ChartDescriptor {
+            let title = ChartDescriptor.string(titleText, locale: locale)
+            let xAxisTitle = ChartDescriptor.string(xAxisLabelText, locale: locale)
+            let yAxisTitle = ChartDescriptor.string(yAxisTitleText, locale: locale)
+            let points = plottedPoints.map { (name: $0.name, value: Double($0.value)) }
+            let range = Double(yDomain.lowerBound) ... Double(yDomain.upperBound)
+            let gridlines = markValues().map(Double.init)
+            return ChartDescriptor {
+                AXChartDescriptor(
+                    title: title,
+                    xAxis: AXCategoricalDataAxisDescriptor(title: xAxisTitle, categoryOrder: ChartDescriptor.categories(points.map(\.name))),
+                    yAxis: AXNumericDataAxisDescriptor(
+                        title: yAxisTitle,
+                        range: range,
+                        gridlinePositions: gridlines,
+                        valueDescriptionProvider: ChartDescriptor.numberDescription(locale: locale)
+                    ),
+                    series: [
+                        AXDataSeriesDescriptor(
+                            name: yAxisTitle,
+                            isContinuous: false,
+                            dataPoints: points.map { AXDataPoint(x: $0.name, y: $0.value) }
+                        )
+                    ]
+                )
+            }
         }
 
         /// Computes evenly spaced Y-axis values from zero to ``maxValue``, preceded by ``minValue``
