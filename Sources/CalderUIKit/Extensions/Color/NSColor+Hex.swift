@@ -86,39 +86,32 @@
                 return HexColorChannels.format([red, green, blue].map(\.double), prefix: prefix)
             }
 
-            /// Format a color to it's string representation HSV
+            /// Formats the color as a hexadecimal HSV string, such as `0xAABBCC`.
             ///
-            /// - parameter prefix for the string representation. Defaults to 0x
+            /// Each channel is rounded to the nearest of 256 steps and clamped to `00`–`FF`, as `toRGB(_:)` does.
+            ///
+            /// - Parameter prefix: The string placed before the digits. Defaults to `0x`.
+            /// - Returns: The prefix followed by six uppercase hexadecimal digits.
             func toHSV(_ prefix: String = "0x") -> String {
                 // Convert to sRGB color space to safely extract HSB components
                 let srgbColor = usingColorSpace(.sRGB) ?? self
                 var (hue, sat, bri, alpha): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
                 srgbColor.getHue(&hue, saturation: &sat, brightness: &bri, alpha: &alpha)
-                let hex = String(
-                    format: "%02X%02X%02X",
-                    min(255, Int(255 * hue)),
-                    min(255, Int(255 * sat)),
-                    min(255, Int(255 * bri))
-                )
-                return "\(prefix)\(hex)"
+                return HexColorChannels.format([hue, sat, bri].map(\.double), prefix: prefix)
             }
 
-            /// Format a color to it's string representation HSVA
+            /// Formats the color as a hexadecimal HSVA string, such as `0xAABBCCDD`.
             ///
-            /// - parameter prefix for the string representation. Defaults to 0x
+            /// Each channel is rounded to the nearest of 256 steps and clamped to `00`–`FF`, as `toRGBA(_:)` does.
+            ///
+            /// - Parameter prefix: The string placed before the digits. Defaults to `0x`.
+            /// - Returns: The prefix followed by eight uppercase hexadecimal digits.
             func toHSVA(_ prefix: String = "0x") -> String {
                 // Convert to sRGB color space to safely extract HSB components
                 let srgbColor = usingColorSpace(.sRGB) ?? self
                 var (hue, sat, bri, alpha): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
                 srgbColor.getHue(&hue, saturation: &sat, brightness: &bri, alpha: &alpha)
-                let hex = String(
-                    format: "%02X%02X%02X%02X",
-                    min(255, Int(255 * hue)),
-                    min(255, Int(255 * sat)),
-                    min(255, Int(255 * bri)),
-                    min(255, Int(255 * alpha))
-                )
-                return "\(prefix)\(hex)"
+                return HexColorChannels.format([hue, sat, bri, alpha].map(\.double), prefix: prefix)
             }
 
             /// Formats the color as a hexadecimal RGBA string, such as `0xAABBCCDD`.

@@ -97,6 +97,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - The image picker popover is anchored to the sender (#96).
 - Theme components: success `StatusPill` uses the text-over-success colour (#69); `Tile` labels use the variant's text colour (#70) and its caller-supplied icon is no longer mirrored in right-to-left layouts (#131); `WrappingHStackLayout` refreshes cached rows (#72), proposes each child its own size (#73), and aligns rows with the horizontal part of every alignment, including text baseline alignments such as `.leadingFirstTextBaseline` (#130); `LineChart` honours `nbMarks` and duplicate dates (#76); `VerticalBarChart` and `HorizontalBarChart` identify points by position, so points that share a name each draw a bar instead of having undefined rendering (#109); `VerticalBarChart` and `ParetoChart` no longer trap for values near `Int.max`; their axis maximum is capped at `Int.max` (#121); `AdaptiveStack` preserves child state across size classes (#77); disabled `ToolbarMenu` labels are dimmed once (#97), and a `ToolbarMenu` exposes its label to VoiceOver (#180).
 - Out-of-range `InputNumber`, `InputDecimal`, and `FormDatePicker` configurations are clamped instead of trapping (#35).
+- Colours: `toHSV(_:)` and `toHSVA(_:)` round and clamp each channel to `00`–`FF` like `toRGB(_:)` and `toRGBA(_:)` instead of truncating, so an alpha of 0.5 formats as `80` rather than `7F` (#116).
 
 ### Packaging, tooling, and documentation
 

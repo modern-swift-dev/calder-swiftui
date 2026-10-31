@@ -113,6 +113,29 @@
                 #expect(try #require(NSColor(hsva: hsva)).toHSVA("") == hsva)
             }
 
+            // MARK: - HSV rounding and clamping
+
+            @Test func `to HSVA rounds alpha like to RGBA`() {
+                let color = NSColor(srgbRed: 1, green: 0, blue: 0, alpha: 0.5)
+                #expect(color.toRGBA("").hasSuffix("80"))
+                #expect(color.toHSVA("").hasSuffix("80"))
+            }
+
+            @Test func `to HSV and HSVA clamp wide gamut channels`() {
+                let color = NSColor(displayP3Red: 0, green: 1, blue: 0, alpha: 1)
+                #expect(color.toHSV("").count == 6)
+                #expect(color.toHSVA("").count == 8)
+                #expect(Int(color.toHSV(""), radix: 16) != nil)
+            }
+
+            @Test(arguments: 1 ... 254)
+            func `hsv round trips every level`(_ level: Int) throws {
+                // Saturation and brightness stay above zero because a grey or black colour has no hue to preserve, and hue stays below 255 because 1.0 wraps to 0.
+                let hex = String(format: "%02X%02X%02X%02X", level, 1 + level * 7 % 255, 1 + level * 13 % 255, level)
+                #expect(try #require(NSColor(hsva: hex)).toHSVA("") == hex)
+                #expect(try #require(NSColor(hsv: String(hex.prefix(6)))).toHSV("") == String(hex.prefix(6)))
+            }
+
             // MARK: - Round trips
 
             @Test(arguments: 0 ... 255)
