@@ -78,6 +78,31 @@ Reloading while items are loaded is a refresh. The items stay visible and `state
 the items, count, and page, so pagination continues, and exposes the failure as `refreshError`.
 The next reload clears it.
 
+### Add pull to refresh
+
+The paginated list views don't install a refresh action themselves. SwiftUI passes
+`refreshable(action:)` down through the environment to the list inside every
+``PaginatedList`` view, and `reload()` is `async`, so apply the modifier and await the reload:
+
+```swift
+struct RefreshableArticleList: View {
+    let dataSource: PaginatedList.DataSource<Article>
+
+    var body: some View {
+        PaginatedList.Continuous(dataSource: dataSource) { article in
+            Text(article.wrappedValue.title)
+        }
+        .refreshable {
+            await dataSource.reload()
+        }
+    }
+}
+```
+
+The refresh indicator stays visible until the reload finishes. The loaded items stay visible while
+it runs, and a failed refresh keeps them and sets `refreshError`, so show that error yourself, for
+example in an alert.
+
 To show items in sections, pass a grouping key to ``PaginatedList/Grouped``. By default, sections
 are sorted by key with `localizedStandardCompare(_:)`. Pass a `sectionOrder` comparator over the
 key to sort them another way, for example
