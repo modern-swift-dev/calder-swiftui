@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "chart.noData" : {
+      "comment" : "Message of the empty state a chart shows when it has no data points.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No data"
+          }
+        }
+      }
+    },
     "inputPassword.hidePassword" : {
       "comment" : "Accessibility label of the password field button that hides the revealed password.",
       "extractionState" : "manual",

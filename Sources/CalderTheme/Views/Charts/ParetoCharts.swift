@@ -100,6 +100,9 @@
         /// The processed data points, including cumulative percentages.
         private var dataPoints: [DataPoint]
 
+        /// The state shown instead of the chart when there are no data points, or `nil` for the default.
+        private let emptyState: GenericState?
+
         /// Initializes the Pareto chart with given raw data points.
         ///
         /// The points are plotted in descending order of value, as a Pareto chart requires.
@@ -114,13 +117,16 @@
         ///   - leftYAxisTitle: The label for the left Y-axis, displayed unchanged.
         ///   - rightYAxisTitle: The label for the right Y-axis, displayed unchanged.
         ///   - points: An array of `RawDataPoint` to process and display, in any order.
+        ///   - emptyState: The state shown instead of the chart when there are no data points. Defaults to
+        ///     `nil`, which shows `GenericState.empty` with a localized "No data" message.
         public init(
             title: String,
             nbMarks: Int = 5,
             xAxisLabel: String,
             leftYAxisTitle: String,
             rightYAxisTitle: String,
-            points: [RawDataPoint]
+            points: [RawDataPoint],
+            emptyState: GenericState? = nil
         ) {
             self.init(
                 titleText: .verbatim(title),
@@ -128,7 +134,8 @@
                 xAxisLabelText: .verbatim(xAxisLabel),
                 leftYAxisTitleText: .verbatim(leftYAxisTitle),
                 rightYAxisTitleText: .verbatim(rightYAxisTitle),
-                points: points
+                points: points,
+                emptyState: emptyState
             )
         }
 
@@ -147,13 +154,16 @@
         ///   - leftYAxisTitle: The localized label for the left Y-axis.
         ///   - rightYAxisTitle: The localized label for the right Y-axis.
         ///   - points: An array of `RawDataPoint` to process and display, in any order.
+        ///   - emptyState: The state shown instead of the chart when there are no data points. Defaults to
+        ///     `nil`, which shows `GenericState.empty` with a localized "No data" message.
         public init(
             title: LocalizedStringResource,
             nbMarks: Int = 5,
             xAxisLabel: LocalizedStringResource,
             leftYAxisTitle: LocalizedStringResource,
             rightYAxisTitle: LocalizedStringResource,
-            points: [RawDataPoint]
+            points: [RawDataPoint],
+            emptyState: GenericState? = nil
         ) {
             self.init(
                 titleText: .localized(title),
@@ -161,7 +171,8 @@
                 xAxisLabelText: .localized(xAxisLabel),
                 leftYAxisTitleText: .localized(leftYAxisTitle),
                 rightYAxisTitleText: .localized(rightYAxisTitle),
-                points: points
+                points: points,
+                emptyState: emptyState
             )
         }
 
@@ -171,8 +182,10 @@
             xAxisLabelText: LocalizableText,
             leftYAxisTitleText: LocalizableText,
             rightYAxisTitleText: LocalizableText,
-            points: [RawDataPoint]
+            points: [RawDataPoint],
+            emptyState: GenericState?
         ) {
+            self.emptyState = emptyState
             self.titleText = titleText
             self.nbMarks = nbMarks
             self.xAxisLabelText = xAxisLabelText
@@ -182,8 +195,23 @@
             dataPoints = points.computedPoints
         }
 
-        /// The content and behavior of the view.
+        /// The content and behavior of the view: the chart, or the empty state when there are no data points.
         public var body: some View {
+            GenericStateView(state: displayedState(locale: locale)) {
+                chartContent
+            }
+        }
+
+        /// The state the view displays: `.displaying` when there are data points, and otherwise the
+        /// custom empty state or an `.empty` state with a localized "No data" message.
+        /// - Parameter locale: The locale used to look up the default message.
+        /// - Returns: The state passed to `GenericStateView`.
+        func displayedState(locale: Locale) -> GenericState {
+            ChartEmptyState.state(emptyState, isEmpty: dataPoints.isEmpty, locale: locale)
+        }
+
+        /// The chart drawn when there are data points.
+        private var chartContent: some View {
             VStack(alignment: .leading, spacing: .spacingMedium) {
                 Chart {
                     // Bar Chart for Absolute Values

@@ -40,8 +40,36 @@
         /// The array of data points to display in the chart.
         let data: [DataPoint]
 
-        /// The content and behavior of the view.
+        /// The state shown instead of the chart when there are no data points, or `nil` for the default.
+        private let emptyState: GenericState?
+
+        /// Creates a lane chart.
+        /// - Parameters:
+        ///   - data: The tasks to display.
+        ///   - emptyState: The state shown instead of the chart when `data` is empty. Defaults to `nil`,
+        ///     which shows `GenericState.empty` with a localized "No data" message.
+        init(data: [DataPoint], emptyState: GenericState? = nil) {
+            self.data = data
+            self.emptyState = emptyState
+        }
+
+        /// The content and behavior of the view: the chart, or the empty state when there are no data points.
         var body: some View {
+            GenericStateView(state: displayedState(locale: locale)) {
+                chartContent
+            }
+        }
+
+        /// The state the view displays: `.displaying` when there are data points, and otherwise the
+        /// custom empty state or an `.empty` state with a localized "No data" message.
+        /// - Parameter locale: The locale used to look up the default message.
+        /// - Returns: The state passed to `GenericStateView`.
+        func displayedState(locale: Locale) -> GenericState {
+            ChartEmptyState.state(emptyState, isEmpty: data.isEmpty, locale: locale)
+        }
+
+        /// The chart drawn when there are data points.
+        private var chartContent: some View {
             VStack {
                 Chart(data) { task in
                     BarMark(
