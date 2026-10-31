@@ -39,12 +39,20 @@
         /// The calculated percentage text, formatted for the user's locale.
         /// Returns `nil` if `showPercent` is `false` or if total is zero.
         public var percent: String? {
+            percentText(locale: locale)
+        }
+
+        /// The percentage of `value` over `total` with up to two fraction digits, such as "1,250%"
+        /// in English when `value` exceeds `total`.
+        /// - Parameter locale: The locale used to format the percentage.
+        /// - Returns: The text, or `nil` if `showPercent` is `false` or if total is zero.
+        func percentText(locale: Locale) -> String? {
             guard showPercent, total > 0 else {
                 return nil
             }
             return (Double(value) / Double(total)).formatted(
                 .percent
-                    .precision(.integerAndFractionLength(integerLimits: 1 ... 3, fractionLimits: 0 ... 2))
+                    .precision(.fractionLength(0 ... 2))
                     .locale(locale)
             )
         }

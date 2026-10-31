@@ -14,6 +14,22 @@
             #expect(PercentView(value: value).clampedValue == expected)
         }
 
+        @Test(arguments: [
+            (UInt(25), UInt(2), "1,250%"),
+            (UInt(100_000), UInt(1), "10,000,000%"),
+            (UInt(3), UInt(2), "150%"),
+            (UInt(1), UInt(3), "33.33%"),
+            (UInt(0), UInt(5), "0%")
+        ])
+        func `percent bar shows every digit of its percentage`(value: UInt, total: UInt, expected: String) {
+            #expect(PercentBar(value: value, total: total).percentText(locale: Self.english) == expected)
+        }
+
+        @Test func `percent bar has no percentage for a zero total or when hidden`() {
+            #expect(PercentBar(value: 3, total: 0).percentText(locale: Self.english) == nil)
+            #expect(PercentBar(value: 3, total: 4, percent: false).percentText(locale: Self.english) == nil)
+        }
+
         @Test func `percent view exposes a localised percentage`() {
             #expect(PercentView(value: 0.25).accessibilityPercent(locale: Self.english) == "25%")
             #expect(PercentView(value: 3).accessibilityPercent(locale: Self.english) == "100%")

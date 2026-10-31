@@ -24,6 +24,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `UIView.setViewGradient(...)` reuses one gradient subview and no longer sets `masksToBounds` on the view (#64).
 - Code 128 barcodes scale by 2 instead of 1.5, so they're wider than before (#23).
 - `PercentView` clamps its value to the documented `0...1` range instead of `0...100` (#83).
+- `PercentBar.percent` shows every integer digit, so a value of 25 out of 2 reads "1,250%" instead of "250%" (#104).
 - `PaginatedList.Selection.Mode.multi(max: 0)` permits no new selections instead of meaning unlimited; use `nil` for no limit (#99).
 - `PaginatedList.Selection` updates its selection binding when the data source's items change. Selected items that were loaded and are no longer in the data source, for example after `remove(_:)` or a reload, leave the selection, so they no longer count towards `multi(max:)`; the other selected items take their loaded values. Selected items that haven't been loaded stay selected (#119).
 - `PaginatedList.DataSource.count` is the server-reported total: every loaded page that includes a count updates it, and local edits leave it unchanged. A data source created with no items starts in the empty state instead of displaying (#98).
