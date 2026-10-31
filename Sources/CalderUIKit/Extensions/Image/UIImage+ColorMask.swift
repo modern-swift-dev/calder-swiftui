@@ -5,7 +5,9 @@
         import UIKit
 
         /// A simple struct that allows to easily define a range of values for color masking.
-        public struct ColorRange {
+        ///
+        /// Two ranges are equal when their lower and upper bounds are equal. The type is `Sendable`.
+        public struct ColorRange: Sendable, Equatable {
             private static let MIN = 0.cgf
             private static let MAX = 255.cgf
             private static let MAX_RANGE = Self.MIN ... Self.MAX
@@ -28,7 +30,9 @@
         }
 
         /// A convenience struct to define a trio of color ranges for color masking.
-        public struct ColorRanges {
+        ///
+        /// Two values are equal when their red, green, and blue ranges are equal. The type is `Sendable`.
+        public struct ColorRanges: Sendable, Equatable {
             private static let MIN = 0.cgf
             private static let MAX = 255.cgf
             private static let MAX_RANGE = Self.MIN ... Self.MAX

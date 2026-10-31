@@ -106,6 +106,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - The `AVCaptureDevice` access helpers (`requestAccessFor(type:)`, `requestAccessForVideo()`, and `requestPermissionForAudio()`) are available on macOS (#137).
 - The `UIImage` thumbnail helpers (`init(data:thumbnailSize:)`, `resize(_:_:_:)`, `resizeToFit(_:_:)`, and `scaledCopy(_:_:)`) are available on visionOS (#138).
 - `UserNotificationService` and `UserNotificationServiceDelegate` are available on visionOS (#136).
+- `ColorRange` and `ColorRanges` conform to `Sendable` and `Equatable` (#170).
 
 ### Fixes
 

@@ -37,7 +37,27 @@
                 #expect(range.lower == 0)
             }
 
+            @Test func `color range equality`() {
+                #expect(ColorRange(10, 20) == ColorRange(10, 20))
+                #expect(ColorRange(10, 20) != ColorRange(10, 21))
+                #expect(ColorRange(10, 20) != ColorRange(9, 20))
+            }
+
             // MARK: - ColorRanges Tests
+
+            @Test func `color ranges equality`() {
+                let base = ColorRanges(red: ColorRange(0, 50), green: ColorRange(100, 150), blue: ColorRange(200, 255))
+                let same = ColorRanges(red: ColorRange(0, 50), green: ColorRange(100, 150), blue: ColorRange(200, 255))
+                let other = ColorRanges(red: ColorRange(0, 50), green: ColorRange(100, 150), blue: ColorRange(200, 254))
+                #expect(base == same)
+                #expect(base != other)
+            }
+
+            @Test func `color ranges cross concurrency domains`() async {
+                let ranges = ColorRanges(UIColor.red)
+                let copy = await Task.detached { ranges }.value
+                #expect(copy == ranges)
+            }
 
             @Test func `color ranges init with ranges`() {
                 let red = ColorRange(0, 50)
