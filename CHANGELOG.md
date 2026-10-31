@@ -25,6 +25,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - Code 128 barcodes scale by 2 instead of 1.5, so they're wider than before (#23).
 - `PercentView` clamps its value to the documented `0...1` range instead of `0...100` (#83).
 - `PaginatedList.Selection.Mode.multi(max: 0)` permits no new selections instead of meaning unlimited; use `nil` for no limit (#99).
+- `PaginatedList.Selection` updates its selection binding when the data source's items change. Selected items that were loaded and are no longer in the data source, for example after `remove(_:)` or a reload, leave the selection, so they no longer count towards `multi(max:)`; the other selected items take their loaded values. Selected items that haven't been loaded stay selected (#119).
 - `PaginatedList.DataSource.count` is the server-reported total: every loaded page that includes a count updates it, and local edits leave it unchanged. A data source created with no items starts in the empty state instead of displaying (#98).
 - A failed next page keeps the loaded items and page, and reaching the end of the list never reloads the first page (#24).
 - `PaginatedList.DataSource` is in the empty state only when it has no items and no next page. With no items but a next page, such as after removing the last loaded item or an empty first page, its state is `.displaying` so the list requests the next page (#129).

@@ -124,6 +124,12 @@ reached, unselected items are disabled.
 
 Selected `PaginatedList.Selection` rows carry the `isSelected` accessibility trait.
 
+`PaginatedList.Selection` keeps the binding in sync with the data source. A selected item that was
+loaded and then leaves the data source, for example after `remove(_:)` or a reload, leaves the
+selection and no longer counts towards the limit. The other selected items are replaced with their
+loaded values. Selected items that haven't been loaded yet, such as items on a later page, stay
+selected.
+
 ### Retry a failed next page
 
 A failed next page in `PaginatedList.DataSource` keeps the loaded items and the current page.

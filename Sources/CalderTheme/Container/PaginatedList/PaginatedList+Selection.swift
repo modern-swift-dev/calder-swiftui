@@ -10,6 +10,11 @@
         /// and writes each selection change to the supplied binding. Multi-selection
         /// leaves the view presented; selecting a single item dismisses it. Selected rows
         /// carry the `isSelected` accessibility trait.
+        ///
+        /// When the data source's items change, the view keeps the binding in sync: selected
+        /// items that were loaded and are no longer in the data source, such as after
+        /// `remove(_:)` or a reload, leave the selection, and the other selected items are
+        /// replaced with their loaded values. Selected items that haven't been loaded stay selected.
         struct Selection<DataType: Identifiable & Codable & Sendable, Content: View, Header: View, Footer: View>: View {
 
             /// Defines the selection mode for the list.
@@ -172,6 +177,26 @@
                 }
             }
 
+            /// The loaded item IDs and the revision of the data source's items, used to observe item changes.
+            private struct LoadedItems: Equatable {
+                let ids: [DataType.ID]
+                let revision: Int
+            }
+
+            /// Removes selected items that were loaded before an item change and are no longer
+            /// loaded, and replaces the other selected items with their loaded values.
+            /// - Parameter previousIDs: The IDs of the items loaded before the change.
+            private func reconcileSelection(previousIDs: [DataType.ID]) {
+                guard !selection.isEmpty else {
+                    return
+                }
+                let loaded = Dictionary(model.items.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
+                let removed = Set(previousIDs).subtracting(loaded.keys)
+                selection = selection.compactMap { selected in
+                    removed.contains(selected.id) ? nil : loaded[selected.id] ?? selected
+                }
+            }
+
             /// Handles the selection/deselection of an item based on the current selection mode.
             /// - Parameter item: The item that was tapped.
             func onSelection(item: DataType) {
@@ -210,6 +235,9 @@
                     header: tableHeader,
                     footer: tableFooter
                 )
+                .onChange(of: LoadedItems(ids: model.items.map(\.id), revision: model.itemsRevision)) { previous, _ in
+                    reconcileSelection(previousIDs: previous.ids)
+                }
             }
         }
     }

@@ -21,6 +21,10 @@ The data source's state is `.empty` only when no items are loaded and no next pa
 the loaded items are empty but the server has more pages, the state is `.displaying`, so the list
 shows its loading row and requests the next page.
 
+`PaginatedList.Selection` writes to its selection binding when the data source's items change:
+selected items removed from the data source, or missing after a reload, are deselected, and the
+remaining selected items take their newly loaded values.
+
 ### Forms and inputs
 
 `InputPassword` hides its text by default. Pass `isSecuredEntry: false` to start with the

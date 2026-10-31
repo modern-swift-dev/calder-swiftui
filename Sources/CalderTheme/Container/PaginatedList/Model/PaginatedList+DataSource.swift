@@ -41,7 +41,14 @@
             /// number of loaded items.
             public private(set) var count: Int?
             /// The array of currently loaded data items.
-            public internal(set) var items: [DataType]
+            public internal(set) var items: [DataType] {
+                didSet {
+                    itemsRevision &+= 1
+                }
+            }
+
+            /// A value that changes whenever `items` changes, including value changes that keep every ID.
+            private(set) var itemsRevision = 0
 
             /// The error from the most recent failed next-page request, if any.
             ///
