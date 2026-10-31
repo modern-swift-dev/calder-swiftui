@@ -2,7 +2,7 @@
 
 ## Set up the repository
 
-Install the tools pinned by `Mintfile` and enable the pre-commit hooks:
+Install the tools listed in `Mintfile` and enable the pre-commit hooks. The `Mintfile` does not pin versions, so Mint installs the latest SwiftFormat, SwiftLint, and xcbeautify releases; run `mint bootstrap` again to update them:
 
 ```sh
 make setup
@@ -10,7 +10,7 @@ make setup
 
 ## Validate a change
 
-Format and lint Swift files before running tests:
+Format and lint Swift files before running tests. `make lint` also fails when SwiftFormat would change a file:
 
 ```sh
 make format
