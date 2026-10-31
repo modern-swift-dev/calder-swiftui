@@ -185,6 +185,34 @@
                 #expect(newChild.events == [.willMove(toParent: true), .didMove(toParent: true, viewAttached: true)])
             }
 
+            @Test func `overlapping transitions keep containment callbacks consistent`() async {
+                let parent = UIViewController()
+                let first = ContainmentRecorder()
+                let second = ContainmentRecorder()
+                let third = ContainmentRecorder()
+                parent.addChildViewController(first, toContainerView: parent.view)
+                first.events.removeAll()
+
+                await withCheckedContinuation { continuation in
+                    var finished = 0
+                    let completion: UIViewController.CompletionHandler = {
+                        finished += 1
+                        if finished == 2 {
+                            continuation.resume()
+                        }
+                    }
+                    // The second transition starts before the first one finishes.
+                    parent.transition(fromChild: first, toNewChild: second, duration: 0, completion: completion)
+                    parent.transition(fromChild: second, toNewChild: third, duration: 0, completion: completion)
+                }
+
+                #expect(first.events == [.willMove(toParent: false), .didMove(toParent: false, viewAttached: false)])
+                // The superseded child is told it is leaving and never that it arrived.
+                #expect(second.events == [.willMove(toParent: true), .willMove(toParent: false), .didMove(toParent: false, viewAttached: false)])
+                #expect(third.events == [.willMove(toParent: true), .didMove(toParent: true, viewAttached: true)])
+                #expect(parent.children == [third])
+            }
+
             // MARK: - fadeOut Tests
 
             @Test func `fade out completion runs after the view controller is removed`() async {

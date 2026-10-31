@@ -102,6 +102,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - Out-of-range `InputNumber`, `InputDecimal`, and `FormDatePicker` configurations are clamped instead of trapping (#35).
 - Colours: `toHSV(_:)` and `toHSVA(_:)` round and clamp each channel to `00`–`FF` like `toRGB(_:)` and `toRGBA(_:)` instead of truncating, so an alpha of 0.5 formats as `80` rather than `7F` (#116).
 - `ClosedRange.clampedValue(_:)` clamps `nan` to the lower bound instead of returning it, and hex formatting treats a `nan` channel as `00` instead of trapping (#123).
+- Child view controller transitions: starting a second `transition(fromChild:toNewChild:inContainerView:duration:delay:completion:)` away from a child that the first one is still adding no longer sends that child `didMove(toParent:)` after `willMove(toParent: nil)`; the superseded child is told it is leaving and then removed (#124).
 
 ### Packaging, tooling, and documentation
 

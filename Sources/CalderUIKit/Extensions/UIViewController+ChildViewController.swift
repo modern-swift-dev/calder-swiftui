@@ -2,6 +2,7 @@
     #if !os(macOS) && !os(watchOS)
 
         import Foundation
+        import ObjectiveC
         import UIKit
 
         public extension UIViewController {
@@ -37,6 +38,10 @@
 
             /// Transitions from an existing child view controller to a new child view controller with a fade animation.
             /// The new child fills the selected container, including when there is no previous child.
+            ///
+            /// Starting another transition away from `newChild` before this one finishes is supported: `newChild`
+            /// then receives `willMove(toParent: nil)` and, once removed, `didMove(toParent: nil)`, without a
+            /// `didMove(toParent:)` for the earlier transition.
             /// - Parameters:
             ///   - fromChild: The previous child view controller to be removed. If `nil`, the new child will simply fade in.
             ///   - newChild: The new child view controller to add.
@@ -61,8 +66,12 @@
 
                 // UIKit's containment order: the outgoing child is told first, the incoming child
                 // receives `didMove(toParent:)` only after the transition finishes.
+                // A child that a still-running transition is adding is superseded by this one: it is told it is
+                // leaving and never receives `didMove(toParent:)` for the earlier transition.
                 let outgoingChild = child?.parent == nil ? nil : child
+                outgoingChild?.isLeavingContainment = true
                 outgoingChild?.willMove(toParent: nil)
+                newChild.isLeavingContainment = false
 
                 let container: UIView = containerView ?? view
                 newChild.view.alpha = 0
@@ -81,7 +90,9 @@
                     MainActor.assumeIsolated {
                         outgoingChild?.view.removeFromSuperview()
                         outgoingChild?.removeFromParent()
-                        newChild.didMove(toParent: self)
+                        if !newChild.isLeavingContainment, newChild.parent === self {
+                            newChild.didMove(toParent: self)
+                        }
                         completion?()
                     }
                 })
@@ -128,6 +139,20 @@
                         completion?()
                     }
                 })
+            }
+        }
+
+        private let isLeavingContainmentKey: StaticString = "calder.UIViewController.isLeavingContainment"
+
+        private extension UIViewController {
+            /// Whether a running transition has told this view controller it's leaving its parent.
+            var isLeavingContainment: Bool {
+                get {
+                    objc_getAssociatedObject(self, isLeavingContainmentKey.utf8Start) as? Bool ?? false
+                }
+                set {
+                    objc_setAssociatedObject(self, isLeavingContainmentKey.utf8Start, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                }
             }
         }
     #endif
