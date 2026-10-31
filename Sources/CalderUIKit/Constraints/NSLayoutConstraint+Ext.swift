@@ -21,6 +21,16 @@
                 }
             #endif
 
+            #if os(macOS) && !targetEnvironment(macCatalyst)
+                /// Returns the constraint with the specified priority.
+                /// - Parameter priority: The new layout priority.
+                /// - Returns: The modified constraint.
+                @discardableResult func with(priority: NSLayoutConstraint.Priority) -> Self {
+                    self.priority = priority
+                    return self
+                }
+            #endif
+
             /// Returns the constraint with the specified identifier. Useful for debugging constraints.
             /// - Parameter identifier: The identifier of the constraint.
             /// - Returns: The modified constraint.

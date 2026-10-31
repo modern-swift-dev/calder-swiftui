@@ -35,6 +35,13 @@
             /// Conforms `UILayoutGuide` to the `Pinnable` protocol, allowing UILayoutGuides to be used as layout guides.
             extension UILayoutGuide: Pinnable {}
         #endif
+
+        #if os(macOS) && !targetEnvironment(macCatalyst)
+            /// Conforms `NSView` to the `Pinnable` protocol, allowing NSViews to be used as layout guides.
+            extension NSView: Pinnable {}
+            /// Conforms `NSLayoutGuide` to the `Pinnable` protocol, allowing NSLayoutGuides to be used as layout guides.
+            extension NSLayoutGuide: Pinnable {}
+        #endif
     #endif
 
 #endif

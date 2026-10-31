@@ -35,6 +35,8 @@ The `coordinateRegion(padding:)` helpers now choose the smallest longitude span 
 
 The system-spacing anchor helpers (`eqAfter`, `leqAfter`, `geqAfter`, `eqBelow`, `leqBelow`, and `geqBelow`) default `multiplier` to `1`, producing one system spacing. Pass `multiplier: 0` to keep the previous zero spacing.
 
+On macOS, `NSView` and `NSLayoutGuide` now conform to `Pinnable`, `NSView` conforms to `MultiConstrainable`, and `NSLayoutConstraint.with(priority:)` takes an `NSLayoutConstraint.Priority`. The `MultiConstrainable` helpers are now default implementations shared by `UIView` and `NSView`, so their behavior is identical on every platform.
+
 ### View controllers and scenes
 
 A child transition with no previous child now inserts the new child into the supplied container and pins it to that container, matching subsequent transitions.
