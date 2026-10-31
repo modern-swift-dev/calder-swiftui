@@ -214,15 +214,6 @@
 
     }
 
-    extension [LineChart.DataPoint] {
-        /// Calculates the maximum value for Y-axis scaling, rounded up to the nearest hundred.
-        var maxValue: Int {
-            let values: [Int] = map(\.value)
-            let max = values.max() ?? 0
-            return Int(ceil(Double(max) / 100.0)) * 100
-        }
-    }
-
 #endif
 
 #if canImport(SwiftUI)

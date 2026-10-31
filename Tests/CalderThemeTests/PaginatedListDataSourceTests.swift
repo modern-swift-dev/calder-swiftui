@@ -368,8 +368,47 @@
             #expect(ids(source) == [3])
         }
 
+        @Test func `the paginated list namespace is not a class`() {
+            let namespace: Any.Type = PaginatedList.self
+            #expect(!(namespace is AnyClass))
+        }
+
+        @Test func `synchronous reload returns a task that can be awaited`() async {
+            let loader = FirstPageLoader()
+            let source = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
+            await source.configureAndLoad {
+                await loader.next()
+            } nextPageLoader: { _ in
+                PaginatedList.Results(results: [])
+            }
+
+            await startReload(source).value
+
+            #expect(await loader.loadCount() == 2)
+            #expect(ids(source) == [3])
+        }
+
+        @Test func `cancelling the task of a synchronous reload stops the reload`() async {
+            let loader = FirstPageLoader()
+            let source = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
+            await source.configureAndLoad {
+                await loader.next()
+            } nextPageLoader: { _ in
+                PaginatedList.Results(results: [])
+            }
+
+            let task = startReload(source)
+            task.cancel()
+            await task.value
+
+            #expect(await loader.loadCount() == 1)
+            #expect(ids(source) == [1, 2])
+            expectDisplaying(source.state)
+        }
+
         /// Calls the synchronous `reload()` overload.
-        private func startReload(_ source: PaginatedList.DataSource<PaginatedListTestItem>) {
+        @discardableResult
+        private func startReload(_ source: PaginatedList.DataSource<PaginatedListTestItem>) -> Task<Void, Never> {
             source.reload()
         }
 

@@ -266,11 +266,19 @@
                 items.last?.id == item.id
             }
 
-            /// Reloads the data from the first page in a non-async context.
+            /// Starts reloading the data from the first page in a non-async context.
+            ///
+            /// The reload runs in a new task on the main actor, as `reload() async` does. Await the
+            /// returned task's `value` to wait for the reload to finish, or cancel the task to cancel
+            /// the reload: a reload cancelled before it starts changes nothing, and one cancelled
+            /// while loading restores the page and state from before loading. The task doesn't keep
+            /// the data source alive.
             ///
             /// Like `reload() async`, this does nothing for a data source created with
             /// ``init(items:)`` and never configured with page loaders.
-            public func reload() {
+            /// - Returns: The task performing the reload.
+            @discardableResult
+            public func reload() -> Task<Void, Never> {
                 Task { @MainActor [weak self] in
                     await self?.reload()
                 }

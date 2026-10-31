@@ -25,6 +25,13 @@ shows its loading row and requests the next page.
 selected items removed from the data source, or missing after a reload, are deselected, and the
 remaining selected items take their newly loaded values.
 
+``PaginatedList`` is a caseless enum rather than a class. Code that created a `PaginatedList()`
+instance or subclassed it no longer compiles; refer to the nested types, such as
+`PaginatedList.DataSource`, directly.
+
+The synchronous `reload()` of `PaginatedList.DataSource` returns the `Task` that performs the
+reload. Await `reload().value` to wait for it, or call `cancel()` on it to cancel the reload.
+
 A data source created with `init(items:)` keeps its items when it reloads: `reload()` and `load()`
 do nothing until you call `configureAndLoad(firstPageLoader:nextPageLoader:)`. Previously a reload
 brought back the items passed to the initializer, undoing later edits such as `replaceAll(values:)`.

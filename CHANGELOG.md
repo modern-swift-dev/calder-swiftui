@@ -65,6 +65,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `CalderSwiftUI` no longer depends on `SnapshotPreviews`; targets that imported it through `CalderSwiftUI` must declare the dependency themselves (#3).
 - `UIColor.asOval(_:centered:)` lost its `centered` parameter; call `asOval(_:)`. The image helpers `asImage`, `asSquare`, `asCircle`, and `asOval` now draw the whole shape (`asOval` previously drew only one quarter of it with the default `centered: true`), render with `UIGraphicsImageRenderer` at the renderer format scale instead of scale 1, and return an empty image for a zero size instead of asserting. `UIImage.tint(_:)` returns `nil` and `tintGradient(colors:vertical:)` returns an empty image for an empty image (#106).
 - `MKMapView.firstIndexOf(overlayType:)` and `lastIndexOf(overlayType:)` take a `level:` argument and return `Int?` scoped to that level, matching the indices `insertOverlay(_:at:level:)` takes. They return `nil` when nothing matches instead of `0` and `Int.max`, so adding `1` to the result no longer traps (#120).
+- `PaginatedList` is a caseless `enum` instead of a `class`, so it can no longer be instantiated or subclassed; use it only as the namespace of `DataSource` and the list views (#164).
 
 ### Deprecations
 
@@ -83,6 +84,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `LineChart`, `VerticalBarChart`, `HorizontalBarChart`, and `ParetoChart` accept `LocalizedStringResource` titles and axis labels, and `PercentBar` accepts a `LocalizedStringResource` suffix. Category names stay `String` values (#91).
 - `PaginatedList.DataSource.nextPageError` exposes a failed next page, and the continuous and grouped lists show a row that retries it (#25).
 - `PaginatedList.DataSource.refreshError` exposes a failed reload of loaded items (#108).
+- The synchronous `PaginatedList.DataSource.reload()` returns the `Task` that performs the reload, so callers can await its `value` or cancel it. The result is discardable, so existing calls compile unchanged (#164).
 - `PaginatedList.DataSource`, `Continuous`, `Grouped`, and `Selection` accept item types that aren't `Codable`; their items need only be `Identifiable` and `Sendable`. `PaginatedList.Results` requires `Sendable` items and is `Codable` when its items are, with the same JSON keys (#179).
 - The barcode scanner and selector show a themed message with an Open Settings button when camera access is denied (#13), and an unavailable message on devices that can't scan (#14). `BarcodeScannerViewController.isSupported` is new, `BarcodeSelectorViewController.isSupported` and `isAvailable` are public, and both controllers have a `themeDefinition` property.
 - `BarcodeScanner.ScanResult` is `Sendable` (#12). `BarcodeGeneratorView.Model.generationFailed` reports a payload that can't be encoded, and QR codes accept non-ASCII text (#22).
