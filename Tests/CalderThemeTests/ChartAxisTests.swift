@@ -51,6 +51,25 @@
             #expect(pareto.maxValue == expected)
         }
 
+        @Test(arguments: [
+            (8_500_000_000_000_000_000, 9_000_000_000_000_000_000),
+            (9_000_000_000_000_000_000, 9_000_000_000_000_000_000),
+            (9_000_000_000_000_000_001, Int.max),
+            (Int.max, Int.max)
+        ])
+        func `axis maximum near the largest integer does not overflow`(value: Int, expected: Int) {
+            #expect(ChartAxis.niceMaximum(for: value) == expected)
+        }
+
+        @Test func `vertical bar chart handles the largest and smallest integers`() {
+            let chart = VerticalBarChart(title: "", xAxisLabel: "", leftYAxisTitle: "", points: [
+                .init(name: "A", value: .min),
+                .init(name: "B", value: .max)
+            ])
+
+            #expect(chart.yDomain == -Int.max ... Int.max)
+        }
+
         @Test func `small values use an axis that fits them`() {
             let chart = VerticalBarChart(
                 title: "", xAxisLabel: "", leftYAxisTitle: "",
