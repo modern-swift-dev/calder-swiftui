@@ -2,7 +2,6 @@
     #if !os(watchOS)
         import CoreImage
         import Foundation
-        import os
 
         #if canImport(UIKit)
             import UIKit
@@ -54,78 +53,78 @@
             /// Writes image `Data` to a HEIF file.
             /// - Parameters:
             ///   - data: The input image data.
-            /// - Returns: The `URL` of the written HEIF file, or `nil` if writing fails.
-            static func writeHeif(data: Data) -> URL? {
+            /// - Throws: ``WriteError/encodingFailed`` if the data isn't an image or can't be encoded as HEIF, or an
+            ///   error if writing the file fails.
+            /// - Returns: The `URL` of the written HEIF file.
+            static func writeHeif(data: Data) throws -> URL {
                 guard let image = CIImage(data: data, options: [.applyOrientationProperty: true]) else {
-                    return nil
+                    throw WriteError.encodingFailed
                 }
 
-                return writeHeif(image: image)
+                return try writeHeif(image: image)
             }
 
             #if canImport(UIKit)
                 /// Writes a `UIImage` to a HEIF file.
                 /// - Parameters:
                 ///   - uiImage: The input `UIImage`.
-                /// - Returns: The `URL` of the written HEIF file, or `nil` if writing fails.
-                static func writeHeif(uiImage: UIImage) -> URL? {
-                    if let data = toHeif(uiImage: uiImage) {
-                        return writeHeif(data: data)
+                /// - Throws: ``WriteError/encodingFailed`` if the image can't be encoded as HEIF, or an error if
+                ///   writing the file fails.
+                /// - Returns: The `URL` of the written HEIF file.
+                static func writeHeif(uiImage: UIImage) throws -> URL {
+                    guard let data = toHeif(uiImage: uiImage) else {
+                        throw WriteError.encodingFailed
                     }
-                    return nil
+                    return try writeHeif(data: data)
                 }
 
                 /// Writes a `UIImage` with metadata to a HEIF file.
                 /// - Parameters:
                 ///   - image: The input `UIImage`.
                 ///   - metadata: The image metadata as an `NSDictionary`.
-                /// - Returns: The `URL` of the written HEIF file, or `nil` if writing fails.
-                static func writeHeif(image: UIImage, metadata: NSDictionary) -> URL? {
+                /// - Throws: ``WriteError/encodingFailed`` if the image has no image data or can't be encoded as HEIF,
+                ///   or an error if writing the file fails.
+                /// - Returns: The `URL` of the written HEIF file.
+                static func writeHeif(image: UIImage, metadata: NSDictionary) throws -> URL {
                     guard let image = CIImage(image: image, options: [
                         .applyOrientationProperty: true,
                         .properties: metadata
                     ]) else {
-                        return nil
+                        throw WriteError.encodingFailed
                     }
-                    return writeHeif(image: image)
+                    return try writeHeif(image: image)
                 }
             #endif
 
             /// Writes a `CIImage` to a HEIF file.
             /// - Parameters:
             ///   - image: The input `CIImage`.
-            /// - Returns: The `URL` of the written HEIF file, or `nil` if writing fails.
-            static func writeHeif(image: CIImage) -> URL? {
+            /// - Throws: ``WriteError/encodingFailed`` if the sRGB color space is unavailable, or an error if encoding or
+            ///   writing the file fails.
+            /// - Returns: The `URL` of the written HEIF file.
+            static func writeHeif(image: CIImage) throws -> URL {
                 guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
-                    return nil
+                    throw WriteError.encodingFailed
                 }
-                return autoreleasepool {
-                    do {
-
-                        let fileUrl = URL.applicativeCacheDirectory.appendingPathComponent("\(UUID().uuidString).heif")
-                        let context = CIContext()
-                        defer { context.clearCaches() }
-                        try context.writeHEIFRepresentation(of: image, to: fileUrl, format: .RGBAf, colorSpace: colorSpace, options: [:])
-                        return fileUrl
-                    } catch {
-                        os_log("%{public}@", log: .default, type: .error, String(describing: error))
-                        return nil
-                    }
+                return try autoreleasepool {
+                    let fileUrl = URL.applicativeCacheDirectory.appendingPathComponent("\(UUID().uuidString).heif")
+                    let context = CIContext()
+                    defer { context.clearCaches() }
+                    try context.writeHEIFRepresentation(of: image, to: fileUrl, format: .RGBAf, colorSpace: colorSpace, options: [:])
+                    return fileUrl
                 }
             }
         }
 
-        #if canImport(UIKit)
-            // MARK: Errors
-            public extension CIImage {
+        // MARK: Errors
+        public extension CIImage {
 
-                /// An error thrown when an image cannot be written to a file.
-                enum WriteError: Swift.Error {
-                    /// The image could not be encoded, so no file was written.
-                    case encodingFailed
-                }
+            /// An error thrown when an image cannot be written to a file.
+            enum WriteError: Swift.Error {
+                /// The image could not be encoded, so no file was written.
+                case encodingFailed
             }
-        #endif
+        }
 
         // MARK: PNGs
         public extension CIImage {
@@ -181,11 +180,11 @@
             /// Writes image `Data` to a PNG file.
             /// - Parameters:
             ///   - data: The input image data.
-            /// - Throws: An error if writing fails.
-            /// - Returns: The `URL` of the written PNG file, or `nil` if the `CIImage` cannot be created.
-            static func writePNG(data: Data) throws -> URL? {
+            /// - Throws: ``WriteError/encodingFailed`` if the data isn't an image, or an error if writing fails.
+            /// - Returns: The `URL` of the written PNG file.
+            static func writePNG(data: Data) throws -> URL {
                 guard let image = CIImage(data: data, options: [.applyOrientationProperty: true]) else {
-                    return nil
+                    throw WriteError.encodingFailed
                 }
 
                 return try writePNG(image: image)
@@ -212,14 +211,14 @@
                 /// - Parameters:
                 ///   - image: The input `UIImage`.
                 ///   - metadata: The image metadata as an `NSDictionary`.
-                /// - Throws: An error if writing fails.
-                /// - Returns: The `URL` of the written PNG file, or `nil` if the `CIImage` cannot be created.
-                static func writePNG(image: UIImage, metadata: NSDictionary) throws -> URL? {
+                /// - Throws: ``WriteError/encodingFailed`` if the image has no image data, or an error if writing fails.
+                /// - Returns: The `URL` of the written PNG file.
+                static func writePNG(image: UIImage, metadata: NSDictionary) throws -> URL {
                     guard let image = CIImage(image: image, options: [
                         .applyOrientationProperty: true,
                         .properties: metadata
                     ]) else {
-                        return nil
+                        throw WriteError.encodingFailed
                     }
                     return try writePNG(image: image)
                 }
@@ -228,11 +227,12 @@
             /// Writes a `CIImage` to a PNG file.
             /// - Parameters:
             ///   - image: The input `CIImage`.
-            /// - Throws: An error if writing fails.
-            /// - Returns: The `URL` of the written PNG file, or `nil` if the color space cannot be created.
-            static func writePNG(image: CIImage) throws -> URL? {
+            /// - Throws: ``WriteError/encodingFailed`` if the sRGB color space is unavailable, or an error if encoding or
+            ///   writing fails.
+            /// - Returns: The `URL` of the written PNG file.
+            static func writePNG(image: CIImage) throws -> URL {
                 guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
-                    return nil
+                    throw WriteError.encodingFailed
                 }
 
                 return try autoreleasepool {
@@ -309,11 +309,11 @@
             /// - Parameters:
             ///   - data: The input image data.
             ///   - compression: The compression quality (0.0 to 1.0). Defaults to 0.9.
-            /// - Throws: An error if writing fails.
-            /// - Returns: The `URL` of the written JPEG file, or `nil` if the `CIImage` cannot be created.
-            static func writeJpeg(data: Data, compression: CGFloat = 0.9) throws -> URL? {
+            /// - Throws: ``WriteError/encodingFailed`` if the data isn't an image, or an error if writing fails.
+            /// - Returns: The `URL` of the written JPEG file.
+            static func writeJpeg(data: Data, compression: CGFloat = 0.9) throws -> URL {
                 guard let image = CIImage(data: data, options: [.applyOrientationProperty: true]) else {
-                    return nil
+                    throw WriteError.encodingFailed
                 }
 
                 return try writeJpeg(image: image, compression: compression)
@@ -343,14 +343,14 @@
                 ///   - image: The input `UIImage`.
                 ///   - metadata: The image metadata as an `NSDictionary`.
                 ///   - compression: The compression quality (0.0 to 1.0). Defaults to 0.9.
-                /// - Throws: An error if writing fails.
-                /// - Returns: The `URL` of the written JPEG file, or `nil` if the `CIImage` cannot be created.
-                static func writeJpeg(image: UIImage, metadata: NSDictionary, compression: CGFloat = 0.9) throws -> URL? {
+                /// - Throws: ``WriteError/encodingFailed`` if the image has no image data, or an error if writing fails.
+                /// - Returns: The `URL` of the written JPEG file.
+                static func writeJpeg(image: UIImage, metadata: NSDictionary, compression: CGFloat = 0.9) throws -> URL {
                     guard let image = CIImage(image: image, options: [
                         .applyOrientationProperty: true,
                         .properties: metadata
                     ]) else {
-                        return nil
+                        throw WriteError.encodingFailed
                     }
                     return try writeJpeg(image: image, compression: compression)
                 }
@@ -360,11 +360,12 @@
             /// - Parameters:
             ///   - image: The input `CIImage`.
             ///   - compression: The compression quality (0.0 to 1.0). Defaults to 0.9.
-            /// - Throws: An error if writing fails.
-            /// - Returns: The `URL` of the written JPEG file, or `nil` if the color space cannot be created.
-            static func writeJpeg(image: CIImage, compression: CGFloat = 0.9) throws -> URL? {
+            /// - Throws: ``WriteError/encodingFailed`` if the sRGB color space is unavailable, or an error if encoding or
+            ///   writing fails.
+            /// - Returns: The `URL` of the written JPEG file.
+            static func writeJpeg(image: CIImage, compression: CGFloat = 0.9) throws -> URL {
                 guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
-                    return nil
+                    throw WriteError.encodingFailed
                 }
 
                 return try autoreleasepool {

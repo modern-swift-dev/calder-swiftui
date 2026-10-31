@@ -30,8 +30,17 @@
 
             /// Request the permission to the user
             /// - returns: A future with the user's permission.
-            static func requestPermissionForAudio() async -> Bool {
+            static func requestAccessForAudio() async -> Bool {
                 await requestAccessFor(type: .audio)
+            }
+
+            /// Request the permission to the user
+            ///
+            /// Deprecated for consistency with ``requestAccessForVideo()`` and ``requestAccessFor(type:)``.
+            /// - returns: A future with the user's permission.
+            @available(*, deprecated, renamed: "requestAccessForAudio()")
+            static func requestPermissionForAudio() async -> Bool {
+                await requestAccessForAudio()
             }
         }
     #endif

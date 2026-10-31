@@ -18,7 +18,9 @@ returns only its in-range part, which is empty when the start is at or beyond th
 
 `Array.hashMap(predicate:)` rethrows errors from `predicate` instead of silently dropping the
 element; callers that pass a throwing transform must now use `try`. When several elements produce
-the same key, the last element wins.
+the same key, the last element wins. The dictionary's value type is now independent of the array's
+element type, so `names.hashMap { ($0, $0.count) }` returns `[String: Int]`; existing calls that
+return `(key, element)` are unchanged.
 
 ### Ranges
 

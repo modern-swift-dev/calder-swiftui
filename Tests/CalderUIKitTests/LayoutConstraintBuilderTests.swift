@@ -278,12 +278,12 @@
                 #expect(constraints[1].constant == 30)
             }
 
-            @Test func `vertically centered`() {
+            @Test func `pinned vertically`() {
                 let superview = UIView()
                 let view = UIView()
                 superview.addSubview(view)
 
-                let constraints = view.verticallyCentered(on: superview).asConstraints
+                let constraints = view.pinnedVertically(to: superview).asConstraints
 
                 #expect(constraints.count == 2)
                 #expect(constraints[0].firstAnchor == view.topAnchor)
@@ -292,12 +292,12 @@
                 #expect(constraints[1].constant == 0)
             }
 
-            @Test func `vertically centered margin`() {
+            @Test func `pinned vertically margin`() {
                 let superview = UIView()
                 let view = UIView()
                 superview.addSubview(view)
 
-                let constraints = view.verticallyCentered(on: superview, topMargin: 15, bottomMargin: 20).asConstraints
+                let constraints = view.pinnedVertically(to: superview, topMargin: 15, bottomMargin: 20).asConstraints
 
                 #expect(constraints.count == 2)
                 #expect(constraints[0].firstAnchor == view.topAnchor)
@@ -306,12 +306,12 @@
                 #expect(constraints[1].constant == -20)
             }
 
-            @Test func `hozirontally centered`() {
+            @Test func `pinned horizontally`() {
                 let superview = UIView()
                 let view = UIView()
                 superview.addSubview(view)
 
-                let constraints = view.horizontallyCentered(on: superview).asConstraints
+                let constraints = view.pinnedHorizontally(to: superview).asConstraints
 
                 #expect(constraints.count == 2)
                 #expect(constraints[0].firstAnchor == view.leadingAnchor)
@@ -320,12 +320,12 @@
                 #expect(constraints[1].constant == 0)
             }
 
-            @Test func `hozirontally centered margin`() {
+            @Test func `pinned horizontally margin`() {
                 let superview = UIView()
                 let view = UIView()
                 superview.addSubview(view)
 
-                let constraints = view.horizontallyCentered(on: superview, leadingMargin: 15, trailingMargin: 20).asConstraints
+                let constraints = view.pinnedHorizontally(to: superview, leadingMargin: 15, trailingMargin: 20).asConstraints
 
                 #expect(constraints.count == 2)
                 #expect(constraints[0].firstAnchor == view.leadingAnchor)

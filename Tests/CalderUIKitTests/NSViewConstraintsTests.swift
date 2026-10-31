@@ -96,8 +96,8 @@
             #expect(view.size(equals: superview).asConstraints.count == 2)
             #expect(view.centered(on: superview).asConstraints.count == 2)
             #expect(view.centered(on: superview, size: CGSize(width: 10, height: 10)).asConstraints.count == 4)
-            #expect(view.verticallyCentered(on: superview, topMargin: 1, bottomMargin: 2).asConstraints.map(\.constant) == [1, -2])
-            #expect(view.horizontallyCentered(on: superview, leadingMargin: 3, trailingMargin: 4).asConstraints.map(\.constant) == [3, -4])
+            #expect(view.pinnedVertically(to: superview, topMargin: 1, bottomMargin: 2).asConstraints.map(\.constant) == [1, -2])
+            #expect(view.pinnedHorizontally(to: superview, leadingMargin: 3, trailingMargin: 4).asConstraints.map(\.constant) == [3, -4])
         }
 
         // MARK: - with(priority:)

@@ -107,8 +107,8 @@
             let controller = MapClusteringController(map: map, clusterSize: 0.1, minLongitudeDeltaToCluster: 0)
 
             await withCheckedContinuation { continuation in
-                controller.clusterize(clusterOnlyIfMoreThan: 2, completion: nil)
-                controller.clusterize(clusterOnlyIfMoreThan: 2) { continuation.resume() }
+                controller.clusterize(clusterOnlyIfMoreThan: 1, completion: nil)
+                controller.clusterize(clusterOnlyIfMoreThan: 1) { continuation.resume() }
             }
 
             #expect(controller.clusters().count == 1)
@@ -217,11 +217,31 @@
             let controller = MapClusteringController(map: map, clusterSize: 0.1, minLongitudeDeltaToCluster: 2)
 
             await withCheckedContinuation { continuation in
-                controller.clusterize(clusterOnlyIfMoreThan: 2) { continuation.resume() }
+                controller.clusterize(clusterOnlyIfMoreThan: 1) { continuation.resume() }
             }
 
             #expect(controller.clusters().isEmpty)
             #expect(controller.clusterables().count == 2)
+        }
+
+        @Test func `clustering needs more annotations than clusterOnlyIfMoreThan`() async {
+            let annotations = [Annotation(id: "first"), Annotation(id: "second", latitude: 45.001)]
+
+            let atThreshold = TestMap()
+            atThreshold.annotations = annotations
+            let atThresholdController = MapClusteringController(map: atThreshold, clusterSize: 0.1, minLongitudeDeltaToCluster: 0)
+            await withCheckedContinuation { continuation in
+                atThresholdController.clusterize(clusterOnlyIfMoreThan: 2) { continuation.resume() }
+            }
+            #expect(atThresholdController.clusters().isEmpty)
+
+            let aboveThreshold = TestMap()
+            aboveThreshold.annotations = annotations
+            let aboveThresholdController = MapClusteringController(map: aboveThreshold, clusterSize: 0.1, minLongitudeDeltaToCluster: 0)
+            await withCheckedContinuation { continuation in
+                aboveThresholdController.clusterize(clusterOnlyIfMoreThan: 1) { continuation.resume() }
+            }
+            #expect(aboveThresholdController.clusters().count == 1)
         }
     }
 #endif

@@ -17,8 +17,16 @@
         @Test(.enabled(if: AVCaptureDevice.authorizationStatus(for: .audio) != .notDetermined))
         func `audio access matches the authorization status`() async {
             let status = AVCaptureDevice.authorizationStatus(for: .audio)
-            let granted = await AVCaptureDevice.requestPermissionForAudio()
+            let granted = await AVCaptureDevice.requestAccessForAudio()
             #expect(granted == (status == .authorized))
+        }
+
+        @available(*, deprecated)
+        @Test(.enabled(if: AVCaptureDevice.authorizationStatus(for: .audio) != .notDetermined))
+        func `deprecated audio permission helper forwards to the access helper`() async {
+            let renamed = await AVCaptureDevice.requestAccessForAudio()
+            let deprecated = await AVCaptureDevice.requestPermissionForAudio()
+            #expect(deprecated == renamed)
         }
 
         @Test(.enabled(if: AVCaptureDevice.authorizationStatus(for: .video) != .notDetermined))

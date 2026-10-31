@@ -174,19 +174,19 @@
                 #expect(isHeif(heifData))
             }
 
-            @Test func `write heif from data invalid data returns nil`() {
+            @Test func `write heif from data invalid data throws`() {
                 let invalidData = Data("not an image".utf8)
 
-                let url = CIImage.writeHeif(data: invalidData)
-
-                #expect(url == nil)
+                #expect(throws: CIImage.WriteError.encodingFailed) {
+                    try CIImage.writeHeif(data: invalidData)
+                }
             }
 
             @Test(.enabled(if: heifEncodingIsAvailable))
             func `write heif from data valid data writes a heif file`() throws {
                 let data = try #require(createTestImageData())
 
-                let url = try #require(CIImage.writeHeif(data: data))
+                let url = try CIImage.writeHeif(data: data)
                 defer { try? FileManager.default.removeItem(at: url) }
 
                 try expectHeifFile(at: url)
@@ -194,7 +194,7 @@
 
             @Test(.enabled(if: heifEncodingIsAvailable))
             func `write heif from UI image writes a heif file`() throws {
-                let url = try #require(CIImage.writeHeif(uiImage: createTestUIImage()))
+                let url = try CIImage.writeHeif(uiImage: createTestUIImage())
                 defer { try? FileManager.default.removeItem(at: url) }
 
                 try expectHeifFile(at: url)
@@ -202,7 +202,7 @@
 
             @Test(.enabled(if: heifEncodingIsAvailable))
             func `write heif from UI image with metadata writes a heif file`() throws {
-                let url = try #require(CIImage.writeHeif(image: createTestUIImage(), metadata: [:]))
+                let url = try CIImage.writeHeif(image: createTestUIImage(), metadata: [:])
                 defer { try? FileManager.default.removeItem(at: url) }
 
                 try expectHeifFile(at: url)
@@ -212,7 +212,7 @@
             func `write heif from CI image writes a heif file`() throws {
                 let ciImage = try #require(createTestCIImage())
 
-                let url = try #require(CIImage.writeHeif(image: ciImage))
+                let url = try CIImage.writeHeif(image: ciImage)
                 defer { try? FileManager.default.removeItem(at: url) }
 
                 try expectHeifFile(at: url)
@@ -244,29 +244,29 @@
                     return
                 }
                 let url = try CIImage.writePNG(data: data)
-                #expect(url != nil)
-                if let url {
-                    try FileManager.default.removeItem(at: url)
+                #expect(url.pathExtension == "png")
+                try FileManager.default.removeItem(at: url)
+            }
+
+            @Test func `write PNG from data invalid data throws`() {
+                let invalidData = Data("not an image".utf8)
+
+                #expect(throws: CIImage.WriteError.encodingFailed) {
+                    try CIImage.writePNG(data: invalidData)
                 }
             }
 
-            @Test func `write PNG from data invalid data returns nil`() throws {
-                let invalidData = Data("not an image".utf8)
-
-                let url = try CIImage.writePNG(data: invalidData)
-
-                #expect(url == nil)
+            @Test func `write PNG from UI image with metadata throws when the image has no data`() {
+                #expect(throws: CIImage.WriteError.encodingFailed) {
+                    try CIImage.writePNG(image: UIImage(), metadata: [:])
+                }
             }
 
             @Test func `write PNG from UI image with metadata`() throws {
                 let url = try CIImage.writePNG(image: createTestUIImage(), metadata: [:])
-                defer {
-                    if let url {
-                        try? FileManager.default.removeItem(at: url)
-                    }
-                }
+                defer { try? FileManager.default.removeItem(at: url) }
 
-                #expect(url?.pathExtension == "png")
+                #expect(url.pathExtension == "png")
             }
 
             @Test func `write PNG from CI image`() throws {
@@ -275,10 +275,8 @@
                     return
                 }
                 let url = try CIImage.writePNG(image: ciImage)
-                #expect(url != nil)
-                if let url {
-                    try FileManager.default.removeItem(at: url)
-                }
+                #expect(url.pathExtension == "png")
+                try FileManager.default.removeItem(at: url)
             }
 
             // MARK: - writeJpeg Tests
@@ -309,10 +307,8 @@
                     return
                 }
                 let url = try CIImage.writeJpeg(data: data)
-                #expect(url != nil)
-                if let url {
-                    try FileManager.default.removeItem(at: url)
-                }
+                #expect(url.pathExtension == "jpg")
+                try FileManager.default.removeItem(at: url)
             }
 
             @Test func `write jpeg from CI image`() throws {
@@ -321,29 +317,29 @@
                     return
                 }
                 let url = try CIImage.writeJpeg(image: ciImage)
-                #expect(url != nil)
-                if let url {
-                    try FileManager.default.removeItem(at: url)
+                #expect(url.pathExtension == "jpg")
+                try FileManager.default.removeItem(at: url)
+            }
+
+            @Test func `write jpeg from data invalid data throws`() {
+                let invalidData = Data("not an image".utf8)
+
+                #expect(throws: CIImage.WriteError.encodingFailed) {
+                    try CIImage.writeJpeg(data: invalidData)
                 }
             }
 
-            @Test func `write jpeg from data invalid data returns nil`() throws {
-                let invalidData = Data("not an image".utf8)
-
-                let url = try CIImage.writeJpeg(data: invalidData)
-
-                #expect(url == nil)
+            @Test func `write jpeg from UI image with metadata throws when the image has no data`() {
+                #expect(throws: CIImage.WriteError.encodingFailed) {
+                    try CIImage.writeJpeg(image: UIImage(), metadata: [:])
+                }
             }
 
             @Test func `write jpeg from UI image with metadata`() throws {
                 let url = try CIImage.writeJpeg(image: createTestUIImage(), metadata: [:])
-                defer {
-                    if let url {
-                        try? FileManager.default.removeItem(at: url)
-                    }
-                }
+                defer { try? FileManager.default.removeItem(at: url) }
 
-                #expect(url?.pathExtension == "jpg")
+                #expect(url.pathExtension == "jpg")
             }
         }
     #endif

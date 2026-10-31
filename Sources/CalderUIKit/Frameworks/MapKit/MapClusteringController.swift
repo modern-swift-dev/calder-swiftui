@@ -220,7 +220,7 @@
             /// - Parameters:
             ///   - newAnnotations: An array of new `MapClusterable` annotations to add to the map. Defaults to an empty array.
             ///   - removedAnnotations: An array of `MapClusterable` annotations to remove from the map. Defaults to an empty array.
-            ///   - clusterOnlyIfMoreThan: The minimum number of clusterable annotations required to initiate clustering. Defaults to 20.
+            ///   - clusterOnlyIfMoreThan: Clustering only starts when there are more clusterable annotations than this. Defaults to 20.
             ///   - completion: An optional closure called exactly once, on the main actor, after the clustering process
             ///     completes. It is also called when the request has nothing to do, such as when the map has been
             ///     released or removed from its superview, or when there are no annotations to cluster.
@@ -272,7 +272,7 @@
                     }
 
                     var newClusters = [any MapCluster]()
-                    if allClusterables.count >= clusterOnlyIfMoreThan {
+                    if allClusterables.count > clusterOnlyIfMoreThan {
                         self.resolveClusters(
                             clusterables: &allClusterables,
                             removed: &allRemoved,

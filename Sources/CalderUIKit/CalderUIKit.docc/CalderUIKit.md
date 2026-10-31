@@ -57,7 +57,6 @@ Platform guards keep APIs available only where their system frameworks exist.
 - ``_LocationEssentials/CLLocation``
 - ``_LocationEssentials/CLLocationCoordinate2D``
 - ``Swift/Sequence``
-- ``Radians``
 
 ### Notifications
 

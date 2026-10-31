@@ -17,6 +17,8 @@ the changes in each release across all Calder modules.
 
 ### Maps and location
 
+`MapClusteringController.clusterize(newAnnotations:removedAnnotations:clusterOnlyIfMoreThan:completion:)` now clusters only when there are *more than* `clusterOnlyIfMoreThan` annotations, as the parameter name says. It previously clustered at that count or above, so the default of `20` now starts clustering at 21 annotations. Pass one less to keep the previous threshold.
+
 Clustering requests now finish their map updates in submission order. Consecutive requests observe all changes made by preceding requests.
 
 `MapClusteringController` now honors an explicitly supplied `minLongitudeDeltaToCluster`; omit the argument to retain the device-dependent default.
@@ -66,6 +68,8 @@ When a second `transition(fromChild:toNewChild:inContainerView:duration:delay:co
 ### Tables and collections
 
 `UITableView.indexPathForLastRow(inSection:)`, `UICollectionView.indexPathForLastItem(inSection:)`, `indexPathForLastRow`, and `indexPathForLastItem` return `nil` for empty or out-of-range sections instead of row or item 0. `UITableView.safeScrollToRow(at:at:animated:)` ignores negative indices.
+
+`UICollectionView.lastSection` now returns `Int?`, like `UITableView.lastSection`: it is `nil` when the collection view has no sections instead of `0`. Unwrap it, for example `if let section = collectionView.lastSection`, or use `indexPathForLastItem` and `indexPathForLastItem(inSection:)`, which already return `nil` for empty sections.
 
 ### Image picking
 
@@ -119,6 +123,8 @@ The `CGContext` drawing helpers and the `CalderPlatformColor` and `CalderPlatfor
 
 `CIImage.writePNG(uiImage:)` and `CIImage.writeJpeg(uiImage:compression:)` now throw `CIImage.WriteError.encodingFailed` when the image cannot be encoded, instead of returning a URL to a file that was never written.
 
+The other `CIImage` writers follow the same rule. `writePNG(data:)`, `writePNG(image:metadata:)`, `writePNG(image:)`, `writeJpeg(data:compression:)`, `writeJpeg(image:metadata:compression:)`, `writeJpeg(image:compression:)`, and the `writeHeif` family return a non-optional `URL` and throw `CIImage.WriteError.encodingFailed` instead of returning `nil`, and the `writeHeif` functions now `throw` instead of logging and returning `nil`. Replace `if let url = try CIImage.writePNG(data: data)` with `let url = try CIImage.writePNG(data: data)`, and `CIImage.writeHeif(...)` calls with `try CIImage.writeHeif(...)`. `CIImage.WriteError` is now available on macOS as well. The `toHeif` and `toJpeg` conversions still return optional `Data`.
+
 `UIColor.asImage(_:)`, `asSquare(_:)`, `asCircle(_:)`, and `asOval(_:)` now render with `UIGraphicsImageRenderer`, so the images use the renderer format's scale (the main screen scale) instead of scale 1 and a zero size returns an empty image instead of asserting. `asOval(_:centered:)` is now `asOval(_:)`: the `centered` parameter was removed because the default `true` centred the path on the origin and drew only its bottom-right quarter. The oval now fills the whole image. `UIImage.tintGradient(colors:vertical:)` keeps the source image's scale and returns an empty image for an empty size.
 
 `UIImage.resizeToFit(_:_:)` now resizes images without a `CGImage`, such as those created from a `CIImage`, instead of silently returning the receiver. Like `resize(_:_:_:)`, it ignores the `orientation` argument for those images.
@@ -167,6 +173,10 @@ The deprecated names will be removed in the next major version.
 | `CGFloat.small`, `.medium`, `.large` | `.spacingSmall`, `.spacingMedium`, `.spacingLarge` | Generic names that other APIs also use. The values are unchanged: 12, 16, and 24. |
 | `NSUIColor`, `NSUIFont` | `CalderPlatformColor`, `CalderPlatformFont` | Other libraries, such as DGCharts, declare the same public type aliases. |
 | `debugDescription` on `CGFloat`, `CGPoint`, `CGSize`, and `CGRect` | `labeledDebugDescription` | Collides with the `CustomDebugStringConvertible` requirement, which Core Graphics already implements for `CGPoint`, `CGSize`, and `CGRect`. |
+| `verticallyCentered(on:)`, `verticallyCentered(on:margin:)`, `verticallyCentered(on:topMargin:bottomMargin:)` | `pinnedVertically(to:)`, `pinnedVertically(to:margin:)`, `pinnedVertically(to:topMargin:bottomMargin:)` | They pin the top and bottom edges to the guide, which fills its height; they never centred the view. |
+| `horizontallyCentered(on:)`, `horizontallyCentered(on:margin:)`, `horizontallyCentered(on:leadingMargin:trailingMargin:)` | `pinnedHorizontally(to:)`, `pinnedHorizontally(to:margin:)`, `pinnedHorizontally(to:leadingMargin:trailingMargin:)` | They pin the leading and trailing edges to the guide, which fills its width; they never centred the view. To centre a view, use `centered(on:)`. |
+| `AVCaptureDevice.requestPermissionForAudio()` | `requestAccessForAudio()` | Matches `requestAccessForVideo()` and `requestAccessFor(type:)`. |
+| `Radians` | `Double` | A public type alias named `Radians` in the global namespace can collide with other libraries. `getHeadingInRadians(fromHere:)` returns `Double`. |
 | `UIApplication.isSimulator`, `UIApplication.isMacCatalyst` | `UIDevice.isSimulator`, `UIDevice.isCatalyst` | The same checks were available on two types. `UIDevice`'s static properties don't need an application instance. |
 
 `CGPoint`, `CGSize`, and `CGRect` already have a `debugDescription` from Core Graphics. While the

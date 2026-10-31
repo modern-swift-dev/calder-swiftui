@@ -5,6 +5,10 @@
         import Foundation
 
         /// A type alias for `Double` representing radians.
+        ///
+        /// Deprecated because a public `Radians` in the global namespace can collide with other libraries'
+        /// declarations of the same name. Use `Double`.
+        @available(*, deprecated, message: "Use Double instead.")
         public typealias Radians = Double
 
         public extension CLLocationCoordinate2D {
@@ -87,7 +91,7 @@
             /// Calculates the heading in radians from the current coordinate to a target coordinate.
             /// - Parameter to: The target `CLLocationCoordinate2D`.
             /// - Returns: The heading in radians.
-            func getHeadingInRadians(fromHere to: CLLocationCoordinate2D) -> Radians {
+            func getHeadingInRadians(fromHere to: CLLocationCoordinate2D) -> Double {
                 let fLat = latitude.degreesToRadians
                 let fLng = longitude.degreesToRadians
                 let tLat = to.latitude.degreesToRadians

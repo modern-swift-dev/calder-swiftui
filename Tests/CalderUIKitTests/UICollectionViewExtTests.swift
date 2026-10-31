@@ -43,13 +43,13 @@
 
             // MARK: - lastSection Tests
 
-            @Test func `last section empty collection view returns zero`() {
+            @Test func `last section empty collection view returns nil`() {
                 let collectionView = createCollectionView()
                 let dataSource = SimpleCollectionDataSource(sections: [])
                 collectionView.dataSource = dataSource
                 collectionView.reloadData()
 
-                #expect(collectionView.lastSection == 0)
+                #expect(collectionView.lastSection == nil)
             }
 
             @Test func `last section single section returns zero`() {

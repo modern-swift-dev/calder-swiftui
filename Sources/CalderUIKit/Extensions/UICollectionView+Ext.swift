@@ -97,12 +97,15 @@
                 /// The `IndexPath` of the last item in the collection view's last section, or `nil` if there are no sections
                 /// or the last section is empty.
                 var indexPathForLastItem: IndexPath? {
-                    indexPathForLastItem(inSection: lastSection)
+                    guard let lastSection else {
+                        return nil
+                    }
+                    return indexPathForLastItem(inSection: lastSection)
                 }
 
-                /// The index of the last section in the collection view. Returns 0 if there are no sections.
-                var lastSection: Int {
-                    numberOfSections > 0 ? numberOfSections - 1 : 0
+                /// The index of the last section in the collection view. Returns `nil` if there are no sections.
+                var lastSection: Int? {
+                    numberOfSections > 0 ? numberOfSections - 1 : nil
                 }
             }
 

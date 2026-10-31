@@ -69,45 +69,52 @@
             /// - Returns: A `LayoutConstraintGroup` representing the created constraints.
             func centered(on guide: any Pinnable, size: CGSize?) -> any LayoutConstraintGroup
 
-            /// Vertically centers this view to another view using `topAnchor` and `bottomAnchor`. Useful for self-sizing views cells.
-            /// - Parameter guide: The layout guide (conforming to `Pinnable`) to center on.
+            /// Pins this view's `topAnchor` and `bottomAnchor` to another view's, without constraining the other axis.
+            /// The view fills the guide's height; it isn't centred. Useful for self-sizing views cells.
+            /// - Parameter guide: The layout guide (conforming to `Pinnable`) to pin to.
             /// - Returns: A `LayoutConstraintGroup` representing the created constraints.
-            func verticallyCentered(on guide: any Pinnable) -> any LayoutConstraintGroup
+            func pinnedVertically(to guide: any Pinnable) -> any LayoutConstraintGroup
 
-            /// Vertically centers this view to another view using `topAnchor` and `bottomAnchor`, applying a uniform margin. Useful for self-sizing views cells.
+            /// Pins this view's `topAnchor` and `bottomAnchor` to another view's, applying a uniform margin, without
+            /// constraining the other axis. The view fills the guide's height; it isn't centred. Useful for self-sizing views cells.
             /// - Parameters:
-            ///   - guide: The layout guide (conforming to `Pinnable`) to center on.
+            ///   - guide: The layout guide (conforming to `Pinnable`) to pin to.
             ///   - margin: The top and bottom margin to be applied to the `constant` of the constraints.
             /// - Returns: A `LayoutConstraintGroup` representing the created constraints.
-            func verticallyCentered(on guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup
+            func pinnedVertically(to guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup
 
-            /// Vertically centers this view to another view using `topAnchor` and `bottomAnchor`, applying distinct top and bottom margins. Useful for self-sizing views cells.
+            /// Pins this view's `topAnchor` and `bottomAnchor` to another view's, applying distinct top and bottom margins,
+            /// without constraining the other axis. The view fills the guide's height; it isn't centred. Useful for self-sizing views cells.
             /// - Parameters:
-            ///   - guide: The layout guide (conforming to `Pinnable`) to center on.
+            ///   - guide: The layout guide (conforming to `Pinnable`) to pin to.
             ///   - topMargin: The top margin to be applied to the `constant` of the top constraint.
             ///   - bottomMargin: The bottom margin to be applied to the `constant` of the bottom constraint.
             /// - Returns: A `LayoutConstraintGroup` representing the created constraints.
-            func verticallyCentered(on guide: any Pinnable, topMargin: CGFloat, bottomMargin: CGFloat) -> any LayoutConstraintGroup
+            func pinnedVertically(to guide: any Pinnable, topMargin: CGFloat, bottomMargin: CGFloat) -> any LayoutConstraintGroup
 
-            /// Horizontally centers this view to another view using `leadingAnchor` and `trailingAnchor`. Useful for self-sizing views cells.
-            /// - Parameter guide: The layout guide (conforming to `Pinnable`) to center on.
+            /// Pins this view's `leadingAnchor` and `trailingAnchor` to another view's, without constraining the other
+            /// axis. The view fills the guide's width; it isn't centred. Useful for self-sizing views cells.
+            /// - Parameter guide: The layout guide (conforming to `Pinnable`) to pin to.
             /// - Returns: A `LayoutConstraintGroup` representing the created constraints.
-            func horizontallyCentered(on guide: any Pinnable) -> any LayoutConstraintGroup
+            func pinnedHorizontally(to guide: any Pinnable) -> any LayoutConstraintGroup
 
-            /// Horizontally centers this view to another view using `leadingAnchor` and `trailingAnchor`, applying a uniform margin. Useful for self-sizing views cells.
+            /// Pins this view's `leadingAnchor` and `trailingAnchor` to another view's, applying a uniform margin, without
+            /// constraining the other axis. The view fills the guide's width; it isn't centred. Useful for self-sizing views cells.
             /// - Parameters:
-            ///   - guide: The layout guide (conforming to `Pinnable`) to center on.
+            ///   - guide: The layout guide (conforming to `Pinnable`) to pin to.
             ///   - margin: The leading and trailing margin to be applied to the `constant` of the constraints.
             /// - Returns: A `LayoutConstraintGroup` representing the created constraints.
-            func horizontallyCentered(on guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup
+            func pinnedHorizontally(to guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup
 
-            /// Horizontally centers this view to another view using `leadingAnchor` and `trailingAnchor`, applying distinct leading and trailing margins. Useful for self-sizing views cells.
+            /// Pins this view's `leadingAnchor` and `trailingAnchor` to another view's, applying distinct leading and
+            /// trailing margins, without constraining the other axis. The view fills the guide's width; it isn't centred.
+            /// Useful for self-sizing views cells.
             /// - Parameters:
-            ///   - guide: The layout guide (conforming to `Pinnable`) to center on.
+            ///   - guide: The layout guide (conforming to `Pinnable`) to pin to.
             ///   - leadingMargin: The leading margin to be applied to the `constant` of the leading constraint.
             ///   - trailingMargin: The trailing margin to be applied to the `constant` of the trailing constraint.
             /// - Returns: A `LayoutConstraintGroup` representing the created constraints.
-            func horizontallyCentered(on guide: any Pinnable, leadingMargin: CGFloat, trailingMargin: CGFloat) -> any LayoutConstraintGroup
+            func pinnedHorizontally(to guide: any Pinnable, leadingMargin: CGFloat, trailingMargin: CGFloat) -> any LayoutConstraintGroup
         }
 
         #if os(iOS) || targetEnvironment(macCatalyst) || os(tvOS) || os(visionOS)
@@ -189,37 +196,70 @@
                     self.size(equals: CGSize(width: size, height: size))
                 }
 
-                func verticallyCentered(on guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup {
-                    verticallyCentered(on: guide, topMargin: margin, bottomMargin: margin)
+                func pinnedVertically(to guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup {
+                    pinnedVertically(to: guide, topMargin: margin, bottomMargin: margin)
                 }
 
-                func verticallyCentered(on guide: any Pinnable, topMargin: CGFloat, bottomMargin: CGFloat) -> any LayoutConstraintGroup {
+                func pinnedVertically(to guide: any Pinnable, topMargin: CGFloat, bottomMargin: CGFloat) -> any LayoutConstraintGroup {
                     [
                         topAnchor.eq(guide.topAnchor, constant: topMargin),
                         bottomAnchor.eq(guide.bottomAnchor, constant: -bottomMargin)
                     ]
                 }
 
-                func verticallyCentered(on guide: any Pinnable) -> any LayoutConstraintGroup {
-                    verticallyCentered(on: guide, margin: 0)
+                func pinnedVertically(to guide: any Pinnable) -> any LayoutConstraintGroup {
+                    pinnedVertically(to: guide, margin: 0)
                 }
 
-                func horizontallyCentered(on guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup {
-                    [
-                        leadingAnchor.eq(guide.leadingAnchor, constant: margin),
-                        trailingAnchor.eq(guide.trailingAnchor, constant: -margin)
-                    ]
+                func pinnedHorizontally(to guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup {
+                    pinnedHorizontally(to: guide, leadingMargin: margin, trailingMargin: margin)
                 }
 
-                func horizontallyCentered(on guide: any Pinnable, leadingMargin: CGFloat, trailingMargin: CGFloat) -> any LayoutConstraintGroup {
+                func pinnedHorizontally(to guide: any Pinnable, leadingMargin: CGFloat, trailingMargin: CGFloat) -> any LayoutConstraintGroup {
                     [
                         leadingAnchor.eq(guide.leadingAnchor, constant: leadingMargin),
                         trailingAnchor.eq(guide.trailingAnchor, constant: -trailingMargin)
                     ]
                 }
 
+                func pinnedHorizontally(to guide: any Pinnable) -> any LayoutConstraintGroup {
+                    pinnedHorizontally(to: guide, margin: 0)
+                }
+
+                /// Deprecated because the constraints pin the top and bottom edges; they don't centre the view.
+                @available(*, deprecated, renamed: "pinnedVertically(to:)")
+                func verticallyCentered(on guide: any Pinnable) -> any LayoutConstraintGroup {
+                    pinnedVertically(to: guide)
+                }
+
+                /// Deprecated because the constraints pin the top and bottom edges; they don't centre the view.
+                @available(*, deprecated, renamed: "pinnedVertically(to:margin:)")
+                func verticallyCentered(on guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup {
+                    pinnedVertically(to: guide, margin: margin)
+                }
+
+                /// Deprecated because the constraints pin the top and bottom edges; they don't centre the view.
+                @available(*, deprecated, renamed: "pinnedVertically(to:topMargin:bottomMargin:)")
+                func verticallyCentered(on guide: any Pinnable, topMargin: CGFloat, bottomMargin: CGFloat) -> any LayoutConstraintGroup {
+                    pinnedVertically(to: guide, topMargin: topMargin, bottomMargin: bottomMargin)
+                }
+
+                /// Deprecated because the constraints pin the leading and trailing edges; they don't centre the view.
+                @available(*, deprecated, renamed: "pinnedHorizontally(to:)")
                 func horizontallyCentered(on guide: any Pinnable) -> any LayoutConstraintGroup {
-                    horizontallyCentered(on: guide, margin: 0)
+                    pinnedHorizontally(to: guide)
+                }
+
+                /// Deprecated because the constraints pin the leading and trailing edges; they don't centre the view.
+                @available(*, deprecated, renamed: "pinnedHorizontally(to:margin:)")
+                func horizontallyCentered(on guide: any Pinnable, margin: CGFloat) -> any LayoutConstraintGroup {
+                    pinnedHorizontally(to: guide, margin: margin)
+                }
+
+                /// Deprecated because the constraints pin the leading and trailing edges; they don't centre the view.
+                @available(*, deprecated, renamed: "pinnedHorizontally(to:leadingMargin:trailingMargin:)")
+                func horizontallyCentered(on guide: any Pinnable, leadingMargin: CGFloat, trailingMargin: CGFloat) -> any LayoutConstraintGroup {
+                    pinnedHorizontally(to: guide, leadingMargin: leadingMargin, trailingMargin: trailingMargin)
                 }
             }
 
