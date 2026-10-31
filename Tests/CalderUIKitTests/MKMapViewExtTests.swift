@@ -72,35 +72,55 @@
 
             // MARK: - firstIndexOf Tests
 
-            @Test func `first index of no overlays`() {
+            @Test func `first index of no overlays is nil`() {
                 let mapView = createMapView()
-                let index = mapView.firstIndexOf(overlayType: MKCircle.self)
-                #expect(index == 0)
+                #expect(mapView.firstIndexOf(overlayType: MKCircle.self, level: .aboveLabels) == nil)
             }
 
             @Test func `first index of with overlay`() {
                 let mapView = createMapView()
-                let circle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
-                mapView.addOverlay(circle)
-                let index = mapView.firstIndexOf(overlayType: MKCircle.self)
-                #expect(index == 0)
+                mapView.addOverlay(circle(), level: .aboveLabels)
+                #expect(mapView.firstIndexOf(overlayType: MKCircle.self, level: .aboveLabels) == 0)
+                cleanupMapView(mapView)
+            }
+
+            @Test func `first index of is scoped to the level`() {
+                let mapView = createMapView()
+                addRoadOverlays(to: mapView)
+                mapView.addOverlays([polyline(), circle(), circle()], level: .aboveLabels)
+
+                #expect(mapView.firstIndexOf(overlayType: MKCircle.self, level: .aboveLabels) == 1)
+                #expect(mapView.firstIndexOf(overlayType: MKCircle.self, level: .aboveRoads) == nil)
+                #expect(mapView.firstIndexOf(overlayType: MKPolyline.self, level: .aboveRoads) == 0)
                 cleanupMapView(mapView)
             }
 
             // MARK: - lastIndexOf Tests
 
-            @Test func `last index of no overlays`() {
+            @Test func `last index of no overlays is nil`() {
                 let mapView = createMapView()
-                let index = mapView.lastIndexOf(overlayType: MKCircle.self)
-                #expect(index == Int.max)
+                #expect(mapView.lastIndexOf(overlayType: MKCircle.self, level: .aboveLabels) == nil)
             }
 
             @Test func `last index of with overlay`() {
                 let mapView = createMapView()
-                let circle = MKCircle(center: CLLocationCoordinate2D(40, -100), radius: 1000)
-                mapView.addOverlay(circle)
-                let index = mapView.lastIndexOf(overlayType: MKCircle.self)
-                #expect(index == 0)
+                mapView.addOverlay(circle(), level: .aboveLabels)
+                #expect(mapView.lastIndexOf(overlayType: MKCircle.self, level: .aboveLabels) == 0)
+                cleanupMapView(mapView)
+            }
+
+            @Test func `last index of is scoped to the level and usable for insertion`() {
+                let mapView = createMapView()
+                addRoadOverlays(to: mapView)
+                mapView.addOverlays([circle(), polyline(), circle(), polyline()], level: .aboveLabels)
+
+                let last = mapView.lastIndexOf(overlayType: MKCircle.self, level: .aboveLabels)
+                #expect(last == 2)
+                #expect(mapView.lastIndexOf(overlayType: MKCircle.self, level: .aboveRoads) == nil)
+
+                let inserted = circle()
+                mapView.insertOverlay(inserted, at: (last ?? -1) + 1, level: .aboveLabels)
+                #expect(mapView.overlays(in: .aboveLabels)[3] === inserted)
                 cleanupMapView(mapView)
             }
 

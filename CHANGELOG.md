@@ -60,6 +60,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - The retroactive `Sendable` conformances on `UNUserNotificationCenter`, `UNNotificationSettings`, `WKWebsiteDataStore`, and `WKHTTPCookieStore` (#66), and on `AVCaptureSession` and `AVCaptureVideoPreviewLayer` (#10), were removed. Keep these values in one isolation domain.
 - `CalderSwiftUI` no longer depends on `SnapshotPreviews`; targets that imported it through `CalderSwiftUI` must declare the dependency themselves (#3).
 - `UIColor.asOval(_:centered:)` lost its `centered` parameter; call `asOval(_:)`. The image helpers `asImage`, `asSquare`, `asCircle`, and `asOval` now draw the whole shape (`asOval` previously drew only one quarter of it with the default `centered: true`), render with `UIGraphicsImageRenderer` at the renderer format scale instead of scale 1, and return an empty image for a zero size instead of asserting. `UIImage.tint(_:)` returns `nil` and `tintGradient(colors:vertical:)` returns an empty image for an empty image (#106).
+- `MKMapView.firstIndexOf(overlayType:)` and `lastIndexOf(overlayType:)` take a `level:` argument and return `Int?` scoped to that level, matching the indices `insertOverlay(_:at:level:)` takes. They return `nil` when nothing matches instead of `0` and `Int.max`, so adding `1` to the result no longer traps (#120).
 
 ### Deprecations
 

@@ -114,18 +114,28 @@
         @MainActor
         public extension MKMapView {
 
-            /// Returns the first index of an overlay of the specified type, or 0 if no such overlay is found.
-            /// - Parameter overlayType: The type of `MKOverlay` to search for.
-            /// - Returns: The index of the first matching overlay, or 0.
-            func firstIndexOf<T: MKOverlay>(overlayType _: T.Type) -> Int {
-                overlays.firstIndex { $0 is T } ?? 0
+            /// Returns the index of the first overlay of the specified type within a level.
+            ///
+            /// The index counts only the overlays in `level`, matching the indices that
+            /// `insertOverlay(_:at:level:)` and `insertOverlays(_:at:level:)` take.
+            /// - Parameters:
+            ///   - overlayType: The type of `MKOverlay` to search for.
+            ///   - level: The `MKOverlayLevel` to search.
+            /// - Returns: The index of the first matching overlay within `level`, or `nil` if there is none.
+            func firstIndexOf(overlayType: (some MKOverlay).Type, level: MKOverlayLevel) -> Int? {
+                firstIndex(of: overlayType, in: level)
             }
 
-            /// Returns the last index of an overlay of the specified type, or `Int.max` if no such overlay is found.
-            /// - Parameter overlayType: The type of `MKOverlay` to search for.
-            /// - Returns: The index of the last matching overlay, or `Int.max`.
-            func lastIndexOf<T: MKOverlay>(overlayType _: T.Type) -> Int {
-                overlays.lastIndex { $0 is T } ?? Int.max
+            /// Returns the index of the last overlay of the specified type within a level.
+            ///
+            /// The index counts only the overlays in `level`, matching the indices that
+            /// `insertOverlay(_:at:level:)` and `insertOverlays(_:at:level:)` take.
+            /// - Parameters:
+            ///   - overlayType: The type of `MKOverlay` to search for.
+            ///   - level: The `MKOverlayLevel` to search.
+            /// - Returns: The index of the last matching overlay within `level`, or `nil` if there is none.
+            func lastIndexOf(overlayType: (some MKOverlay).Type, level: MKOverlayLevel) -> Int? {
+                lastIndex(of: overlayType, in: level)
             }
 
             /// Returns all overlays of a specified type currently on the map.

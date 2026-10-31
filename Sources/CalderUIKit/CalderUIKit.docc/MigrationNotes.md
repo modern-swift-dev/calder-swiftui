@@ -29,6 +29,8 @@ The `MKMapView` overlay insertion helpers now keep overlays in the order given i
 
 The `coordinateRegion(padding:)` helpers now choose the smallest longitude span that covers every coordinate, so coordinates either side of the antimeridian, such as `179°` and `-179°`, give a `2°` span centred on `180°` instead of a `358°` span centred on `0°`. They also clamp the padded latitudes to the poles and the spans to `180°` and `360°`, so large paddings no longer produce a region MapKit rejects as invalid. `CLLocationCoordinate2D.distance(from:)` and `isNear(_:threshold:)` now measure the longitude difference the shorter way around the globe, so coordinates across the antimeridian are close.
 
+`MKMapView.firstIndexOf(overlayType:)` and `lastIndexOf(overlayType:)` are now `firstIndexOf(overlayType:level:)` and `lastIndexOf(overlayType:level:)`. They return the index within the given `MKOverlayLevel`, the same numbering `insertOverlay(_:at:level:)` uses, as an `Int?`. When no overlay of the type exists in the level they return `nil` instead of `0` and `Int.max`, so use optional handling, for example `(mapView.lastIndexOf(overlayType: Route.self, level: .aboveRoads).map { $0 + 1 }) ?? 0`, instead of adding to the result.
+
 ### Auto Layout
 
 The system-spacing anchor helpers (`eqAfter`, `leqAfter`, `geqAfter`, `eqBelow`, `leqBelow`, and `geqBelow`) default `multiplier` to `1`, producing one system spacing. Pass `multiplier: 0` to keep the previous zero spacing.
