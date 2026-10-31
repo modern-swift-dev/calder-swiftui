@@ -711,36 +711,22 @@
              * It is not zero, so subtracting it from 10 to get the check digit: 9.
              *
              * - Parameter value: The UPC-A barcode string to process.
-             * - Returns: The UPC-A barcode string with the check-digit removed if present and valid.
+             * - Returns: The UPC-A barcode string with the check-digit removed if present and valid. Values that aren't 12 ASCII digits are returned unchanged.
              */
             static func removeUPCCheckDigitIfPresent(_ value: String) -> String {
                 if value.count == 11 {
                     return value
                 }
 
-                if value.count == 12 {
-                    var totalEven = 0
-                    for x in stride(from: 0, to: value.count, by: 2) {
-                        totalEven += Int(value.substr(start: x, len: 1)) ?? 0
-                    }
-                    totalEven *= 3
+                let digits = value.compactMap { $0.isASCII ? $0.wholeNumberValue : nil }
+                if digits.count == 12, value.count == 12 {
+                    let totalEven = stride(from: 0, to: 12, by: 2).reduce(0) { $0 + digits[$1] } * 3
+                    let totalOdd = stride(from: 1, to: 11, by: 2).reduce(0) { $0 + digits[$1] }
+                    let checkDigit = (10 - (totalOdd + totalEven) % 10) % 10
 
-                    var totalOdd = 0
-                    for x in stride(from: 1, to: value.count - 1, by: 2) {
-                        totalOdd += Int(value.substr(start: x, len: 1)) ?? 0
+                    if checkDigit == digits[11] {
+                        return String(value.dropLast())
                     }
-
-                    var checkDigit = ((totalOdd + totalEven) % 10)
-                    if checkDigit > 0 {
-                        checkDigit = 10 - checkDigit
-                    }
-
-                    let lastDigit = value.last?.int ?? 0
-                    if checkDigit == lastDigit {
-                        return value.substr(start: 0, len: value.count - 1)
-                    }
-                    return value
-
                 }
                 return value
             }

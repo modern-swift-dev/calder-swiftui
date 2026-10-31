@@ -196,6 +196,18 @@
                 #expect(value == "810012110098")
             }
 
+            @Test func `remove UPC check digit keeps non numeric value`() {
+                let value = BarcodeScannerView.removeUPCCheckDigitIfPresent("ABCDEFGHIJKL")
+
+                #expect(value == "ABCDEFGHIJKL")
+            }
+
+            @Test func `remove UPC check digit keeps value with a non numeric last character`() {
+                let value = BarcodeScannerView.removeUPCCheckDigitIfPresent("81001211009X")
+
+                #expect(value == "81001211009X")
+            }
+
             @Test func `remove UPC check digit keeps unsupported length`() {
                 let value = BarcodeScannerView.removeUPCCheckDigitIfPresent("1234567890")
 
