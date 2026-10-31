@@ -8,6 +8,7 @@
         /// A SwiftUI view for a multi-line text input area, similar to `UITextView`.
         ///
         /// This view provides features such as placeholder text, character limit, and visual feedback for invalid input.
+        /// Text longer than `maxLength` is cut when the view appears and whenever it changes, and a negative `maxLength` counts as 0.
         public struct TextView: View {
 
             @Environment(\.theme) var theme
@@ -28,7 +29,7 @@
             @Environment(\.locale) private var locale
             /// A boolean indicating whether to display a border around the text area.
             let displayTextViewBorder: Bool
-            /// The maximum length of text allowed in the text area.
+            /// The maximum length of text allowed in the text area. A negative value is stored as 0.
             let maxLength: Int?
             /// The fixed height of the text area.
             let height: CGFloat?
@@ -40,7 +41,7 @@
             ///   - invalidMessage: An optional error message. Defaults to `nil`.
             ///   - placeholder: The placeholder text. Defaults to `nil`.
             ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text area. Defaults to `true`.
-            ///   - maxLength: The maximum length of text allowed. Defaults to `nil`.
+            ///   - maxLength: The maximum length of text allowed; a negative value counts as 0. Defaults to `nil`.
             ///   - height: The fixed height of the text area. Defaults to `nil`.
             public init(
                 text: Binding<String>,
@@ -71,7 +72,7 @@
             ///   - invalidMessage: An optional localized error message. Defaults to `nil`.
             ///   - placeholder: The localized placeholder text.
             ///   - displayTextViewBorder: A boolean indicating whether to show a border around the text area. Defaults to `true`.
-            ///   - maxLength: The maximum length of text allowed. Defaults to `nil`.
+            ///   - maxLength: The maximum length of text allowed; a negative value counts as 0. Defaults to `nil`.
             ///   - height: The fixed height of the text area. Defaults to `nil`.
             public init(
                 text: Binding<String>,
@@ -105,7 +106,7 @@
                 _text = text
                 self.invalid = invalid
                 self.placeholder = placeholder
-                self.maxLength = maxLength
+                self.maxLength = maxLength.map { Swift.max($0, 0) }
                 self.height = height
                 self.displayTextViewBorder = displayTextViewBorder
                 self.invalidMessage = invalidMessage
@@ -124,7 +125,7 @@
                                 .scrollContentBackground(.hidden)
                                 .frame(height: height)
                                 .focused($isFocused)
-                                .onChange(of: text, initial: false) {
+                                .onChange(of: text, initial: true) {
                                     if let maxLength, text.count > maxLength {
                                         text = String(text.prefix(maxLength))
                                     }

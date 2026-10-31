@@ -47,6 +47,10 @@ source binding.
 `InputNumber`'s `maxIntegerDigits` limits typing only. A bound value with more digits is displayed in
 full and round-trips unchanged; typing a longer number is still rejected.
 
+`TextView` and `AttributedTextView` treat a negative `maxLength` as 0 instead of trapping. They cut text
+that is already longer than `maxLength` when the view appears, so the character counter never reads
+more than the limit.
+
 Numeric inputs accept a minus sign as an intermediate editing state, allowing negative
 numbers to be typed from an empty field. The sign alone represents an absent numeric value.
 
