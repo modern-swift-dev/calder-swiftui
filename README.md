@@ -50,11 +50,16 @@ The command creates `.build/documentation/Calder-Documentation.zip`. Tagged GitH
 
 ## Pagination
 
-Create `PaginatedList.DataSource(items:)` to supply a paginated list. Use
+Create a `PaginatedList.DataSource` and call
 `configureAndLoad(firstPageLoader:nextPageLoader:)` to install asynchronous loaders,
-`reload()` to refresh, and `next()` to request another page. The loaded `items`,
-`count`, `state`, and `hasNext` are readable by client applications; use the data
-source's mutation methods to insert, update, or remove items.
+`reload()` to refresh, and `next()` to request another page. A data source created
+with `init(items:)` holds a fixed, in-memory list: `reload()` leaves it unchanged. The
+loaded `items`, `count`, `state`, and `hasNext` are readable by client applications;
+use the data source's mutation methods to insert, update, or remove items.
+
+Refreshing keeps the loaded items on screen; a failed refresh keeps them and sets
+`refreshError`. For pull to refresh, apply `.refreshable { await dataSource.reload() }`
+to any `PaginatedList` view.
 
 The data source and its loaders run on `@MainActor`. Reloading or clearing it
 invalidates earlier requests, including outstanding next-page loads. Concurrent
