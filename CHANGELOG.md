@@ -49,6 +49,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `coordinateRegion(padding:)` covers the smallest longitude span, so coordinates at `179°` and `-179°` give a `2°` span centred on `180°` instead of `358°` centred on `0°`, and clamps the padded latitudes and spans to MapKit's limits. `CLLocationCoordinate2D.distance(from:)` and `isNear(_:threshold:)` measure longitude the shorter way around the globe, as `distanceInMeters(from:)` already did (#117).
 - `UIScrollView.setupKeyboardAutoAdjustment(keepCentered:)` updates the insets as each keyboard notification arrives, instead of waiting for the main run loop's default mode, so they no longer lag behind the keyboard animation while the scroll view is tracking (#122).
 - `UIApplication.appInterfaceOrientation()` reads any connected window scene when none is foreground-active, such as during launch, and returns `.unknown` when there is no window scene, instead of returning `.portrait` (#125).
+- `KeyboardObserver` ignores hide notifications from non-local keyboards, as it does show and frame-change notifications, so another app's keyboard no longer resets `visible` and `keyboardSize` (#126).
 
 ### Source-breaking changes
 

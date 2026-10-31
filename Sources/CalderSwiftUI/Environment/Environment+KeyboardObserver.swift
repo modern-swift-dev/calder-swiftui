@@ -28,8 +28,8 @@
 
         /// Starts observing keyboard notifications. Create and access the observer on the main actor.
         ///
-        /// Keyboard show, frame-change, and hide notifications are applied on the main actor one at a time,
-        /// in the order they are posted.
+        /// Keyboard show, frame-change, and hide notifications from the local keyboard are applied on the main
+        /// actor one at a time, in the order they are posted. Notifications from other keyboards are ignored.
         public init() {
             let (stream, continuation) = AsyncStream.makeStream(of: KeyboardEvent.self)
             events = continuation
@@ -100,6 +100,9 @@
                         }
                         self = .frameChange(size: size)
                     case UIResponder.keyboardDidHideNotification:
+                        guard isLocal else {
+                            return nil
+                        }
                         self = .hide
                     default:
                         return nil

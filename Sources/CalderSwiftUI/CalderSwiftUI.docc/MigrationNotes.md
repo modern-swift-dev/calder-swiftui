@@ -21,6 +21,8 @@ The misspelled `KeyboardObserver.isHardwardKeyboard` property was removed. Use `
 
 `KeyboardObserver` ignores frame-change notifications from non-local keyboards and frame changes received while the keyboard is hidden, so `keyboardSize` stays zero while `visible` is false.
 
+`KeyboardObserver` also ignores hide notifications from non-local keyboards, such as a keyboard shown by another app in Split View. Only a hide notification from the local keyboard resets `visible`, `isHardwareKeyboard`, and `keyboardSize`.
+
 ### Migrating to the new names
 
 Misspelled names, and names that collide with Apple APIs, were replaced. The old names remain

@@ -34,10 +34,24 @@
             try await waitUntil { observer.keyboardSize == hardwareSize }
             #expect(observer.isHardwareKeyboard)
 
-            NotificationCenter.default.post(name: UIResponder.keyboardDidHideNotification, object: nil)
+            postHide()
             try await waitUntil { !observer.visible }
             #expect(observer.keyboardSize == .zero)
             #expect(!observer.isHardwareKeyboard)
+        }
+
+        @Test func `hide notifications from a non-local keyboard are ignored`() async throws {
+            let observer = KeyboardObserver()
+            let localSize = CGSize(width: 320, height: 300)
+            postShow(size: localSize)
+            try await waitUntil { observer.visible && observer.keyboardSize == localSize }
+
+            postHide(isLocal: false)
+            // A later local frame change is the first change applied when the remote hide is ignored.
+            let newSize = CGSize(width: 320, height: 280)
+            postFrameChange(size: newSize)
+            try await waitUntil { observer.keyboardSize == newSize }
+            #expect(observer.visible)
         }
 
         @Test func `show frame change and hide notifications apply in arrival order`() async throws {
@@ -161,8 +175,12 @@
             )
         }
 
-        private func postHide() {
-            NotificationCenter.default.post(name: UIResponder.keyboardDidHideNotification, object: nil)
+        private func postHide(isLocal: Bool = true) {
+            NotificationCenter.default.post(
+                name: UIResponder.keyboardDidHideNotification,
+                object: nil,
+                userInfo: [UIResponder.keyboardIsLocalUserInfoKey: NSNumber(value: isLocal)]
+            )
         }
 
         private func waitUntil(_ condition: () -> Bool) async throws {
