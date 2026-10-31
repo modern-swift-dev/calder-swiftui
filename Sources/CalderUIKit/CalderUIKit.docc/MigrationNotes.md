@@ -103,6 +103,8 @@ Notification callbacks complete even when the service's weak delegate has been r
 
 `UIContentSizeCategory.adjust(webView:)` now scales web text with the category. It sets `-webkit-text-size-adjust` to the body text style's size for the category relative to its size at `large`, such as `124%` for `extraExtraLarge`, instead of always `100%`.
 
+The static `WKWebView.clearCaches()` clears the default website data store, the shared cookie storage, and the shared URL cache. It no longer clears a newly created non-persistent data store, which had no effect. To clear the data of a web view that uses its own data store, call the new instance method `clearCaches()` on that web view.
+
 ### Concurrency
 
 CalderUIKit no longer declares retroactive `Sendable` conformances for `UNUserNotificationCenter`, `UNNotificationSettings`, `WKWebsiteDataStore`, or `WKHTTPCookieStore`. Code that relied on them must keep these values in one isolation domain; the WebKit types are main-actor isolated. `UNUserNotificationCenter.settings` now reads the settings of the center it is called on instead of always using `UNUserNotificationCenter.current()`.

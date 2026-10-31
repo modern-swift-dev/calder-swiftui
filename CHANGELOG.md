@@ -90,6 +90,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `SegmentedControl` accepts any `Hashable & Sendable` ID, such as `String` or `Int` (#84).
 - The `Double` variant of `InputNumber` accepts `zeroDisplay: .placeholder`, which leaves the field empty and shows the placeholder for a bound `0`, as it did before #32. The default, `.number`, displays "0".
 - Accessibility: Calder toggle styles expose toggle semantics (#79); `FormSwitch` and `FormDatePicker` are labelled with the row name (#80); selected `PaginatedList.Selection` rows (#81) and `SegmentedControl` segments (#84) carry the selected trait; invalid `InputText` and `InputPassword` fields always draw their error border and VoiceOver reads the invalid message as the hint (#82); `PercentView` and `PercentageCircle` expose a localized percentage value (#83); `MessageBox` reads its severity and the themed disclosure group hides its chevron (#85); `InputPassword`'s reveal button has a label and the revealed field disables autocorrection (#34).
+- `WKWebView.clearCaches()` (instance) clears the data store the web view uses. The static `WKWebView.clearCaches()` no longer clears a throw-away non-persistent data store, which did nothing (#127).
 
 ### Fixes
 
