@@ -73,6 +73,8 @@ the input order for ties, and clamps negative values to zero.
 Vertical bar and Pareto charts support empty and all-zero data with a zero axis mark. Their
 value axis maximum rounds the largest value up to the next multiple of its own order of
 magnitude, so `7` stays `7`, `15` becomes `20`, and `330` becomes `400`.
+``VerticalBarChart`` plots negative values below zero: its axis starts at the most negative value
+rounded down in the same way, such as `-50` for `-42`, and has a mark at that minimum.
 Tick counts below one use one interval, and tick spacing is always positive. Pareto
 percentages remain finite when all category values are zero.
 

@@ -64,6 +64,15 @@
         /// The maximum value for scaling the Y-axis.
         public var maxValue: Int
 
+        /// The minimum value for scaling the Y-axis: `0`, or the most negative value rounded down
+        /// to the next multiple of its own order of magnitude.
+        let minValue: Int
+
+        /// The Y-axis domain, from ``minValue`` to ``maxValue``, which always includes zero and is never empty.
+        var yDomain: ClosedRange<Int> {
+            minValue ... max(minValue == 0 ? 1 : 0, maxValue)
+        }
+
         /// The data points to be displayed in the chart.
         private var dataPoints: [DataPoint]
 
@@ -145,6 +154,7 @@
             self.xAxisLabelText = xAxisLabelText
             self.yAxisTitleText = yAxisTitleText
             maxValue = points.maxValue
+            minValue = points.minValue
             dataPoints = points
         }
 
@@ -207,20 +217,22 @@
                     }
                 }
             }
-            .chartYScale(domain: 0 ... max(1, maxValue))
+            .chartYScale(domain: yDomain)
             .chartLegend(.visible)
             .chartLegend(position: .bottom, alignment: .center, spacing: .spacingSmall)
             .padding(.spacingLarge)
         }
 
-        /// Computes evenly spaced Y-axis values.
+        /// Computes evenly spaced Y-axis values from zero to ``maxValue``, preceded by ``minValue``
+        /// when the data has negative values.
         /// - Returns: An array of `Int` values for axis marks.
         func markValues() -> [Int] {
+            let negativeMarks = minValue < 0 ? [minValue] : []
             guard maxValue > 0 else {
-                return [0]
+                return negativeMarks + [0]
             }
             let step = max(1, maxValue / max(1, nbMarks))
-            var values: [Int] = []
+            var values = negativeMarks
             for x in stride(from: 0, to: maxValue, by: step) {
                 values.append(x)
             }
@@ -234,6 +246,12 @@
         /// Calculates the maximum value for Y-axis scaling, rounded up proportionally to the data.
         var maxValue: Int {
             ChartAxis.niceMaximum(for: map(\.value).max() ?? 0)
+        }
+
+        /// Calculates the minimum value for Y-axis scaling: `0`, or the most negative value
+        /// rounded down proportionally to the data.
+        var minValue: Int {
+            -ChartAxis.niceMaximum(for: -Swift.max(map(\.value).min() ?? 0, -Int.max))
         }
     }
 
