@@ -145,6 +145,7 @@ jobs:
           SIMULATOR_ID: ${{ steps.simulator.outputs.device-id }}
           # Swift Charts date axes also use the test process time zone.
           TEST_RUNNER_TZ: UTC
+          RESULT_BUNDLE: ${{ runner.temp }}/${{ matrix.platform }}.xcresult
         run: |
           if [ '${{ matrix.platform }}' = 'macOS' ]; then
             destination='platform=macOS'
@@ -152,4 +153,22 @@ jobs:
             destination="id=$SIMULATOR_ID"
           fi
 
-          xcodebuild test -scheme Calder-Package -destination "$destination" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+          xcodebuild test -scheme Calder-Package -destination "$destination" \
+            -enableCodeCoverage YES -resultBundlePath "$RESULT_BUNDLE" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+      - name: Report ${{ matrix.platform }} coverage
+        if: ${{ !cancelled() }}
+        env:
+          RESULT_BUNDLE: ${{ runner.temp }}/${{ matrix.platform }}.xcresult
+        run: |
+          if [ ! -d "$RESULT_BUNDLE" ]; then
+            echo "::warning::No result bundle at $RESULT_BUNDLE; skipping the coverage summary."
+            exit 0
+          fi
+          {
+            echo '### ${{ matrix.platform }} code coverage'
+            echo
+            echo '| Target | Line coverage | Covered lines | Executable lines |'
+            echo '| --- | ---: | ---: | ---: |'
+            xcrun xccov view --report --only-targets --json "$RESULT_BUNDLE" |
+              jq -r '.[] | select(.name | endswith("Tests") | not) | "| \(.name) | \(.lineCoverage * 10000 | round / 100)% | \(.coveredLines) | \(.executableLines) |"'
+          } >> "$GITHUB_STEP_SUMMARY"
