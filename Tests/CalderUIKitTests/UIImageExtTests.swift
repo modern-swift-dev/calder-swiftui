@@ -2,6 +2,7 @@
     #if canImport(UIKit) && !os(watchOS)
         import CalderUIKit
         import CoreGraphics
+        import CoreImage
         import Foundation
         import Testing
         import UIKit
@@ -236,6 +237,16 @@
                     let image = createTestImage(size: CGSize(width: 100, height: 200))
                     let resized = image.resizeToFit(100)
                     #expect(max(resized.size.width, resized.size.height) <= 100)
+                }
+
+                @Test func `resize to fit resizes a CIImage backed image`() {
+                    let ciImage = CIImage(color: .red).cropped(to: CGRect(x: 0, y: 0, width: 200, height: 100))
+                    let image = UIImage(ciImage: ciImage)
+                    #expect(image.cgImage == nil)
+
+                    let resized = image.resizeToFit(100)
+
+                    #expect(resized.size == CGSize(width: 100, height: 50))
                 }
 
                 // MARK: - scaledCopy Tests

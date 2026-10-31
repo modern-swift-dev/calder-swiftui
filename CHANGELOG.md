@@ -44,6 +44,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `TextView`'s character counter and `InputPassword`'s reveal-button labels ("Show password", "Hide password") come from CalderTheme's string catalog. The counter formats both numbers for the environment's locale, so 1200 of 5000 characters reads "1,200 / 5,000 characters" in English instead of "1200 / 5000 characters" (#89).
 - The `PaginatedList` row shown after a next page fails ("Couldn't load more results." and "Retry") looks up its text in CalderTheme's string catalog instead of the app's main bundle (#90).
 - Charts and widgets format numbers for the environment's locale. Bar annotations in `VerticalBarChart`, `HorizontalBarChart`, and `ParetoChart` use grouping separators, such as "1,200" instead of "1200" in English. `PercentBar` shows "1,200 / 5,000 values" through a catalog string that translations can reorder. `PercentageCircle` and the `ParetoChart` percentage axis use the environment's locale instead of the current locale; `PercentageCircle.text` still uses the current locale (#91).
+- `UIImage.resizeToFit(_:_:)` resizes images that aren't backed by a `CGImage`, such as `CIImage`-backed images, instead of returning them unchanged; an `orientation` override is ignored for them, as in `resize(_:_:_:)` (#113).
 
 ### Source-breaking changes
 

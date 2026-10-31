@@ -60,11 +60,9 @@
             /// - Parameters:
             ///   - newSize: The length of the longer side, in points.
             ///   - orientation: The orientation to apply instead of the image's own orientation.
-            /// - Returns: The newly resized image, or the receiver if it isn't backed by a `CGImage`.
+            /// - Returns: The newly resized image. An image that isn't backed by a `CGImage`, such as one created from a `CIImage`, is resized too, but ignores `orientation`.
             @MainActor func resizeToFit(_ newSize: CGFloat, _ orientation: UIImage.Orientation? = nil) -> UIImage {
-                guard let orientedImage = scaledCopy(scale, orientation) else {
-                    return self
-                }
+                let orientedImage = scaledCopy(scale, orientation) ?? self
                 let imageSize = orientedImage.size
                 let imageScale: CGFloat = newSize / max(imageSize.height, imageSize.width)
                 let rect = CGRect(x: 0, y: 0, width: imageSize.width * imageScale, height: imageSize.height * imageScale)
