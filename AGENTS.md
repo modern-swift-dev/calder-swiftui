@@ -15,6 +15,10 @@
 - Add DocC comments to new or modified public declarations. Document parameters, return values, errors, lifecycle, and concurrency constraints where they matter.
 - Update the migration guide or product documentation when public behavior changes.
 
+## Localization
+
+- Every new string-catalog key ships with `en`, `fr` and `es` values. `StringCatalogCompletenessTests` fails when a key lacks one of them.
+
 ## Tests and validation
 
 - Use Swift Testing and the matching test target.

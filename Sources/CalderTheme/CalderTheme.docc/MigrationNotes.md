@@ -167,6 +167,14 @@ the code ("Scanned ...") each time they read a code. Both are on by default; pas
 `announcesScans: false` to `BarcodeScanner`, or set `providesHapticFeedback` or `announcesScannedCode` to
 `false` in the `BarcodeScannerView.Model`, to turn them off.
 
+### Translations
+
+CalderTheme's string catalog has French (`fr`) and Spanish (`es`) text for every built-in string, such as
+the severity announced by ``MessageBox``, the barcode scanner messages, the password reveal button labels,
+the "No data" chart message, and the paginated list's retry row. They appear when the environment's locale
+is French or Spanish. Apps that rely on the English text under those locales now see the translation;
+other languages still fall back to English.
+
 ### Localized text properties
 
 The `String` properties that return text created from a `LocalizedStringResource` resolve it with the

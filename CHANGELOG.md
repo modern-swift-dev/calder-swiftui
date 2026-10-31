@@ -94,7 +94,7 @@ This release fixes defects across every module and changes several defaults. Rea
 
 ### Additions
 
-- CalderTheme bundles a string catalog with English text for its built-in strings (#88).
+- CalderTheme bundles a string catalog with English text for its built-in strings (#88). The catalog also has French and Spanish translations of every string, so the built-in text appears in French and Spanish when the environment's locale is `fr` or `es`; a test fails when a key lacks `en`, `fr`, or `es` (#178).
 - `MessageBox`, `ListRowBody`, the card-style `ListRow` initializer, `StatusPill`, `Tile`, `ToolbarTitle`, `ToolbarButton`, `ToolbarMenu`, and the items of `SegmentedControl`, `CheckboxGroup`, and `RadioButtonGroup` accept a `LocalizedStringResource` wherever they accept display text. The `String` initializers, including calls with string literals, still display their text unchanged. Properties that returned the stored `String` now resolve localized text for the current locale (#88).
 - `FormButton`, `FormDatePicker`, `FormField`, `FormFieldResponsive`, `FormHeader`, and `FormSwitch` accept a `LocalizedStringResource` label. `InputText`, `InputPassword`, `InputNumber`, `InputDecimal`, `TextView`, and `AttributedTextView` accept a `LocalizedStringResource` placeholder with an optional localized invalid message; these overloads require the placeholder (#89).
 - `GenericState` has `localizedPristine(_:_:)`, `localizedEmpty(_:_:)`, and `localizedError(_:_:)` cases that carry a `LocalizedStringResource` message, which `GenericStateView` shows in the environment's locale. The `String` cases are unchanged (#151).

@@ -99,7 +99,8 @@
             @Test(arguments: [
                 ("en_US", 12, 100, "12 / 100 characters"),
                 ("en_US", 1200, 5000, "1,200 / 5,000 characters"),
-                ("fr_FR", 1200, 5000, "1\u{202F}200 / 5\u{202F}000 characters")
+                ("fr_FR", 1200, 5000, "1\u{202F}200 / 5\u{202F}000 caractères"),
+                ("es_ES", 1200, 5000, "1200 / 5000 caracteres")
             ])
             func `character counter formats its numbers for the locale`(locale: String, count: Int, maxLength: Int, expected: String) {
                 let counter = TextView.characterCount(count, maxLength: maxLength, locale: Locale(identifier: locale))
