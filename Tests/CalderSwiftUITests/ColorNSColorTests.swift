@@ -81,7 +81,7 @@
                 let nsBlue = NSColor(red: 0, green: 0, blue: 1, alpha: 1)
                 let color = NSColor(Self.testRed)
                 let textColor = color.contrastingTextColor(light: nsYellow, dark: nsBlue)
-                // Red has luma ~0.299, which is < 0.5, so should return light color (yellow)
+                // Yellow has a contrast ratio of 3.72 against red and blue only 2.15, so yellow wins
                 let srgb = textColor.usingColorSpace(.sRGB) ?? textColor
                 var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
                 srgb.getRed(&r, green: &g, blue: &b, alpha: &a)
@@ -245,9 +245,7 @@
                 let color = Self.testWhite
                 let textColor = color.contrastingTextColor(light: Self.testWhite, dark: Self.testBlack)
                 // White background should return dark (black)
-                let srgb = textColor.usingColorSpace(.sRGB) ?? textColor
-                var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-                srgb.getRed(&r, green: &g, blue: &b, alpha: &a)
+                let (r, g, b, _) = getRGBComponents(textColor)
                 #expect(r == 0)
                 #expect(g == 0)
                 #expect(b == 0)
@@ -257,9 +255,7 @@
                 let color = Self.testBlack
                 let textColor = color.contrastingTextColor(light: Self.testWhite, dark: Self.testBlack)
                 // Black background should return light (white)
-                let srgb = textColor.usingColorSpace(.sRGB) ?? textColor
-                var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-                srgb.getRed(&r, green: &g, blue: &b, alpha: &a)
+                let (r, g, b, _) = getRGBComponents(textColor)
                 #expect(r == 1)
                 #expect(g == 1)
                 #expect(b == 1)

@@ -57,6 +57,19 @@
             #expect(result == yellow)
         }
 
+        @Test func `contrasting text colour returns a Color`() {
+            let result: Color = hex(0xFF0000).contrastingTextColor()
+            #expect(result == .black)
+            #expect(hex(0xFFFFFF).contrastingTextColor(light: .white, dark: .black) == .black)
+            #expect(hex(0x000000).contrastingTextColor(light: .white, dark: .black) == .white)
+        }
+
+        @Test func `contrasting text colour honours custom candidates and environment`() {
+            let yellow = hex(0xFFFF00)
+            let blue = hex(0x0000FF)
+            #expect(hex(0xFF0000).contrastingTextColor(light: yellow, dark: blue, in: EnvironmentValues()) == yellow)
+        }
+
         @Test func `text colour follows the contrasting text colour`() {
             #expect(hex(0xFF0000).textColor == .black)
             #expect(hex(0x000080).textColor == .white)

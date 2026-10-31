@@ -8,8 +8,11 @@
 
         public extension UIColor {
 
-            /// A contrasting UIColor for text layered on top of the current UIColor instance
-            /// note: the possible outcome are charcoal and white
+            /// A contrasting color for text layered on top of this color: black or white.
+            ///
+            /// Deprecated for consistency with `NSColor`, whose `textColor` instance property collides with
+            /// AppKit's `NSColor.textColor` system color.
+            @available(*, deprecated, renamed: "contrastingTextColor()")
             var textColor: UIColor {
                 contrastingTextColor()
             }
@@ -88,11 +91,6 @@
 
             func dim(amount: CGFloat = 0.15) -> Color {
                 UIColor(self).dim(amount).asSwiftUIColor
-            }
-
-            /// A contrasting Color for text layered on top of the current Color instance
-            func contrastingTextColor(light: Color = .white, dark: Color = .black) -> UIColor {
-                UIColor(higherContrast(light: light, dark: dark, in: EnvironmentValues()))
             }
 
             /// Return the UIColor for this SwiftUI Color

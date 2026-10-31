@@ -25,7 +25,7 @@
 
             @Test func `ui color text color for white`() {
                 let color = UIColor.white
-                let textColor = color.textColor
+                let textColor = color.contrastingTextColor()
                 // White background should return dark text
                 var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
                 textColor.getRed(&r, green: &g, blue: &b, alpha: &a)
@@ -34,17 +34,23 @@
 
             @Test func `ui color text color for black`() {
                 let color = UIColor.black
-                let textColor = color.textColor
+                let textColor = color.contrastingTextColor()
                 // Black background should return light text
                 var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
                 textColor.getRed(&r, green: &g, blue: &b, alpha: &a)
                 #expect(r == 1 && g == 1 && b == 1) // White
             }
 
+            @available(*, deprecated)
+            @Test func `deprecated ui color textColor forwards to contrastingTextColor`() {
+                let color = UIColor.black
+                #expect(color.textColor == color.contrastingTextColor())
+            }
+
             @Test func `ui color contrasting text color custom colors`() {
                 let color = UIColor.red
                 let textColor = color.contrastingTextColor(light: .yellow, dark: .blue)
-                // Red has luma ~0.299, which is < 0.5, so should return light color (yellow)
+                // Yellow has a contrast ratio of 3.72 against red and blue only 2.15, so yellow wins
                 var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
                 textColor.getRed(&r, green: &g, blue: &b, alpha: &a)
                 #expect(r == 1 && g == 1 && b == 0) // Yellow
@@ -220,26 +226,6 @@
             }
 
             // MARK: - Color contrastingTextColor
-
-            @Test func `color contrasting text color for light`() {
-                let color = Color.white
-                let textColor = color.contrastingTextColor(light: .white, dark: .black)
-                // White background should return dark (black)
-                let uiTextColor = textColor
-                var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-                uiTextColor.getRed(&r, green: &g, blue: &b, alpha: &a)
-                #expect(r == 0 && g == 0 && b == 0)
-            }
-
-            @Test func `color contrasting text color for dark`() {
-                let color = Color.black
-                let textColor = color.contrastingTextColor(light: .white, dark: .black)
-                // Black background should return light (white)
-                let uiTextColor = textColor
-                var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-                uiTextColor.getRed(&r, green: &g, blue: &b, alpha: &a)
-                #expect(r == 1 && g == 1 && b == 1)
-            }
 
             // MARK: - Color uiColor property
 

@@ -68,6 +68,8 @@ This release fixes defects across every module and changes several defaults. Rea
 - `CalderSwiftUI` no longer depends on `SnapshotPreviews`; targets that imported it through `CalderSwiftUI` must declare the dependency themselves (#3).
 - `UIColor.asOval(_:centered:)` lost its `centered` parameter; call `asOval(_:)`. The image helpers `asImage`, `asSquare`, `asCircle`, and `asOval` now draw the whole shape (`asOval` previously drew only one quarter of it with the default `centered: true`), render with `UIGraphicsImageRenderer` at the renderer format scale instead of scale 1, and return an empty image for a zero size instead of asserting. `UIImage.tint(_:)` returns `nil` and `tintGradient(colors:vertical:)` returns an empty image for an empty image (#106).
 - `MKMapView.firstIndexOf(overlayType:)` and `lastIndexOf(overlayType:)` take a `level:` argument and return `Int?` scoped to that level, matching the indices `insertOverlay(_:at:level:)` takes. They return `nil` when nothing matches instead of `0` and `Int.max`, so adding `1` to the result no longer traps (#120).
+- `Color.contrastingTextColor(light:dark:)` returns a `Color`, the unchanged `light` or `dark` argument, instead of a `UIColor` or `NSColor`, and takes an `in:` environment (default `EnvironmentValues()`) that resolves the colours. Wrap the result with `UIColor(_:)` or `NSColor(_:)`, or use it as a `Color` directly (#159).
+- `UIColor.alphaComponent()` is now the property `alphaComponent`, matching `NSColor.alphaComponent`; Swift can't keep a method and a property with the same name, so drop the parentheses (#159).
 - `PaginatedList` is a caseless `enum` instead of a `class`, so it can no longer be instantiated or subclassed; use it only as the namespace of `DataSource` and the list views (#164).
 
 ### Deprecations
@@ -78,6 +80,7 @@ This release fixes defects across every module and changes several defaults. Rea
   - CalderUIKit: `UINavigationController.topViewController()` → `lastViewController()`, `CGFloat.small`/`.medium`/`.large` → `.spacingSmall`/`.spacingMedium`/`.spacingLarge`, `NSUIColor`/`NSUIFont` → `CalderPlatformColor`/`CalderPlatformFont`, and `debugDescription` on `CGFloat`, `CGPoint`, `CGSize`, and `CGRect` → `labeledDebugDescription`. The `CGPoint`, `CGSize`, and `CGRect` descriptions now end with the closing parenthesis they were missing.
 - `UIApplication.suspendApplication()` and `exitApplication(_:code:)` are deprecated. `suspendApplication()` no longer sends a private selector and does nothing; `exitApplication(_:code:)` no longer blocks the main thread or suspends the app first (#67).
 - `UIDevice.isCar` is deprecated because `UIDevice.current.userInterfaceIdiom` never reports `.carPlay`, so it was always `false`. Check `traitCollection.userInterfaceIdiom == .carPlay` instead (#115).
+- `UIColor.textColor` is deprecated in favour of `contrastingTextColor()`, as `NSColor.textColor` already is, and its documentation no longer says the result is charcoal (#159).
 
 ### Additions
 

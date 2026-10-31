@@ -7,6 +7,10 @@ Adapt code that relies on helper behavior that changed, and move to renamed decl
 The [changelog](https://github.com/modern-swift-dev/calder-swiftui/blob/main/CHANGELOG.md) lists
 the changes in each release across all Calder modules.
 
+### Color alpha
+
+`UIColor.alphaComponent()` is now the property `UIColor.alphaComponent`, matching `NSColor.alphaComponent`. Swift can't declare a method and a property with the same name, so the method couldn't stay as a deprecated alias; drop the parentheses at call sites.
+
 ### Hex colors
 
 `UIColor` and `NSColor` `init(rgb:alpha:)`, `init(rgba:)`, `init(hsv:alpha:)`, and `init(hsva:)` return `nil` for strings with non-hexadecimal digits or the wrong number of digits instead of producing black or white. Accepted strings have an optional `#`, `0x`, or `0X` prefix and no whitespace. Hex output rounds each channel and clamps wide-gamut values, and `brighten` and `dim` keep the color's alpha.

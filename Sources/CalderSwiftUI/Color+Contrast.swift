@@ -43,6 +43,24 @@
             WCAGContrast.ratio(relativeLuminance(in: environment), other.relativeLuminance(in: environment))
         }
 
+        /// A contrasting colour for text layered on top of this colour.
+        ///
+        /// Returns whichever of `light` and `dark` has the higher WCAG 2.x contrast ratio against this
+        /// colour (see ``contrastRatio(with:in:)``); `dark` wins a tie. All three colours are resolved in
+        /// `environment` and opacity is ignored.
+        /// - Parameters:
+        ///   - light: The candidate for dark backgrounds. Defaults to white.
+        ///   - dark: The candidate for light backgrounds. Defaults to black.
+        ///   - environment: The environment used to resolve the colours. Defaults to a default `EnvironmentValues`.
+        /// - Returns: `light` or `dark`, unchanged. Before 1.2.0 this returned a `UIColor` or `NSColor`.
+        func contrastingTextColor(
+            light: Color = .white,
+            dark: Color = .black,
+            in environment: EnvironmentValues = EnvironmentValues()
+        ) -> Color {
+            higherContrast(light: light, dark: dark, in: environment)
+        }
+
         /// The candidate with the higher contrast ratio against this colour; `dark` wins a tie.
         internal func higherContrast(light: Color, dark: Color, in environment: EnvironmentValues) -> Color {
             contrastRatio(with: light, in: environment) > contrastRatio(with: dark, in: environment) ? light : dark

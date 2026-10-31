@@ -94,11 +94,6 @@
                 NSColor(self).dim(amount).asSwiftUIColor
             }
 
-            /// A contrasting Color for text layered on top of the current Color instance
-            func contrastingTextColor(light: Color = .white, dark: Color = .black) -> NSColor {
-                NSColor(higherContrast(light: light, dark: dark, in: EnvironmentValues()))
-            }
-
             /// Return the UIColor for this SwiftUI Color
             var nsColor: NSColor {
                 NSColor(self)

@@ -12,25 +12,25 @@
 
             @Test func `alpha component fully opaque`() {
                 let color = UIColor.red
-                let alpha = color.alphaComponent()
+                let alpha = color.alphaComponent
                 #expect(alpha == 1.0)
             }
 
             @Test func `alpha component semi transparent`() {
                 let color = UIColor.blue.withAlphaComponent(0.5)
-                let alpha = color.alphaComponent()
+                let alpha = color.alphaComponent
                 #expect(abs(alpha - 0.5) < 0.01)
             }
 
             @Test func `alpha component fully transparent`() {
                 let color = UIColor.green.withAlphaComponent(0.0)
-                let alpha = color.alphaComponent()
+                let alpha = color.alphaComponent
                 #expect(alpha == 0.0)
             }
 
             @Test func `alpha component custom alpha`() {
                 let color = UIColor.black.withAlphaComponent(0.75)
-                let alpha = color.alphaComponent()
+                let alpha = color.alphaComponent
                 #expect(abs(alpha - 0.75) < 0.01)
             }
 
