@@ -7,7 +7,9 @@
 
         /// A self-sizing webview that will invalidate it's intrinsic content size
         /// to the content.
-        public class SelfSizingWebView: WKWebView {
+        ///
+        /// Subclasses can override `intrinsicContentSize`, for example to cap the height.
+        open class SelfSizingWebView: WKWebView {
 
             /// The last known content size
             public private(set) var lastContentSize: CGSize = .zero {
@@ -40,7 +42,7 @@
                 configure()
             }
 
-            override public var intrinsicContentSize: CGSize {
+            override open var intrinsicContentSize: CGSize {
                 lastContentSize
             }
 

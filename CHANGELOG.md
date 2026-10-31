@@ -111,6 +111,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - The `AVCaptureDevice` access helpers (`requestAccessFor(type:)`, `requestAccessForVideo()`, and `requestPermissionForAudio()`) are available on macOS (#137).
 - The `UIImage` thumbnail helpers (`init(data:thumbnailSize:)`, `resize(_:_:_:)`, `resizeToFit(_:_:)`, and `scaledCopy(_:_:)`) are available on visionOS (#138).
 - `UserNotificationService` and `UserNotificationServiceDelegate` are available on visionOS (#136).
+- `SelfSizingWebView` is `open`, and `UIKitSceneDelegate` and `SwiftUISceneDelegate` declare `scene(_:willConnectTo:options:)` as `open`, so other modules can subclass the web view and override the scene connection (#162).
 - `ColorRange` and `ColorRanges` conform to `Sendable` and `Equatable` (#170).
 - `contrastRatio(with:)` on `UIColor`, `NSColor`, and `Color` (with an `in:` environment for resolution) returns the WCAG 2.x contrast ratio between two colours, from 1 to 21 (#168).
 

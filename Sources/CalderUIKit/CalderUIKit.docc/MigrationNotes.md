@@ -49,6 +49,8 @@ Child view controller helpers send each containment callback once, in the order 
 
 `SwiftUISceneDelegate.createRootView(_:)` now returns `AnyView`, so subclasses can override it to supply their root view; wrap the view in `AnyView`. The default root view is SwiftUI's `EmptyView`.
 
+`SelfSizingWebView` is now `open` and its `intrinsicContentSize` is overridable. `UIKitSceneDelegate.scene(_:willConnectTo:options:)` and `SwiftUISceneDelegate.scene(_:willConnectTo:options:)` are now `open`, so a subclass in another module can override them; call `super` to keep the default window setup. No changes are needed for existing code.
+
 The `UIApplication` scene and window lookups (`session(for:)`, `scene(for:)`, `windowScene(for:)`, `window(for:)`, `windows(for:)`, `keyWindow(for:)`, `keyWindows(for:)`, `topMostPresentedViewController(for:)`, and their plural forms) now search every scene in the requested activation state, such as both scenes of an iPad Split View, instead of one scene picked from an unordered set. Scenes that hold a key window come first, so `window(for:)` and `keyWindow(for:)` return the key window when any scene has one. The lookups read the application they are called on rather than `UIApplication.shared`.
 
 When a second `transition(fromChild:toNewChild:inContainerView:duration:delay:completion:)` starts away from a child that an earlier, unfinished transition is still adding, that child now receives `willMove(toParent:)` with `nil` and later `didMove(toParent:)` with `nil`, without the `didMove(toParent:)` for the first transition that used to follow `willMove(toParent: nil)`. Code that reacted to that late callback no longer sees it.

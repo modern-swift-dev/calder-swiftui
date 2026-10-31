@@ -18,12 +18,13 @@
             }
 
             /// Called when a scene session is about to be connected to the scene.
-            /// This method sets up the `UIWindow` and its `rootViewController`.
+            /// This method sets up the `UIWindow` and its `rootViewController`. Subclasses can override it to customise the
+            /// connection; call `super` to keep the default window setup.
             /// - Parameters:
             ///   - scene: The scene that is being connected.
             ///   - session: The session that is connecting to the scene.
             ///   - options: Options for the connection, including user activities.
-            public func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
+            open func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
                 let activity = options.userActivities.first ?? session.stateRestorationActivity
                 if let windowScene = scene as? UIWindowScene {
                     let window = UIWindow(windowScene: windowScene)
@@ -60,12 +61,13 @@
                 }
 
                 /// Called when a scene session is about to be connected to the scene.
-                /// This method sets up the `UIWindow` and its `rootViewController` (as a `UIHostingController`).
+                /// This method sets up the `UIWindow` and its `rootViewController` (as a `UIHostingController`). Subclasses can
+                /// override it to customise the connection; call `super` to keep the default window setup.
                 /// - Parameters:
                 ///   - scene: The scene that is being connected.
                 ///   - session: The session that is connecting to the scene.
                 ///   - options: Options for the connection, including user activities.
-                public func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
+                open func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
                     let activity = options.userActivities.first ?? session.stateRestorationActivity
                     if let windowScene = scene as? UIWindowScene {
                         let window = UIWindow(windowScene: windowScene)
