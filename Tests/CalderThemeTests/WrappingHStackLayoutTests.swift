@@ -157,6 +157,29 @@
             #expect(recorder.frames[1]?.minY == firstRowY + 25)
         }
 
+        @Test(arguments: [
+            (Alignment.leadingFirstTextBaseline, CGFloat(0)),
+            (Alignment.leadingLastTextBaseline, CGFloat(0)),
+            (Alignment.centerFirstTextBaseline, CGFloat(30)),
+            (Alignment.centerLastTextBaseline, CGFloat(30)),
+            (Alignment.trailingFirstTextBaseline, CGFloat(60)),
+            (Alignment.trailingLastTextBaseline, CGFloat(60)),
+            (Alignment(horizontal: .leading, vertical: .center), CGFloat(0)),
+            (Alignment(horizontal: .trailing, vertical: .top), CGFloat(60))
+        ])
+        func `rows follow the horizontal part of any alignment`(alignment: Alignment, expectedOffset: CGFloat) {
+            let recorder = Recorder()
+            let content = WrappingHStackLayout(alignment: alignment, horizontalSpacing: 0, verticalSpacing: 0) {
+                Probe(id: 0, size: CGSize(width: 100, height: 10), recorder: recorder) { Color.clear }
+                Probe(id: 1, size: CGSize(width: 40, height: 10), recorder: recorder) { Color.clear }
+            }
+            .frame(width: 100, height: 100, alignment: .topLeading)
+            _ = ImageRenderer(content: content).cgImage
+
+            let rowStart = recorder.frames[0]?.minX ?? 0
+            #expect(recorder.frames[1]?.minX == rowStart + expectedOffset)
+        }
+
         // MARK: - Initialization
 
         @Test func `initializes with default values`() {

@@ -8,6 +8,10 @@
     /// automatically flow to the next line when the available horizontal space is exhausted.
     public struct WrappingHStackLayout: Layout {
         /// The guide for aligning the subviews in this stack. This guide has the same screen coordinate for every subview.
+        ///
+        /// Rows follow the horizontal part of the alignment, including the horizontal part of text
+        /// baseline alignments. Within a row, subviews follow the top or bottom vertical part; other
+        /// vertical alignments, including text baselines, center them.
         public var alignment: Alignment
 
         /// The distance between adjacent subviews in a row or `nil` if you want the stack to choose a default distance.
@@ -279,28 +283,29 @@
 
     private extension UnitPoint {
         /// Initializes a `UnitPoint` from a SwiftUI `Alignment`.
+        ///
+        /// The horizontal and vertical parts are converted separately, so the horizontal part of
+        /// a text baseline alignment such as `.leadingFirstTextBaseline` is honoured. Vertical text
+        /// baselines and custom guides use the center.
         /// - Parameter alignment: The `Alignment` to convert.
         init(_ alignment: Alignment) {
-            switch alignment {
+            let x: CGFloat = switch alignment.horizontal {
                 case .leading:
-                    self = .leading
-                case .topLeading:
-                    self = .topLeading
-                case .top:
-                    self = .top
-                case .topTrailing:
-                    self = .topTrailing
+                    0
                 case .trailing:
-                    self = .trailing
-                case .bottomTrailing:
-                    self = .bottomTrailing
-                case .bottom:
-                    self = .bottom
-                case .bottomLeading:
-                    self = .bottomLeading
+                    1
                 default:
-                    self = .center
+                    0.5
             }
+            let y: CGFloat = switch alignment.vertical {
+                case .top:
+                    0
+                case .bottom:
+                    1
+                default:
+                    0.5
+            }
+            self.init(x: x, y: y)
         }
     }
 
