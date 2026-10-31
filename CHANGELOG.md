@@ -120,6 +120,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - The `UIImage` thumbnail helpers (`init(data:thumbnailSize:)`, `resize(_:_:_:)`, `resizeToFit(_:_:)`, and `scaledCopy(_:_:)`) are available on visionOS (#138).
 - `UserNotificationService` and `UserNotificationServiceDelegate` are available on visionOS (#136).
 - `ToolbarButton`'s icon and symbol initialisers have overloads taking an `accessibilityLabel`, as a `String` or a `LocalizedStringResource`, which VoiceOver reads for the button (#155).
+- `AttributedTextView` shows the same character counter as `TextView` when `maxLength` is set, formatted for the environment's locale and counting the attributed string's characters (#174).
 - `SelfSizingWebView` is `open`, and `UIKitSceneDelegate` and `SwiftUISceneDelegate` declare `scene(_:willConnectTo:options:)` as `open`, so other modules can subclass the web view and override the scene connection (#162).
 - `UIViewController.pickImages(source:limit:)` presents `PHPickerViewController` (images only, no photo-library permission) for `ImagePickerSource.photoLibrary` or `UIImagePickerController` for `.camera`, and returns the picked images. Cancelling returns an empty array, and an unavailable source throws `ImagePickerError.sourceUnavailable`. Callers don't implement a delegate (#167).
 - `Array.hashMap(predicate:)` accepts a value type other than `Element`, such as `names.hashMap { ($0, $0.count) }` (#161).

@@ -78,6 +78,9 @@ full and round-trips unchanged; typing a longer number is still rejected.
 that is already longer than `maxLength` when the view appears, so the character counter never reads
 more than the limit.
 
+`AttributedTextView` shows the same character counter as `TextView` below the editor when `maxLength` is
+set, so views that set a limit grow by one caption line.
+
 `CheckboxToggleButtonStyle` and `RadioButtonToggleButtonStyle` apply their `style` to the label, which
 previously always used the medium (body) font. The `applyCheckboxToggleStyle` and
 `applyRadioButtonToggleStyle` modifiers now default to `.medium` instead of `.large`, so default labels,

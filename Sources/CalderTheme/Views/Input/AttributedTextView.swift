@@ -7,11 +7,12 @@
 
         /// A SwiftUI view for a multi-line text input area, similar to `UITextView`, that supports `AttributedString`.
         ///
-        /// This view provides features such as placeholder text, character limit, and visual feedback for invalid input.
+        /// This view provides features such as placeholder text, character limit with a character counter, and visual feedback for invalid input.
         /// Text longer than `maxLength` is cut when the view appears and whenever it changes, and a negative `maxLength` counts as 0.
         @available(iOS 26, macOS 26, *) public struct AttributedTextView: View {
 
             @Environment(\.theme) var theme
+            @Environment(\.locale) private var locale
 
             /// A binding to the `AttributedString` value of the text area.
             @Binding public var text: AttributedString
@@ -155,6 +156,16 @@
                                 .padding(.horizontal, .xxs)
                                 // VoiceOver reads the message as the editor's hint.
                                 .accessibilityHidden(true)
+                        }
+                    }
+
+                    if let maxLength {
+                        HStack(spacing: 0) {
+                            Spacer()
+
+                            Text(TextView.characterCount(text.characters.count, maxLength: maxLength, locale: locale))
+                                .font(.caption)
+                                .foregroundStyle(theme.text2)
                         }
                     }
                 }
