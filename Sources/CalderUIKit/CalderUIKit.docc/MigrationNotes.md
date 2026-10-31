@@ -111,6 +111,10 @@ Notification callbacks complete even when the service's weak delegate has been r
 
 The static `WKWebView.clearCaches()` clears the default website data store, the shared cookie storage, and the shared URL cache. It no longer clears a newly created non-persistent data store, which had no effect. To clear the data of a web view that uses its own data store, call the new instance method `clearCaches()` on that web view.
 
+### Capture devices
+
+The `AVCaptureDevice` access helpers `requestAccessFor(type:)`, `requestAccessForVideo()`, and `requestPermissionForAudio()` are now also available on macOS, in addition to iOS. A macOS app still needs the matching usage description in its `Info.plist` and the camera or microphone entitlement when sandboxed.
+
 ### Concurrency
 
 CalderUIKit no longer declares retroactive `Sendable` conformances for `UNUserNotificationCenter`, `UNNotificationSettings`, `WKWebsiteDataStore`, or `WKHTTPCookieStore`. Code that relied on them must keep these values in one isolation domain; the WebKit types are main-actor isolated. `UNUserNotificationCenter.settings` now reads the settings of the center it is called on instead of always using `UNUserNotificationCenter.current()`.

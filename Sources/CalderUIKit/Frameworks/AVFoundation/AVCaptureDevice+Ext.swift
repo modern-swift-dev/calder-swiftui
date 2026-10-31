@@ -1,5 +1,5 @@
 #if canImport(Darwin)
-    #if os(iOS)
+    #if os(iOS) || os(macOS)
         import AVFoundation
         import Foundation
 

@@ -93,6 +93,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `WKWebView.clearCaches()` (instance) clears the data store the web view uses. The static `WKWebView.clearCaches()` no longer clears a throw-away non-persistent data store, which did nothing (#127).
 - The `CGContext` drawing helpers (`drawCircle`, `drawPie`, `drawSquare`, `drawText`, `drawStar`) and the `CalderPlatformColor` and `CalderPlatformFont` aliases are available on visionOS and watchOS (#134).
 - `NSView` and `NSLayoutGuide` conform to `Pinnable`, `NSView` conforms to `MultiConstrainable` (including `pinned(to:margin:trailingConstraintPriority:)` with `NSLayoutConstraint.Priority`), and `NSLayoutConstraint.with(priority:)` is available on macOS (#135).
+- The `AVCaptureDevice` access helpers (`requestAccessFor(type:)`, `requestAccessForVideo()`, and `requestPermissionForAudio()`) are available on macOS (#137).
 
 ### Fixes
 
