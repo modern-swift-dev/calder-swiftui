@@ -61,15 +61,16 @@
         }
 
         /// Sugar syntax to activate or deactivate an array of constraints.
+        @MainActor
         public extension [NSLayoutConstraint] {
 
             /// Activates all constraints in the array.
-            @MainActor func activate() {
+            func activate() {
                 NSLayoutConstraint.activate(self)
             }
 
             /// Deactivates all constraints in the array.
-            @MainActor func deactivate() {
+            func deactivate() {
                 NSLayoutConstraint.deactivate(self)
             }
         }

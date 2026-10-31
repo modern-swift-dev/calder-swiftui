@@ -27,18 +27,18 @@
             /// A boolean indicating if the device is running on a Mac Catalyst build (i.e., UIKit on macOS).
             static var isCatalyst: Bool {
                 #if targetEnvironment(macCatalyst)
-                    return true
+                    true
                 #else
-                    return false
+                    false
                 #endif
             }
 
             /// A boolean indicating if the device is a simulator.
             static var isSimulator: Bool {
                 #if targetEnvironment(simulator)
-                    return true
+                    true
                 #else
-                    return false
+                    false
                 #endif
             }
 

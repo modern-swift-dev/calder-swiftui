@@ -67,13 +67,14 @@
         }
     }
 
+    @MainActor
     public extension Toggle {
         /// Applies a radio button toggle style to this Toggle.
         /// - Parameters:
         ///   - style: The font style for the label (default `.large`).
         ///   - fullWidth: Whether to fill horizontal space (default `false`).
         /// - Returns: A Toggle styled as a radio button.
-        @MainActor func applyRadioButtonToggleStyle(style: ThemedButtonStyle.TextStyle = .large, fullWidth: Bool = false) -> some View {
+        func applyRadioButtonToggleStyle(style: ThemedButtonStyle.TextStyle = .large, fullWidth: Bool = false) -> some View {
             toggleStyle(RadioButtonToggleButtonStyle(style: style, fullWidth: fullWidth))
         }
     }

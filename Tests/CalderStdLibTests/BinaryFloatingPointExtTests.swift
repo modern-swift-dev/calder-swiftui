@@ -1,8 +1,8 @@
 @testable import CalderStdLib
+import Testing
 #if canImport(CoreGraphics)
     import CoreGraphics
 #endif
-import Testing
 
 struct BinaryFloatingPointExtTests {
     @Test func `Double conversion`() {

@@ -30,12 +30,13 @@
             }
         }
 
+        @MainActor
         public extension NSLayoutConstraint {
 
             /// Activates a `LayoutConstraintBuilder` block, creating and activating constraints.
             /// - Parameter builder: A `@LayoutConstraintBuilder` closure that returns an array of `LayoutConstraintGroup`s.
             /// - Returns: An array of the activated `NSLayoutConstraint`s.
-            @MainActor @discardableResult static func activate(@LayoutConstraintBuilder _ builder: () -> [any LayoutConstraintGroup]) -> [NSLayoutConstraint] {
+            @discardableResult static func activate(@LayoutConstraintBuilder _ builder: () -> [any LayoutConstraintGroup]) -> [NSLayoutConstraint] {
                 let constraints = builder().flatMap(\.asConstraints)
                 constraints.activate()
                 return constraints

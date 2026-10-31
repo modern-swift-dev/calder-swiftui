@@ -52,6 +52,7 @@
         }
     }
 
+    @MainActor
     public extension Button {
 
         /// Applies the `ThemedButtonStyle` to the button.
@@ -59,7 +60,7 @@
         ///   - style: The text style to apply. Defaults to `.medium`.
         ///   - variant: The visual variant to apply. Defaults to `.primary(destructive: false)`.
         /// - Returns: A view with the themed button style applied.
-        @MainActor func applyThemedStyle(
+        func applyThemedStyle(
             _ style: ThemedButtonStyle.TextStyle = .medium,
             variant: ThemedButtonStyle.Variant = .primary(destructive: false)
         ) -> some View {
@@ -67,6 +68,7 @@
         }
     }
 
+    @MainActor
     public extension NavigationLink {
 
         /// Applies the `ThemedButtonStyle` to the navigation link.
@@ -74,7 +76,7 @@
         ///   - style: The text style to apply. Defaults to `.medium`.
         ///   - variant: The visual variant to apply. Defaults to `.primary(destructive: false)`.
         /// - Returns: A navigation link with the themed button style applied.
-        @MainActor func applyThemedStyle(
+        func applyThemedStyle(
             _ style: ThemedButtonStyle.TextStyle = .medium,
             variant: ThemedButtonStyle.Variant = .primary(destructive: false)
         ) -> some View {

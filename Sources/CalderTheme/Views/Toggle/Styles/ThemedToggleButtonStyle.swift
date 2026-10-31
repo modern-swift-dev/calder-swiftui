@@ -62,13 +62,14 @@
         }
     }
 
+    @MainActor
     public extension Toggle {
         /// Applies a themed toggle style to this Toggle.
         /// - Parameters:
         ///   - variant: The visual variant to use (default `.primary`).
         ///   - style: The font style for the label (default `.medium`).
         /// - Returns: A Toggle styled with `ThemedToggleButtonStyle`.
-        @MainActor func applyThemedToggleStyle(
+        func applyThemedToggleStyle(
             variant: ThemedToggleButtonStyle.Variant = .primary,
             style: ThemedButtonStyle.TextStyle = .medium
         ) -> some View {

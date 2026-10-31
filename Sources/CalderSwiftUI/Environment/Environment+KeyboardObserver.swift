@@ -114,9 +114,10 @@
         @MainActor static let sharedObserver = KeyboardObserver()
     }
 
+    @MainActor
     public extension EnvironmentValues {
         /// The main-actor keyboard observer, using a shared observer when no override is supplied.
-        @MainActor var keyboardObserver: KeyboardObserver {
+        var keyboardObserver: KeyboardObserver {
             get { self[KeyboardObserverEnv.self] ?? KeyboardObserverEnv.sharedObserver }
             set { self[KeyboardObserverEnv.self] = newValue }
         }

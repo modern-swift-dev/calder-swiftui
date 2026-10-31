@@ -80,13 +80,14 @@
         }
     }
 
+    @MainActor
     public extension Toggle {
         /// Applies a checkbox toggle style to this Toggle.
         /// - Parameters:
         ///   - style: Text style for the label (default `.large`).
         ///   - fullWidth: Whether the toggle occupies full width (default `false`).
         /// - Returns: A Toggle styled as a checkbox.
-        @MainActor func applyCheckboxToggleStyle(style: ThemedButtonStyle.TextStyle = .large, fullWidth: Bool = false) -> some View {
+        func applyCheckboxToggleStyle(style: ThemedButtonStyle.TextStyle = .large, fullWidth: Bool = false) -> some View {
             toggleStyle(CheckboxToggleButtonStyle(style: style, fullWidth: fullWidth))
         }
     }

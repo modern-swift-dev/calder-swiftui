@@ -11,14 +11,14 @@
             static func requestAccessFor(type: AVMediaType) async -> Bool {
                 switch AVCaptureDevice.authorizationStatus(for: type) {
                     case .authorized:
-                        return true
+                        true
                     case .denied,
                          .restricted:
-                        return false
+                        false
                     case .notDetermined:
-                        return await AVCaptureDevice.requestAccess(for: type)
+                        await AVCaptureDevice.requestAccess(for: type)
                     @unknown default:
-                        return false
+                        false
                 }
             }
 

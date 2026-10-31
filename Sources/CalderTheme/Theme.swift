@@ -9,11 +9,11 @@
         var inverted: ColorScheme {
             switch self {
                 case .light:
-                    return .dark
+                    .dark
                 case .dark:
-                    return .light
+                    .light
                 @unknown default:
-                    return .light
+                    .light
             }
         }
     }

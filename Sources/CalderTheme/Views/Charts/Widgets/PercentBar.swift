@@ -39,10 +39,7 @@
         /// The calculated percentage text, formatted for the user's locale.
         /// Returns `nil` if `showPercent` is `false` or if total is zero.
         public var percent: String? {
-            guard showPercent else {
-                return nil
-            }
-            guard total > 0 else {
+            guard showPercent, total > 0 else {
                 return nil
             }
             return (Double(value) / Double(total)).formatted(

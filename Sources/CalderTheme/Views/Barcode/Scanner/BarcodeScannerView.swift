@@ -302,11 +302,7 @@
             /// The session is configured and started on the view's serial session queue, so this method returns
             /// without waiting for the camera.
             func start() {
-                guard sessionController == nil else {
-                    return
-                }
-
-                guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
+                guard sessionController == nil, let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
                     return
                 }
 

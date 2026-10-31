@@ -34,18 +34,18 @@
             /// A boolean indicating whether the application is running on a simulator.
             var isSimulator: Bool {
                 #if targetEnvironment(simulator)
-                    return true
+                    true
                 #else
-                    return false
+                    false
                 #endif
             }
 
             /// A boolean indicating whether the application is running as a Mac Catalyst app.
             var isMacCatalyst: Bool {
                 #if targetEnvironment(macCatalyst)
-                    return true
+                    true
                 #else
-                    return false
+                    false
                 #endif
             }
         }
