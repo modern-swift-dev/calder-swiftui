@@ -49,4 +49,4 @@ The command builds the four DocC archives, one per library product, and writes `
 
 ## Publish a release
 
-Push a `MAJOR.MINOR.PATCH` tag without a `v` prefix, such as `1.0.0`, to run the release workflow in `.github/workflows/release.yml`. It runs `make documentation` and attaches `Calder-Documentation.zip` to the GitHub release for that tag. If the release does not exist yet, the workflow creates it with generated release notes.
+Push a `MAJOR.MINOR.PATCH` tag without a `v` prefix, such as `1.0.0`, to run the release workflow in `.github/workflows/release.yml`. It first runs the full CI workflow (lint, Mac Catalyst build, and tests on every platform) by calling `.github/workflows/ci.yml`; only if that passes does it run `make documentation` and attach `Calder-Documentation.zip` to the GitHub release for that tag. If the release does not exist yet, the workflow creates it with generated release notes.
