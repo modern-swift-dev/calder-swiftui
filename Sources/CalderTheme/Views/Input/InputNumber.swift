@@ -13,7 +13,8 @@
     ///
     /// This view provides a numeric input field that can handle integer values.
     /// External binding changes update the displayed text. A minus sign is accepted while editing.
-    /// The field enforces a maximum number of integer digits and offers validation feedback.
+    /// The field limits typing to a maximum number of integer digits and offers validation feedback.
+    /// A bound value with more digits than the limit is displayed in full and keeps its value.
     public struct InputNumber: View {
 
         @Environment(\.theme) var theme
@@ -30,7 +31,9 @@
         let maxIntegerDigits: Int
         /// The largest digit limit whose numbers always fit in `Int64`.
         private static let maximumIntegerDigits = 18
-        /// A `NumberFormatter` configured for integer input.
+        /// The number of digits in `Int64.max`, so the display formatter never truncates a bound value.
+        private static let int64Digits = 19
+        /// A `NumberFormatter` that displays and parses integers without applying the digit limit.
         let numberFormatter: NumberFormatter
         /// A boolean indicating if the current input is considered invalid.
         let invalid: Bool
@@ -138,7 +141,7 @@
                 decimalZeroDisplay = .number
             #endif
 
-            let formatter = InputNumber.numberFormatter(maxIntegerDigits: self.maxIntegerDigits)
+            let formatter = InputNumber.numberFormatter(maxIntegerDigits: Self.int64Digits)
             numberFormatter = formatter
 
             if let intValue = value.wrappedValue,

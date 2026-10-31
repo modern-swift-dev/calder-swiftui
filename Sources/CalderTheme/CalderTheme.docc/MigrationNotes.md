@@ -44,6 +44,9 @@ Optional numeric inputs update their displayed text when the bound value changes
 clearing it when the value becomes `nil`. Display formatting does not round or truncate the
 source binding.
 
+`InputNumber`'s `maxIntegerDigits` limits typing only. A bound value with more digits is displayed in
+full and round-trips unchanged; typing a longer number is still rejected.
+
 Numeric inputs accept a minus sign as an intermediate editing state, allowing negative
 numbers to be typed from an empty field. The sign alone represents an absent numeric value.
 

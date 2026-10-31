@@ -222,6 +222,16 @@
             }
         #endif
 
+        @Test func `input number displays a bound value longer than the digit limit in full`() {
+            let input = InputNumber(value: .constant(123_456), maxIntegerDigits: 4)
+
+            #expect(input.textValue == "123456")
+            #expect(input.formattedText(for: -123_456) == "-123456")
+            #expect(input.parseInput(input.formattedText(for: 123_456)) == 123_456)
+            #expect(input.formattedText(for: Int64.max) == "9223372036854775807")
+            #expect(!input.isValidInput(text: "12345"))
+        }
+
         @Test func `input number clamps a non-positive digit limit to one digit`() {
             let input = InputNumber(value: .constant(nil), maxIntegerDigits: 0)
 
