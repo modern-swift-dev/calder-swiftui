@@ -26,11 +26,13 @@
         public extension CLLocationCoordinate2D {
             /// Calculates the less precise planar distance in degrees between two coordinates.
             /// This method is computationally less intensive and suitable for rough estimates.
+            ///
+            /// The longitude difference is measured the shorter way around the globe, including across the antimeridian.
             /// - Parameter otherLocation: The other `CLLocationCoordinate2D` to calculate the distance to.
             /// - Returns: The distance in degrees.
             func distance(from otherLocation: CLLocationCoordinate2D) -> CLLocationDegrees {
                 let deltaLat: CLLocationDegrees = latitude - otherLocation.latitude
-                let deltaLon: CLLocationDegrees = longitude - otherLocation.longitude
+                let deltaLon: CLLocationDegrees = remainder(longitude - otherLocation.longitude, 360)
                 return sqrt(deltaLat * deltaLat + deltaLon * deltaLon) as CLLocationDegrees
             }
 
@@ -53,6 +55,8 @@
 
         public extension CLLocationCoordinate2D {
             /// Checks if the current coordinate is near another coordinate within a specified degree threshold.
+            ///
+            /// The longitude difference is measured the shorter way around the globe, including across the antimeridian.
             /// - Parameters:
             ///   - otherLocation: The other `CLLocationCoordinate2D` to compare against.
             ///   - threshold: The maximum allowed distance in degrees for the coordinates to be considered "near".

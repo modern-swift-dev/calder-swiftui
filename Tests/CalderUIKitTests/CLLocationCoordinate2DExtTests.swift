@@ -39,6 +39,21 @@
             #expect(dist > 0)
         }
 
+        @Test func `distance wraps longitude across the antimeridian`() {
+            let west = CLLocationCoordinate2D(10.0, 179.5)
+            let east = CLLocationCoordinate2D(10.0, -179.5)
+
+            #expect(abs(west.distance(from: east) - 1.0) < 0.0001)
+            #expect(abs(east.distance(from: west) - 1.0) < 0.0001)
+        }
+
+        @Test func `is near in degrees wraps longitude across the antimeridian`() {
+            let west = CLLocationCoordinate2D(0.0, 179.9)
+            let east = CLLocationCoordinate2D(0.0, -179.9)
+
+            #expect(west.isNear(east, threshold: 0.5))
+        }
+
         // MARK: - distanceInMeters Tests
 
         @Test func `distance in meters same location`() {

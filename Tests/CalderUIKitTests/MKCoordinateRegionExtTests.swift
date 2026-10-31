@@ -113,6 +113,66 @@
             #expect(region.span.longitudeDelta == 0)
         }
 
+        @Test func `coordinate region across the antimeridian uses the smallest span`() {
+            let coords = [
+                CLLocationCoordinate2D(10.0, 179.0),
+                CLLocationCoordinate2D(20.0, -179.0)
+            ]
+            let region = coords.coordinateRegion()
+
+            #expect(abs(region.span.longitudeDelta - 2.0) < 0.0001)
+            #expect(abs(abs(region.center.longitude) - 180.0) < 0.0001)
+            #expect(abs(region.center.latitude - 15.0) < 0.0001)
+            #expect(abs(region.span.latitudeDelta - 10.0) < 0.0001)
+        }
+
+        @Test func `coordinate region across the antimeridian with several points`() {
+            let coords = [
+                CLLocationCoordinate2D(0.0, 170.0),
+                CLLocationCoordinate2D(0.0, -175.0),
+                CLLocationCoordinate2D(0.0, 178.0)
+            ]
+            let region = coords.coordinateRegion()
+
+            #expect(abs(region.span.longitudeDelta - 15.0) < 0.0001)
+            #expect(abs(region.center.longitude - 177.5) < 0.0001)
+        }
+
+        @Test func `coordinate region spans the smallest arc covering all longitudes`() {
+            let coords = [
+                CLLocationCoordinate2D(0.0, -170.0),
+                CLLocationCoordinate2D(0.0, 170.0),
+                CLLocationCoordinate2D(0.0, 0.0)
+            ]
+            let region = coords.coordinateRegion()
+
+            // The largest gap is 170 degrees (between -170 and 0), so the smallest arc covering all points is 190 degrees.
+            #expect(abs(region.span.longitudeDelta - 190.0) < 0.0001)
+        }
+
+        @Test func `coordinate region clamps padded spans to valid limits`() {
+            let coords = [
+                CLLocationCoordinate2D(-89.0, 0.0),
+                CLLocationCoordinate2D(89.0, 179.0)
+            ]
+            let region = coords.coordinateRegion(padding: 20_000_000)
+
+            #expect(region.span.latitudeDelta <= 180.0)
+            #expect(region.span.longitudeDelta <= 360.0)
+            #expect(region.center.latitude - region.span.latitudeDelta / 2 >= -90.0)
+            #expect(region.center.latitude + region.span.latitudeDelta / 2 <= 90.0)
+            #expect(CLLocationCoordinate2DIsValid(region.center))
+        }
+
+        @Test func `coordinate region padding near a pole stays within the latitude limits`() {
+            let coords = [CLLocationCoordinate2D(89.9, 10.0)]
+            let region = coords.coordinateRegion(padding: 500_000)
+
+            #expect(region.center.latitude + region.span.latitudeDelta / 2 <= 90.0 + 1e-9)
+            #expect(region.span.longitudeDelta <= 360.0)
+            #expect(region.span.longitudeDelta.isFinite)
+        }
+
         // MARK: - Sequence<CLLocation> coordinateRegion Tests
 
         @Test func `coordinate region locations`() {

@@ -19,8 +19,11 @@
             /// Calculates an `MKCoordinateRegion` that encompasses all coordinates in the sequence,
             /// with an optional padding.
             ///
-            /// The region is centered on the midpoint of the coordinates' bounding box. Its latitude delta
-            /// spans the coordinates' latitudes and its longitude delta spans their longitudes.
+            /// The latitude delta spans the coordinates' latitudes. The longitude delta is the smallest arc that
+            /// covers every longitude, so coordinates either side of the antimeridian, such as `179°` and `-179°`,
+            /// produce a `2°` span centred on `180°` instead of a `358°` span centred on `0°`. The padding extends
+            /// both axes, and the result is clamped so its latitudes stay within `-90°...90°` and its spans stay
+            /// within MapKit's limits of `180°` and `360°`.
             ///
             /// - Parameter padding: The additional distance in meters to add to each axis of the calculated span,
             ///   ensuring content fits with a margin. Defaults to 0.
@@ -29,44 +32,50 @@
             func coordinateRegion(padding: CLLocationDistance = 0) -> MKCoordinateRegion {
                 var furthestNorth = -90.0
                 var furthestSouth = 90.0
-                var furthestEast = -180.0
-                var furthestWest = 180.0
-                var hasCoordinates = false
+                var longitudes: [CLLocationDegrees] = []
 
-                // Calculate center position
                 for location in self {
-                    hasCoordinates = true
-                    if location.latitude > furthestNorth {
-                        furthestNorth = location.latitude
-                    }
-
-                    if location.latitude < furthestSouth {
-                        furthestSouth = location.latitude
-                    }
-
-                    if location.longitude > furthestEast {
-                        furthestEast = location.longitude
-                    }
-
-                    if location.longitude < furthestWest {
-                        furthestWest = location.longitude
-                    }
+                    furthestNorth = Swift.max(furthestNorth, location.latitude)
+                    furthestSouth = Swift.min(furthestSouth, location.latitude)
+                    // Wrap into -180..<180 so the longitudes can be ordered around the globe.
+                    let offset = (location.longitude + 180).truncatingRemainder(dividingBy: 360)
+                    longitudes.append((offset < 0 ? offset + 360 : offset) - 180)
                 }
 
-                guard hasCoordinates else {
+                guard !longitudes.isEmpty else {
                     return MKCoordinateRegion()
                 }
 
+                // The smallest arc starts after the largest gap between neighbouring longitudes. The gap across
+                // the antimeridian is the starting candidate, so it only wins when it is strictly the largest.
+                longitudes.sort()
+                var west = longitudes[0]
+                var largestGap = longitudes[0] + 360 - longitudes[longitudes.count - 1]
+                for index in 1 ..< longitudes.count where longitudes[index] - longitudes[index - 1] > largestGap {
+                    largestGap = longitudes[index] - longitudes[index - 1]
+                    west = longitudes[index]
+                }
+                let longitudeSpan = 360 - largestGap
+                let centerLongitude = west + longitudeSpan / 2.0
+
                 let centerLocation = CLLocationCoordinate2D(
                     (furthestNorth + furthestSouth) / 2.0,
-                    (furthestWest + furthestEast) / 2.0
+                    centerLongitude > 180 ? centerLongitude - 360 : centerLongitude
                 )
                 let paddingSpan = MKCoordinateRegion(center: centerLocation, distance: padding).span
-                let span = MKCoordinateSpan(
-                    latitudeDelta: furthestNorth - furthestSouth + paddingSpan.latitudeDelta,
-                    longitudeDelta: furthestEast - furthestWest + paddingSpan.longitudeDelta
+                let paddingLatitude = paddingSpan.latitudeDelta.isFinite ? paddingSpan.latitudeDelta : 0
+                let paddingLongitude = paddingSpan.longitudeDelta.isFinite ? paddingSpan.longitudeDelta : 360
+
+                // Clamp the padded latitudes to the poles and re-centre on what is left.
+                let paddedNorth = Swift.min(90.0, furthestNorth + paddingLatitude / 2.0)
+                let paddedSouth = Swift.max(-90.0, furthestSouth - paddingLatitude / 2.0)
+                return MKCoordinateRegion(
+                    center: CLLocationCoordinate2D((paddedNorth + paddedSouth) / 2.0, centerLocation.longitude),
+                    span: MKCoordinateSpan(
+                        latitudeDelta: paddedNorth - paddedSouth,
+                        longitudeDelta: Swift.min(360.0, longitudeSpan + paddingLongitude)
+                    )
                 )
-                return MKCoordinateRegion(center: centerLocation, span: span)
             }
         }
 
