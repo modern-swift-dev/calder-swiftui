@@ -12,6 +12,8 @@
         /// A SwiftUI view that displays a paginated list with items grouped into sections based on a discriminator.
         ///
         /// Each group of items with the same discriminator will be laid out in a `SwiftUI.Section`.
+        /// Sections are sorted by discriminator with `localizedStandardCompare(_:)`, so case,
+        /// diacritics, and numbers sort as in the Finder.
         /// A loading row after the last section requests the next page, regardless of which sections
         /// that page fills. When a next-page request fails, the loading row is replaced by a row that
         /// retries the failed page.
@@ -101,38 +103,22 @@
         }
     }
 
-    private extension String {
-
-        /// Generates a lexical grouping character for the string.
-        ///
-        /// This property transforms the string by stripping diacritics, trimming whitespace,
-        /// uppercasing the first character, and then returning that character. If the character
-        /// is a number or symbol, it defaults to "#".
-        var lexicalGrouping: Character {
-            let character: Character = applyingTransform(.stripDiacritics, reverse: false)?
-                .trimmingCharacters(in: .whitespacesAndNewlines.union(.controlCharacters).union(.illegalCharacters))
-                .uppercased()
-                .first ?? "#"
-
-            return !character.isNumber && !character.isSymbol ? character : Character("#")
-        }
-    }
-
     /// A simple struct for collection group, that are groupedBy a discriminator
     /// A structure to hold a group of items, identified by a discriminator.
-    private struct CollectionGroup<DataType> {
+    struct CollectionGroup<DataType> {
         /// The string discriminator used to group the values.
         let discriminator: String
         /// An array of data items belonging to this group.
         var values: [DataType]
     }
 
-    private extension Collection {
+    extension Collection {
 
         /// Groups the elements of a collection into `CollectionGroup` instances based on a provided callback.
         ///
         /// This method allows for easy organization of data into sections, suitable for display in `SwiftUI.List` or `SwiftUI.Section`.
-        /// The groups are returned sorted by their discriminator.
+        /// The groups are returned sorted by their discriminator with `localizedStandardCompare(_:)`,
+        /// as the Finder sorts file names, and keep the order of their elements.
         /// - Parameter callback: A closure that takes an element of the collection and returns a `String` to be used as the discriminator for grouping.
         /// - Returns: An array of `CollectionGroup` instances, each containing items that share the same discriminator.
         func groupedBy(_ callback: (Self.Element) -> String) -> [CollectionGroup<Self.Element>] {
@@ -148,7 +134,7 @@
             }
 
             return Array(results.values).sorted { lhs, rhs in
-                lhs.discriminator < rhs.discriminator
+                lhs.discriminator.localizedStandardCompare(rhs.discriminator) == .orderedAscending
             }
         }
     }

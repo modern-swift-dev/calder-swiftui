@@ -76,7 +76,8 @@ Reloading while items are loaded is a refresh. The items stay visible and `state
 the items, count, and page, so pagination continues, and exposes the failure as `refreshError`.
 The next reload clears it.
 
-To show items in sections, pass a grouping key to ``PaginatedList/Grouped``:
+To show items in sections, pass a grouping key to ``PaginatedList/Grouped``. Sections are sorted
+by key with `localizedStandardCompare(_:)`:
 
 ```swift
 struct ArticleSections: View {
