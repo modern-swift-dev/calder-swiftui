@@ -51,6 +51,13 @@ full and round-trips unchanged; typing a longer number is still rejected.
 that is already longer than `maxLength` when the view appears, so the character counter never reads
 more than the limit.
 
+`CheckboxToggleButtonStyle` and `RadioButtonToggleButtonStyle` apply their `style` to the label, which
+previously always used the medium (body) font. The `applyCheckboxToggleStyle` and
+`applyRadioButtonToggleStyle` modifiers now default to `.medium` instead of `.large`, so default labels,
+including those in ``CheckboxGroup`` and ``RadioButtonGroup``, keep their previous size. The checkbox and
+radio icons always followed `style`, so with the new default they are one text size larger. Code that passes
+`style: .large` or `.small` explicitly now gets that size for the label too, instead of the body font.
+
 Numeric inputs accept a minus sign as an intermediate editing state, allowing negative
 numbers to be typed from an empty field. The sign alone represents an absent numeric value.
 

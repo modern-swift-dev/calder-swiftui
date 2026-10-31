@@ -51,7 +51,6 @@
                     }
 
                     configuration.label
-                        .font(ThemedButtonStyle.TextStyle.medium.getFont(for: theme))
                         .foregroundColor(configuration.isOn ? theme.text1 : theme.text2)
 
                     if fullWidth {
@@ -84,10 +83,10 @@
     public extension Toggle {
         /// Applies a checkbox toggle style to this Toggle.
         /// - Parameters:
-        ///   - style: Text style for the label (default `.large`).
+        ///   - style: Text style for the label (default `.medium`).
         ///   - fullWidth: Whether the toggle occupies full width (default `false`).
         /// - Returns: A Toggle styled as a checkbox.
-        func applyCheckboxToggleStyle(style: ThemedButtonStyle.TextStyle = .large, fullWidth: Bool = false) -> some View {
+        func applyCheckboxToggleStyle(style: ThemedButtonStyle.TextStyle = .medium, fullWidth: Bool = false) -> some View {
             toggleStyle(CheckboxToggleButtonStyle(style: style, fullWidth: fullWidth))
         }
     }

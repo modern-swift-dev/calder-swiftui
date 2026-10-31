@@ -44,7 +44,6 @@
                         .foregroundColor(configuration.isOn ? theme.primary : theme.text2)
 
                     configuration.label
-                        .font(ThemedButtonStyle.TextStyle.medium.getFont(for: theme))
                         .foregroundColor(configuration.isOn ? theme.text1 : theme.text2)
 
                     if fullWidth {
@@ -71,10 +70,10 @@
     public extension Toggle {
         /// Applies a radio button toggle style to this Toggle.
         /// - Parameters:
-        ///   - style: The font style for the label (default `.large`).
+        ///   - style: The font style for the label (default `.medium`).
         ///   - fullWidth: Whether to fill horizontal space (default `false`).
         /// - Returns: A Toggle styled as a radio button.
-        func applyRadioButtonToggleStyle(style: ThemedButtonStyle.TextStyle = .large, fullWidth: Bool = false) -> some View {
+        func applyRadioButtonToggleStyle(style: ThemedButtonStyle.TextStyle = .medium, fullWidth: Bool = false) -> some View {
             toggleStyle(RadioButtonToggleButtonStyle(style: style, fullWidth: fullWidth))
         }
     }
