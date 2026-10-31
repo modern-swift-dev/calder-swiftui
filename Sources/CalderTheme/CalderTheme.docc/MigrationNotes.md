@@ -138,6 +138,12 @@ rounded down in the same way, such as `-50` for `-42`, and has a mark at that mi
 Tick counts below one use one interval, and tick spacing is always positive. Pareto
 percentages remain finite when all category values are zero.
 
+### Markdown
+
+``MarkdownView`` scales all of its text with Dynamic Type. Headings, inline code, code blocks, and
+block quotes previously used fixed point sizes; they now size relative to the body text, so they are
+unchanged at the default text size and grow with the user's text size setting.
+
 ### Barcodes
 
 The scanner's unavailable and camera-access-denied messages and Open Settings button, and

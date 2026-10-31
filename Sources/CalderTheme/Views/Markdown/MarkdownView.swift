@@ -12,6 +12,11 @@
     public struct MarkdownView: View {
 
         @Environment(\.theme) var theme
+
+        /// The body text size in points at the default Dynamic Type size. Every other size is relative to the
+        /// body text, so MarkdownUI scales all of them with Dynamic Type.
+        private static let bodySize: CGFloat = 14
+
         /// The Markdown string to be rendered by the view.
         public let text: String
 
@@ -25,7 +30,7 @@
             MarkdownUI.MarkdownView(text)
                 .markdownTextStyle(textStyle: {
                     FontFamilyVariant(.normal)
-                    FontSize(14)
+                    FontSize(Self.bodySize)
                     FontWeight(.regular)
                     ForegroundColor(theme.text1)
                     BackgroundColor(Color.clear)
@@ -34,7 +39,7 @@
                     configuration.label
                         .markdownMargin(top: .xs, bottom: .xxs)
                         .markdownTextStyle {
-                            FontSize(28)
+                            FontSize(.em(28 / Self.bodySize))
                             FontWeight(.bold)
                         }
                 }
@@ -42,7 +47,7 @@
                     configuration.label
                         .markdownMargin(top: .xs, bottom: .xxs)
                         .markdownTextStyle {
-                            FontSize(24)
+                            FontSize(.em(24 / Self.bodySize))
                             FontWeight(.bold)
                         }
                 }
@@ -50,7 +55,7 @@
                     configuration.label
                         .markdownMargin(top: .xs, bottom: .xxs)
                         .markdownTextStyle {
-                            FontSize(20)
+                            FontSize(.em(20 / Self.bodySize))
                             FontWeight(.bold)
                         }
                 }
@@ -58,7 +63,7 @@
                     configuration.label
                         .markdownMargin(top: .xs, bottom: .xxs)
                         .markdownTextStyle {
-                            FontSize(18)
+                            FontSize(.em(18 / Self.bodySize))
                             FontWeight(.semibold)
                         }
                 }
@@ -66,7 +71,7 @@
                     configuration.label
                         .markdownMargin(top: .xs, bottom: .xxs)
                         .markdownTextStyle {
-                            FontSize(16)
+                            FontSize(.em(16 / Self.bodySize))
                             FontWeight(.semibold)
                         }
                 }
@@ -74,7 +79,7 @@
                     configuration.label
                         .markdownMargin(top: .xs, bottom: .xxs)
                         .markdownTextStyle {
-                            FontSize(14)
+                            FontSize(.em(1))
                             FontWeight(.semibold)
                         }
                 }
@@ -86,7 +91,6 @@
                 }
                 .markdownTextStyle(\.code) {
                     FontFamilyVariant(.monospaced)
-                    FontSize(14)
                 }
                 .markdownBlockStyle(\.listItem, body: { configuration in
                     configuration.label
@@ -101,7 +105,6 @@
                         .padding(.spacingSmall)
                         .markdownTextStyle {
                             FontFamilyVariant(.monospaced)
-                            FontSize(14)
                         }
                         .background(theme.text1.opacity(0.1))
                         .markdownMargin(top: .xs, bottom: .spacingSmall)
@@ -111,7 +114,6 @@
                     configuration.label
                         .markdownTextStyle {
                             FontFamilyVariant(.normal)
-                            FontSize(14)
                             FontWeight(.regular)
                             ForegroundColor(theme.text1)
                             BackgroundColor(Color.clear)
