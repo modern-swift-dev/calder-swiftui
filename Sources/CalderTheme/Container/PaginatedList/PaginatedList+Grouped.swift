@@ -12,8 +12,9 @@
         /// A SwiftUI view that displays a paginated list with items grouped into sections based on a discriminator.
         ///
         /// Each group of items with the same discriminator will be laid out in a `SwiftUI.Section`.
-        /// Sections are sorted by discriminator with `localizedStandardCompare(_:)`, so case,
-        /// diacritics, and numbers sort as in the Finder.
+        /// By default, sections are sorted by discriminator with `localizedStandardCompare(_:)`, so
+        /// case, diacritics, and numbers sort as in the Finder. Pass a `sectionOrder` comparator to
+        /// sort them differently; sections that compare the same keep the order of their first items.
         /// A loading row after the last section requests the next page, regardless of which sections
         /// that page fills. When a next-page request fails, the loading row is replaced by a row that
         /// retries the failed page. When the data source has no current page, the list requests the
@@ -29,9 +30,12 @@
             /// A `ViewBuilder` closure that creates a view for each data item. It receives a `Binding` to the `DataType` item.
             let viewFactory: (Binding<DataType>) -> Content
 
+            /// The comparator that orders sections by their discriminator.
+            let sectionOrder: any SortComparator<String>
+
             /// Computes the sections for the list by grouping the data source's items.
-            fileprivate var sections: [CollectionGroup<Binding<DataType>>] {
-                $dataSource.items.groupedBy(groupBy)
+            var sections: [CollectionGroup<Binding<DataType>>] {
+                $dataSource.items.groupedBy(groupBy, sectionOrder: sectionOrder)
             }
 
             /// Initializes a new `Grouped` paginated list.
@@ -39,10 +43,21 @@
             /// - Parameters:
             ///   - dataSource: The data source that provides and manages the paginated data.
             ///   - groupBy: A closure that returns a `String` discriminator for each item, used for grouping into sections.
+            ///   - sectionOrder: The comparator that orders sections by their discriminator, including
+            ///     its `order`, so `.reverse` sorts the sections in descending order. Sections that compare
+            ///     the same keep the order of their first items. Defaults to
+            ///     `String.StandardComparator.localizedStandard`, which sorts ascending with
+            ///     `localizedStandardCompare(_:)`.
             ///   - viewFactory: A closure that generates a `View` for each data item within a section.
-            public init(dataSource: DataSource<DataType>, groupBy: @escaping (Binding<DataType>) -> String, @ViewBuilder viewFactory: @escaping (Binding<DataType>) -> Content) {
+            public init(
+                dataSource: DataSource<DataType>,
+                groupBy: @escaping (Binding<DataType>) -> String,
+                sectionOrder: some SortComparator<String> = String.StandardComparator.localizedStandard,
+                @ViewBuilder viewFactory: @escaping (Binding<DataType>) -> Content
+            ) {
                 self.dataSource = dataSource
                 self.groupBy = groupBy
+                self.sectionOrder = sectionOrder
                 self.viewFactory = viewFactory
             }
 
@@ -119,11 +134,18 @@
         /// Groups the elements of a collection into `CollectionGroup` instances based on a provided callback.
         ///
         /// This method allows for easy organization of data into sections, suitable for display in `SwiftUI.List` or `SwiftUI.Section`.
-        /// The groups are returned sorted by their discriminator with `localizedStandardCompare(_:)`,
-        /// as the Finder sorts file names, and keep the order of their elements.
-        /// - Parameter callback: A closure that takes an element of the collection and returns a `String` to be used as the discriminator for grouping.
+        /// The groups are returned sorted by their discriminator with `sectionOrder`, and keep the
+        /// order of their elements. Groups whose discriminators compare the same keep the order of
+        /// their first elements.
+        /// - Parameters:
+        ///   - callback: A closure that takes an element of the collection and returns a `String` to be used as the discriminator for grouping.
+        ///   - sectionOrder: The comparator that orders the groups by discriminator. Defaults to
+        ///     `localizedStandardCompare(_:)` ascending, as the Finder sorts file names.
         /// - Returns: An array of `CollectionGroup` instances, each containing items that share the same discriminator.
-        func groupedBy(_ callback: (Self.Element) -> String) -> [CollectionGroup<Self.Element>] {
+        func groupedBy(
+            _ callback: (Self.Element) -> String,
+            sectionOrder: some SortComparator<String> = String.StandardComparator.localizedStandard
+        ) -> [CollectionGroup<Self.Element>] {
             var results = OrderedDictionary<String, CollectionGroup<Self.Element>>()
             for item in self {
                 let discriminator = callback(item)
@@ -136,7 +158,7 @@
             }
 
             return Array(results.values).sorted { lhs, rhs in
-                lhs.discriminator.localizedStandardCompare(rhs.discriminator) == .orderedAscending
+                sectionOrder.compare(lhs.discriminator, rhs.discriminator) == .orderedAscending
             }
         }
     }

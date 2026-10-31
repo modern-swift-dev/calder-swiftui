@@ -43,7 +43,9 @@ decoding code is unchanged.
 
 `PaginatedList.Grouped` sorts its sections with `localizedStandardCompare(_:)`, as the Finder sorts
 file names, instead of comparing the grouping keys code point by code point. Lowercase and accented
-keys sort with their letters, and numbers in keys sort by value.
+keys sort with their letters, and numbers in keys sort by value. To choose another order, pass a
+`sectionOrder` comparator, such as
+`String.StandardComparator(.localizedStandard, order: .reverse)`.
 
 ### Forms and inputs
 
