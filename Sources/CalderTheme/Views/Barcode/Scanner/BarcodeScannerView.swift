@@ -60,6 +60,7 @@
                 ///   - scanRegionImageTint: The tint color of the crosshair image when inactive. Defaults to `.orage`.
                 ///   - scanRegionImageActiveTint: The tint color of the crosshair image when active (code detected). Defaults to `.azur`.
                 ///   - scanRegionImageMargin: The margin applied to the scan region image to define the `rectOfInterest`. Defaults to `.xxxs`.
+                ///   - isTorchOn: Whether the torch is on while the camera runs. Defaults to `false`. A camera without a torch ignores it.
                 public init(
                     gravity: AVLayerVideoGravity = .resizeAspect,
                     crossHairImage: UIImage = .init(
@@ -73,7 +74,8 @@
                     scanRegionWidthRatio: CGFloat = 0.2,
                     scanRegionImageTint: UIColor = UIColor.gray,
                     scanRegionImageActiveTint: UIColor = UIColor.blue,
-                    scanRegionImageMargin: CGFloat = .xxxs
+                    scanRegionImageMargin: CGFloat = .xxxs,
+                    isTorchOn: Bool = false
                 ) {
                     self.gravity = gravity
                     self.crossHairImage = crossHairImage
@@ -85,6 +87,7 @@
                     self.scanRegionImageTint = scanRegionImageTint
                     self.scanRegionImageActiveTint = scanRegionImageActiveTint
                     self.scanRegionImageMargin = scanRegionImageMargin
+                    self.isTorchOn = isTorchOn
                 }
 
                 /// The Video Gravity for the `AVCaptureVideoPreviewLayer`.
@@ -116,6 +119,9 @@
 
                 /// The margin applied to the scan region image to define the `rectOfInterest` for `AVCaptureMetadataOutput`.
                 var scanRegionImageMargin: CGFloat
+
+                /// Whether the torch is on while the camera runs. A camera without a torch ignores it.
+                var isTorchOn: Bool
             }
 
             /// The Delegate that receives scan events and provides supported object types.
@@ -127,6 +133,9 @@
             /// The Last Known Scan Value to prevent spamming the same code in rapid burst
             private var lastScanValue = ""
 
+            /// Whether the torch should be on while the camera runs.
+            private var desiredTorch: Bool
+
             /// The Model of this view containing configuration options.
             private var model: Model
 
@@ -136,8 +145,8 @@
             private let metadataQueue = DispatchQueue(label: "dev.modern-swift.calder.barcode-scanner.metadata")
             /// The controller that owns the running `AVCaptureSession`, or `nil` when the scanner is stopped.
             private var sessionController: BarcodeScannerSessionController<AVCaptureSession>?
-            /// The `AVCaptureDevice` representing the camera.
-            private var avDevice: AVCaptureDevice?
+            /// The camera the scanner drives, once it starts.
+            private var avDevice: (any BarcodeScannerCaptureDevice)?
             /// The `AVCaptureVideoPreviewLayer` displaying the camera feed.
             private var avVideoPreviewLayer: AVCaptureVideoPreviewLayer?
 
@@ -173,6 +182,7 @@
             /// - Parameter model: The view model containing configuration for the scanner.
             public init(model: Model) {
                 self.model = model
+                desiredTorch = model.isTorchOn
                 super.init(frame: .zero)
                 buildSubviews()
                 buildConstraints()
@@ -263,6 +273,15 @@
         // MARK: - Torch
 
         public extension BarcodeScannerView {
+            /// Whether the torch is on, or will be on once the camera starts.
+            ///
+            /// This is the requested state set by ``setTorch(_:)``, the model, or ``toggleTorch()``. It stays `true` on a
+            /// camera without a torch, which ignores it.
+            internal(set) var isTorchOn: Bool {
+                get { desiredTorch }
+                set { desiredTorch = newValue }
+            }
+
             /// Returns `true` if the device has a torch and it is available for use.
             /// - Returns: `true` if torch is available, `false` otherwise.
             func isTorchAvailable() -> Bool {
@@ -272,6 +291,16 @@
                 return true
             }
 
+            /// Turns the torch (flashlight) on or off.
+            ///
+            /// The torch follows `isOn` while the camera runs and again each time the camera starts. A device without a
+            /// torch, or with an unavailable one, ignores the request.
+            /// - Parameter isOn: `true` to turn the torch on, `false` to turn it off.
+            func setTorch(_ isOn: Bool) {
+                desiredTorch = isOn
+                applyTorch()
+            }
+
             /// Toggles the torch (flashlight) on or off.
             /// If the torch is off, it will be turned on with a default level (0.25).
             /// If the torch is on, it will be turned off.
@@ -279,17 +308,28 @@
                 guard let device = avDevice, device.hasTorch, device.isTorchAvailable else {
                     return
                 }
+                setTorch(!device.isTorchActive)
+            }
+        }
+
+        extension BarcodeScannerView {
+            /// Makes the camera's torch match ``isTorchOn`` when it can.
+            private func applyTorch() {
+                guard let device = avDevice, device.hasTorch, device.isTorchAvailable, device.isTorchActive != desiredTorch else {
+                    return
+                }
                 do {
-                    try device.lockForConfiguration()
-                    if !device.isTorchActive {
-                        try device.setTorchModeOn(level: 0.25)
-                    } else {
-                        device.torchMode = .off
-                    }
-                    device.unlockForConfiguration()
+                    try device.setTorch(on: desiredTorch)
                 } catch {
                     os_log("%{public}@", log: .default, type: .error, String(describing: error))
                 }
+            }
+
+            /// Starts driving `device`: applies the requested torch state to it.
+            /// - Parameter device: The camera the scanner just started.
+            func attach(_ device: any BarcodeScannerCaptureDevice) {
+                avDevice = device
+                applyTorch()
             }
         }
 
@@ -317,7 +357,7 @@
                 layer.videoGravity = model.gravity
                 layer.frame = bounds
                 avVideoPreviewLayer = layer
-                avDevice = device
+                attach(device)
 
                 let deviceID = device.uniqueID
                 let typesProvider = delegate

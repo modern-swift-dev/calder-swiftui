@@ -56,6 +56,32 @@ struct TicketScanner: View {
 `.scanning` resumes it (restarting the camera after `.finished`), and `.finished` stops the
 camera.
 
+### Turn on the torch
+
+Pass a `torch` binding to turn the torch on or off while the camera runs. It's off by default.
+A device without a torch ignores it, so check `BarcodeScannerViewController.isTorchAvailable`
+to hide a torch button on devices that can't use it:
+
+```swift
+struct TicketScanner: View {
+    @State private var result: BarcodeScanner.ScanResult?
+    @State private var torch = false
+
+    var body: some View {
+        VStack {
+            BarcodeScanner(result: $result, state: .scanning, torch: $torch)
+
+            if BarcodeScannerViewController.isTorchAvailable {
+                Toggle("Torch", isOn: $torch)
+            }
+        }
+    }
+}
+```
+
+With UIKit, set `BarcodeScannerView.Model.isTorchOn` when you create the scanner, or call
+`BarcodeScannerViewController.isTorchOn` and `BarcodeScannerView.setTorch(_:)` while it runs.
+
 To let people pick among the codes in view, use `BarcodeSelector` and choose the symbologies to
 recognize:
 

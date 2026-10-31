@@ -56,27 +56,35 @@
             public var state: State
             /// Optional array of supported barcode/QR code types. If nil, all available types are supported.
             public var supportedTypes: [AVMetadataObject.ObjectType]?
+            /// Whether the torch is on while the camera runs.
+            @Binding public var torch: Bool
 
             /// Initializes a new `BarcodeScanner` instance.
             /// - Parameters:
             ///   - result: A binding to store the scan result.
             ///   - state: The initial state of the scanner.
             ///   - supportedTypes: Optional array of supported code types. Defaults to nil (all types).
+            ///   - torch: A binding that turns the torch on or off while the camera runs. Defaults to a torch that stays off.
+            ///     A device without a torch ignores it; check ``BarcodeScannerViewController/isTorchAvailable`` to hide a torch button.
             public init(
                 result: Binding<ScanResult?>,
                 state: State,
-                supportedTypes: [AVMetadataObject.ObjectType]? = nil
+                supportedTypes: [AVMetadataObject.ObjectType]? = nil,
+                torch: Binding<Bool> = .constant(false)
             ) {
                 self._result = result
                 self.state = state
                 self.supportedTypes = supportedTypes
+                self._torch = torch
             }
 
             /// Creates the underlying `BarcodeScannerViewController` instance.
             /// - Parameter context: The representable context containing the coordinator.
             /// - Returns: A configured `BarcodeScannerViewController` instance.
             public func makeUIViewController(context: Context) -> BarcodeScannerViewController {
-                let viewController = BarcodeScannerViewController(supportedTypes: supportedTypes)
+                var model = BarcodeScannerViewController.defaultScannerModel
+                model.isTorchOn = torch
+                let viewController = BarcodeScannerViewController(supportedTypes: supportedTypes, scannerModel: model)
                 viewController.themeDefinition = context.environment.themeDefinition
                 viewController.callback = context.coordinator.handleScanResult
                 return viewController
@@ -95,6 +103,7 @@
                 context.coordinator.result = $result
                 uiViewController.themeDefinition = context.environment.themeDefinition
                 uiViewController.apply(state)
+                uiViewController.isTorchOn = torch
                 if result == nil {
                     uiViewController.resultDidReset()
                 }

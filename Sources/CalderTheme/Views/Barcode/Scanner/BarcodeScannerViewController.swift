@@ -8,6 +8,9 @@
         public class BarcodeScannerViewController: UIViewController {
 
             public let supportedTypes: [AVMetadataObject.ObjectType]?
+
+            /// The configuration of the scanner view this controller creates.
+            private let scannerModel: BarcodeScannerView.Model
             public var callback: (String, AVMetadataObject.ObjectType) -> Void = { _, _ in }
 
             /// The theme used by the message shown when the scanner cannot use the camera.
@@ -34,8 +37,19 @@
             /// The scanner asks for camera access when it first appears. When access is denied or restricted, it shows a
             /// message with a button that opens Settings, and starts scanning when the app becomes active with access granted.
             /// - Parameter supportedTypes: The metadata object types to detect, or `nil` for every available type.
-            public init(supportedTypes: [AVMetadataObject.ObjectType]? = nil) {
+            public convenience init(supportedTypes: [AVMetadataObject.ObjectType]? = nil) {
+                self.init(supportedTypes: supportedTypes, scannerModel: Self.defaultScannerModel)
+            }
+
+            /// Creates a scanner view controller whose scanner view uses `scannerModel`.
+            ///
+            /// The scanner asks for camera access when it first appears, as in ``init(supportedTypes:)``.
+            /// - Parameters:
+            ///   - supportedTypes: The metadata object types to detect, or `nil` for every available type.
+            ///   - scannerModel: The configuration of the scanner view, such as whether the torch is on.
+            public init(supportedTypes: [AVMetadataObject.ObjectType]? = nil, scannerModel: BarcodeScannerView.Model) {
                 self.supportedTypes = supportedTypes
+                self.scannerModel = scannerModel
                 super.init(nibName: nil, bundle: nil)
                 NotificationCenter.default.addObserver(
                     self,
@@ -45,13 +59,19 @@
                 )
             }
 
+            /// The configuration ``init(supportedTypes:)`` gives its scanner view: a black background and a scan region
+            /// 40% as wide as the view.
+            public static var defaultScannerModel: BarcodeScannerView.Model {
+                BarcodeScannerView.Model(backgroundColor: UIColor.black, scanRegionWidthRatio: 0.4)
+            }
+
             public required init?(coder: NSCoder) {
                 nil
             }
 
             /// The barcode scanner view responsible for capturing QR codes.
             lazy var barcodeScanner: BarcodeScannerView = {
-                let view = BarcodeScannerView(model: .init(backgroundColor: UIColor.black, scanRegionWidthRatio: 0.4))
+                let view = BarcodeScannerView(model: scannerModel)
                 view.translatesAutoresizingMaskIntoConstraints = false
                 view.delegate = self
                 return view
@@ -103,6 +123,21 @@
                 barcodeScanner.resetLastScan()
                 startCameraIfPermitted()
                 barcodeScanner.resume()
+            }
+
+            /// Whether the torch is on, or will be on once the camera starts.
+            ///
+            /// Setting it turns the torch on or off while the camera runs. A device without a torch ignores it.
+            public var isTorchOn: Bool {
+                get { barcodeScanner.isTorchOn }
+                set { barcodeScanner.setTorch(newValue) }
+            }
+
+            /// Whether this device's back camera has a torch.
+            ///
+            /// Check it to hide a torch button on devices without one, such as iPad and Simulator.
+            public static var isTorchAvailable: Bool {
+                AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)?.hasTorch ?? false
             }
 
             /// Stop scanning
