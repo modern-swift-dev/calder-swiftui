@@ -184,3 +184,36 @@ jobs:
             xcrun xccov view --report --only-targets --json "$RESULT_BUNDLE" |
               jq -r '.[] | select(.name | endswith("Tests") | not) | "| \(.name) | \(.lineCoverage * 10000 | round / 100)% | \(.coveredLines) | \(.executableLines) |"'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  catalyst:
+    # Build-only: Mac Catalyst tests are not run.
+    runs-on: xcode-27
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Cache SwiftPM dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/Library/Caches/org.swift.swiftpm
+          key: swiftpm-${{ runner.os }}-${{ hashFiles('Package.resolved') }}
+          restore-keys: swiftpm-${{ runner.os }}-
+      - name: Install xcbeautify
+        run: |
+          brew install mint
+          mint install cpisciotta/xcbeautify
+      - name: Verify Xcode 27.0 and Swift 6.4
+        run: |
+          xcodebuild -version | grep -F 'Xcode 27.0' 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+          swift --version | grep -F 'Swift version 6.4'
+      - name: Build for Mac Catalyst
+        run: |
+          products=(
+            CalderStdLib
+            CalderSwiftUI
+            CalderTheme
+            CalderUIKit
+          )
+          for product in "${products[@]}"; do
+            xcodebuild build -scheme "$product" -destination 'generic/platform=macOS,variant=Mac Catalyst' 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+          done
