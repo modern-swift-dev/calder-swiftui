@@ -85,6 +85,18 @@
         }
       }
     },
+    "form.required" : {
+      "comment" : "Accessibility label of the asterisk that marks a required form field.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "required"
+          }
+        }
+      }
+    },
     "inputPassword.hidePassword" : {
       "comment" : "Accessibility label of the password field button that hides the revealed password.",
       "extractionState" : "manual",

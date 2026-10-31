@@ -126,10 +126,7 @@
                     .foregroundStyle(theme.text1)
 
                 if mandatory {
-                    Text(verbatim: "*")
-                        .font(.headline)
-                        .foregroundStyle(theme.error)
-                        .offset(.init(width: 0, height: -3))
+                    FormRequiredMarker(font: .headline)
                 }
             }
         }

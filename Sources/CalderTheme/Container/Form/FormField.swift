@@ -74,10 +74,7 @@
                     .foregroundStyle(theme.text1)
 
                 if mandatory {
-                    Text(verbatim: "*")
-                        .font(.subheadline)
-                        .foregroundStyle(theme.error)
-                        .offset(.init(width: 0, height: -3))
+                    FormRequiredMarker(font: .subheadline)
                 }
 
                 Spacer()
