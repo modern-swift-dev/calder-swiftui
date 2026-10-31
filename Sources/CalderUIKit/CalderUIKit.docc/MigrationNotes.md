@@ -45,6 +45,8 @@ The `UIApplication` scene and window lookups (`session(for:)`, `scene(for:)`, `w
 
 `UIApplication.suspendApplication()` and `UIApplication.exitApplication(_:code:)` are deprecated. `suspendApplication()` no longer sends a private selector and does nothing. `exitApplication(_:code:)` waits without blocking the main thread and no longer suspends the app before exiting. Apps should let the user leave instead of suspending or terminating themselves.
 
+`UIDevice.isCar` is deprecated. `UIDevice.current.userInterfaceIdiom` never reports `.carPlay`, so the property was always `false`. Check `traitCollection.userInterfaceIdiom == .carPlay` on a view controller or screen in the CarPlay scene instead.
+
 ### Tables and collections
 
 `UITableView.indexPathForLastRow(inSection:)`, `UICollectionView.indexPathForLastItem(inSection:)`, `indexPathForLastRow`, and `indexPathForLastItem` return `nil` for empty or out-of-range sections instead of row or item 0. `UITableView.safeScrollToRow(at:at:animated:)` ignores negative indices.

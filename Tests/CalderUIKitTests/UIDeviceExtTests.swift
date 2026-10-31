@@ -35,6 +35,7 @@
                 #expect(result == expected)
             }
 
+            @available(*, deprecated)
             @Test func `is car matches interface type`() {
                 let result = UIDevice.isCar
                 let expected = UIDevice.interfaceType() == .carPlay
@@ -67,8 +68,7 @@
                 let types = [
                     UIDevice.isPhone,
                     UIDevice.isPad,
-                    UIDevice.isTV,
-                    UIDevice.isCar
+                    UIDevice.isTV
                 ]
                 let trueCount = types.count(where: { $0 })
                 #expect(trueCount <= 1)

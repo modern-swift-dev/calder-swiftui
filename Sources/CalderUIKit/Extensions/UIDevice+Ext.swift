@@ -20,6 +20,10 @@
             }
 
             /// A boolean indicating if the device is a CarPlay unit.
+            ///
+            /// This is always `false`: `UIDevice.current.userInterfaceIdiom` never reports `.carPlay`. Read
+            /// `traitCollection.userInterfaceIdiom` from a CarPlay scene's view controller or screen instead.
+            @available(*, deprecated, message: "UIDevice.current.userInterfaceIdiom never reports .carPlay, so this is always false. Check traitCollection.userInterfaceIdiom == .carPlay instead.")
             static var isCar: Bool {
                 interfaceType() == .carPlay
             }

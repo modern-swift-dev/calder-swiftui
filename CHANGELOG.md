@@ -67,6 +67,7 @@ This release fixes defects across every module and changes several defaults. Rea
   - CalderSwiftUI: `AdaptativeValue` → `AdaptiveValue`, `adaptativeValue(compact:regular:)` → `adaptiveValue(compact:regular:)`, `disableSharedbackground(disable:)` → `disableSharedBackground(_:)` (the argument defaults to `true`), `EdgeInsets.zero` → SwiftUI's `EdgeInsets()`, and the `NSColor.textColor` instance property → `contrastingTextColor()`.
   - CalderUIKit: `UINavigationController.topViewController()` → `lastViewController()`, `CGFloat.small`/`.medium`/`.large` → `.spacingSmall`/`.spacingMedium`/`.spacingLarge`, `NSUIColor`/`NSUIFont` → `CalderPlatformColor`/`CalderPlatformFont`, and `debugDescription` on `CGFloat`, `CGPoint`, `CGSize`, and `CGRect` → `labeledDebugDescription`. The `CGPoint`, `CGSize`, and `CGRect` descriptions now end with the closing parenthesis they were missing.
 - `UIApplication.suspendApplication()` and `exitApplication(_:code:)` are deprecated. `suspendApplication()` no longer sends a private selector and does nothing; `exitApplication(_:code:)` no longer blocks the main thread or suspends the app first (#67).
+- `UIDevice.isCar` is deprecated because `UIDevice.current.userInterfaceIdiom` never reports `.carPlay`, so it was always `false`. Check `traitCollection.userInterfaceIdiom == .carPlay` instead (#115).
 
 ### Additions
 
