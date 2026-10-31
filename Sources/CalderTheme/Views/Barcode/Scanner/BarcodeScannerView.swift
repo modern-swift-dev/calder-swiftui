@@ -65,6 +65,10 @@
                 ///   - repeatCooldown: How long to suppress a repeat of the same value, which makes the scanner continuous: it keeps
                 ///     reporting codes, and reports the same value again once the cooldown has passed. Defaults to `nil`, which reports
                 ///     a value once until ``resetLastScan()``.
+                ///   - providesHapticFeedback: Whether the scanner plays a haptic each time it reads a code, where the device has a
+                ///     haptic engine. Defaults to `true`.
+                ///   - announcesScannedCode: Whether the scanner posts a VoiceOver announcement of the code each time it reads one.
+                ///     Defaults to `true`.
                 public init(
                     gravity: AVLayerVideoGravity = .resizeAspect,
                     crossHairImage: UIImage = .init(
@@ -81,7 +85,9 @@
                     scanRegionImageMargin: CGFloat = .xxxs,
                     isTorchOn: Bool = false,
                     zoomFactor: CGFloat = 1,
-                    repeatCooldown: Duration? = nil
+                    repeatCooldown: Duration? = nil,
+                    providesHapticFeedback: Bool = true,
+                    announcesScannedCode: Bool = true
                 ) {
                     self.gravity = gravity
                     self.crossHairImage = crossHairImage
@@ -96,6 +102,8 @@
                     self.isTorchOn = isTorchOn
                     self.zoomFactor = zoomFactor
                     self.repeatCooldown = repeatCooldown
+                    self.providesHapticFeedback = providesHapticFeedback
+                    self.announcesScannedCode = announcesScannedCode
                 }
 
                 /// The Video Gravity for the `AVCaptureVideoPreviewLayer`.
@@ -136,6 +144,12 @@
 
                 /// How long to suppress a repeat of the same value in continuous scanning, or `nil` to report a value once.
                 var repeatCooldown: Duration?
+
+                /// Whether the scanner plays a haptic each time it reads a code.
+                var providesHapticFeedback: Bool
+
+                /// Whether the scanner posts a VoiceOver announcement of the code each time it reads one.
+                var announcesScannedCode: Bool
             }
 
             /// The Delegate that receives scan events and provides supported object types.
@@ -152,6 +166,9 @@
 
             /// The clock that times the cooldown. A test replaces it.
             var now: () -> ContinuousClock.Instant = { .now }
+
+            /// The haptic and VoiceOver feedback given when a code is read. A test replaces it.
+            var feedback = BarcodeScannerFeedback.live
 
             /// Whether the torch should be on while the camera runs.
             private var desiredTorch: Bool
@@ -788,9 +805,17 @@
             }
 
             /// Delivers a recognized code only while scanning is active, including queued callbacks.
+            ///
+            /// Unless the model turns them off, delivering a code plays a haptic and posts a VoiceOver announcement of it.
             func deliverScannedCode(_ code: String, type: AVMetadataObject.ObjectType, rect: CGRect, path: UIBezierPath) {
                 guard !isSuspended else {
                     return
+                }
+                if model.providesHapticFeedback {
+                    feedback.haptic()
+                }
+                if model.announcesScannedCode {
+                    feedback.announce(String(localized: LocalizedStringResource("barcodeScanner.scanned \(code)", bundle: .module)))
                 }
                 delegate?.onCodeScanned(code, type: type, rect: rect, path: path)
             }

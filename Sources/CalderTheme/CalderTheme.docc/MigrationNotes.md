@@ -162,6 +162,11 @@ changes the zoom and writes the factor to the binding, clamped to the range the 
 ``BarcodeScanner`` also has a continuous mode: create it with `onScan` and a `cooldown` to receive
 every code instead of one `result`. Single-result scanning is unchanged and still the default.
 
+``BarcodeScanner`` and ``BarcodeScannerViewController`` play a haptic and post a VoiceOver announcement of
+the code ("Scanned ...") each time they read a code. Both are on by default; pass `hapticFeedback: false` or
+`announcesScans: false` to `BarcodeScanner`, or set `providesHapticFeedback` or `announcesScannedCode` to
+`false` in the `BarcodeScannerView.Model`, to turn them off.
+
 ### Localized text properties
 
 The `String` properties that return text created from a `LocalizedStringResource` resolve it with the

@@ -61,6 +61,18 @@
         }
       }
     },
+    "barcodeScanner.scanned %@" : {
+      "comment" : "VoiceOver announcement when the barcode scanner reads a code. %@ is the code's value.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanned %@"
+          }
+        }
+      }
+    },
     "barcodeScanner.unsupported.message" : {
       "comment" : "Explanation shown on a device that cannot scan codes with its camera.",
       "extractionState" : "manual",

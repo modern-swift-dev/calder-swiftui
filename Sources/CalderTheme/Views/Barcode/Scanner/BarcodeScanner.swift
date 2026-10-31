@@ -64,6 +64,10 @@
             private let onScan: (@MainActor (ScanResult) -> Void)?
             /// How long a continuous scanner suppresses a repeat of the same value, or `nil` when it isn't continuous.
             private let cooldown: Duration?
+            /// Whether the scanner plays a haptic each time it reads a code.
+            private let hapticFeedback: Bool
+            /// Whether the scanner posts a VoiceOver announcement of each code it reads.
+            private let announcesScans: Bool
 
             /// Initializes a new `BarcodeScanner` instance.
             /// - Parameters:
@@ -74,12 +78,18 @@
             ///     A device without a torch ignores it; check ``BarcodeScannerViewController/isTorchAvailable`` to hide a torch button.
             ///   - zoomFactor: A binding to the camera's zoom factor, where `1` is no zoom, which is the default. Pinching the
             ///     preview updates it. The camera clamps it to the range it supports, and the pinch writes the clamped factor.
+            ///   - hapticFeedback: Whether the scanner plays a haptic each time it reads a code, where the device has a haptic
+            ///     engine. Defaults to `true`.
+            ///   - announcesScans: Whether the scanner posts a VoiceOver announcement of the code each time it reads one.
+            ///     Defaults to `true`.
             public init(
                 result: Binding<ScanResult?>,
                 state: State,
                 supportedTypes: [AVMetadataObject.ObjectType]? = nil,
                 torch: Binding<Bool> = .constant(false),
-                zoomFactor: Binding<CGFloat> = .constant(1)
+                zoomFactor: Binding<CGFloat> = .constant(1),
+                hapticFeedback: Bool = true,
+                announcesScans: Bool = true
             ) {
                 self._result = result
                 self.state = state
@@ -88,6 +98,8 @@
                 self._zoomFactor = zoomFactor
                 onScan = nil
                 cooldown = nil
+                self.hapticFeedback = hapticFeedback
+                self.announcesScans = announcesScans
             }
 
             /// Initializes a continuous `BarcodeScanner` that reports every code it reads.
@@ -102,6 +114,10 @@
             ///     2 seconds.
             ///   - torch: A binding that turns the torch on or off while the camera runs. Defaults to a torch that stays off.
             ///   - zoomFactor: A binding to the camera's zoom factor, where `1` is no zoom, which is the default.
+            ///   - hapticFeedback: Whether the scanner plays a haptic each time it reads a code, where the device has a haptic
+            ///     engine. Defaults to `true`.
+            ///   - announcesScans: Whether the scanner posts a VoiceOver announcement of the code each time it reads one.
+            ///     Defaults to `true`.
             ///   - onScan: Called on the main actor with each code the scanner reads.
             public init(
                 state: State,
@@ -109,6 +125,8 @@
                 cooldown: Duration = .seconds(2),
                 torch: Binding<Bool> = .constant(false),
                 zoomFactor: Binding<CGFloat> = .constant(1),
+                hapticFeedback: Bool = true,
+                announcesScans: Bool = true,
                 onScan: @escaping @MainActor (ScanResult) -> Void
             ) {
                 self._result = .constant(nil)
@@ -118,6 +136,8 @@
                 self._zoomFactor = zoomFactor
                 self.onScan = onScan
                 self.cooldown = cooldown
+                self.hapticFeedback = hapticFeedback
+                self.announcesScans = announcesScans
             }
 
             /// Creates the underlying `BarcodeScannerViewController` instance.
@@ -128,6 +148,8 @@
                 model.isTorchOn = torch
                 model.zoomFactor = zoomFactor
                 model.repeatCooldown = cooldown
+                model.providesHapticFeedback = hapticFeedback
+                model.announcesScannedCode = announcesScans
                 let viewController = BarcodeScannerViewController(supportedTypes: supportedTypes, scannerModel: model)
                 viewController.themeDefinition = context.environment.themeDefinition
                 viewController.callback = context.coordinator.handleScanResult

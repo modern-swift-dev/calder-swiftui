@@ -115,6 +115,18 @@ reported over and over, and the same item can be scanned again once the cooldown
 Different codes are always reported. With UIKit, set `BarcodeScannerView.Model.repeatCooldown`;
 `BarcodeScannerViewController` then calls its `callback` for every code and doesn't suspend detection.
 
+### Give feedback when a code is read
+
+Each time the scanner reads a code it plays a haptic, on devices that have a haptic engine, and
+posts a VoiceOver announcement such as "Scanned 4006381333931". Turn either off with
+`hapticFeedback: false` or `announcesScans: false`:
+
+```swift
+BarcodeScanner(result: $result, state: .scanning, hapticFeedback: false, announcesScans: true)
+```
+
+With UIKit, use `BarcodeScannerView.Model.providesHapticFeedback` and `announcesScannedCode`.
+
 To let people pick among the codes in view, use `BarcodeSelector` and choose the symbologies to
 recognize:
 
