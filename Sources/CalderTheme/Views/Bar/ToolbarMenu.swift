@@ -49,10 +49,12 @@
                 .disableSharedBackground(variant.sharedBackgroundDisabled)
             }
 
-            /// The menu's label styled like a toolbar button. `BarButtonStyle` applies the disabled dimming.
+            /// The menu's label styled like a toolbar button. The modifier applies the disabled dimming.
+            ///
+            /// The label isn't wrapped in a `Button`: a nested button hides the label from VoiceOver.
             var styledLabel: some View {
-                Button(action: {}, label: label)
-                    .buttonStyle(BarButtonStyle(variant: variant))
+                label()
+                    .modifier(BarButtonLabelModifier(variant: variant))
                     .disabled(!enabled)
             }
         }

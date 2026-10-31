@@ -117,9 +117,6 @@
 
         }
 
-        @Environment(\.theme) private var theme
-        @Environment(\.isEnabled) var enabled
-
         /// The visual variant to apply to the button. Defaults to `.regular`.
         var variant: Variant = .regular
 
@@ -129,11 +126,25 @@
 
         public func makeBody(configuration: Configuration) -> some View {
             configuration.label
+                .modifier(BarButtonLabelModifier(variant: variant, isPressed: configuration.isPressed))
+        }
+    }
+
+    /// Applies the bar button appearance to a label that isn't wrapped in a `Button`.
+    struct BarButtonLabelModifier: ViewModifier {
+        @Environment(\.theme) private var theme
+        @Environment(\.isEnabled) private var enabled
+
+        let variant: BarButtonStyle.Variant
+        var isPressed = false
+
+        func body(content: Content) -> some View {
+            content
                 .padding(variant.padding)
                 .font(variant.font)
                 .foregroundStyle(variant.foregroundColor(theme: theme))
                 .background(variant.backgroundColor(theme: theme))
-                .opacity(configuration.isPressed || !enabled ? 0.5 : 1)
+                .opacity(isPressed || !enabled ? 0.5 : 1)
         }
     }
 
