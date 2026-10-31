@@ -125,6 +125,8 @@
                                 .scrollContentBackground(.hidden)
                                 .frame(height: height)
                                 .focused($isFocused)
+                                .accessibilityLabel(placeholder?.text ?? Text(verbatim: ""))
+                                .accessibilityHint(invalidMessage?.text ?? Text(verbatim: ""))
                                 .onChange(of: text, initial: true) {
                                     if let maxLength, text.count > maxLength {
                                         text = String(text.prefix(maxLength))
@@ -136,6 +138,8 @@
                                     .font(.body)
                                     .foregroundStyle(theme.textFieldPlaceholder)
                                     .offset(x: .xxs, y: .xs)
+                                    // VoiceOver reads the placeholder as the editor's label.
+                                    .accessibilityHidden(true)
                             }
                         }
                     }
@@ -161,6 +165,8 @@
                                 .foregroundStyle(theme.text1)
                                 .lineLimit(3)
                                 .padding(.horizontal, .xxs)
+                                // VoiceOver reads the message as the editor's hint.
+                                .accessibilityHidden(true)
                         }
                     }
 

@@ -55,6 +55,10 @@ password revealed.
 Invalid `InputText` and `InputPassword` fields draw their error border even when
 `displayTextViewBorder` is `false`, and VoiceOver reads the invalid message as the field's hint.
 
+`TextView` and `AttributedTextView` give VoiceOver their placeholder as the editor's label and their
+invalid message as its hint, as `InputText` does, instead of reading the placeholder only while it is
+visible and the invalid message as separate text.
+
 `FormSwitch` and `FormDatePicker` use their row name as the control's hidden label, so VoiceOver
 announces the name with the control.
 

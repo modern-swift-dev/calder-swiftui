@@ -112,6 +112,8 @@
                                 .foregroundStyle(theme.text1)
                                 .scrollContentBackground(.hidden)
                                 .focused($isFocused)
+                                .accessibilityLabel(placeholder?.text ?? Text(verbatim: ""))
+                                .accessibilityHint(invalidMessage?.text ?? Text(verbatim: ""))
                                 .onChange(of: text, initial: true) {
                                     if let maxLength, text.characters.count > maxLength {
                                         let start = text.characters.index(text.startIndex, offsetBy: maxLength)
@@ -124,6 +126,8 @@
                                     .font(.body)
                                     .foregroundStyle(theme.textFieldPlaceholder)
                                     .offset(x: .xxs, y: .xs)
+                                    // VoiceOver reads the placeholder as the editor's label.
+                                    .accessibilityHidden(true)
                             }
                         }
                     }
@@ -149,6 +153,8 @@
                                 .foregroundStyle(theme.text1)
                                 .lineLimit(3)
                                 .padding(.horizontal, .xxs)
+                                // VoiceOver reads the message as the editor's hint.
+                                .accessibilityHidden(true)
                         }
                     }
                 }
