@@ -50,6 +50,16 @@
             /// starts, and when the source reloads or is cleared. Cancellation does not set it.
             public private(set) var nextPageError: (any Error)?
 
+            /// The error from the most recent failed refresh, if any.
+            ///
+            /// A refresh is a first-page load, such as ``reload()``, that starts while items are
+            /// loaded. The items stay visible and ``state`` stays `.displaying` while it loads. When
+            /// it fails, the source keeps the items, count, and page, so pagination continues, and
+            /// stores the error here. The error is cleared when a reload starts, and when the source
+            /// is replaced or cleared. Cancellation does not set it. A failed first load with no
+            /// loaded items sets ``state`` to `.error` with the error's description instead.
+            public private(set) var refreshError: (any Error)?
+
             /// The number of next pages loaded, which lists use to request another page after each one.
             private(set) var loadedNextPageCount = 0
 
@@ -258,6 +268,9 @@
 
             /// Loads the first page again, ignoring results from all earlier requests.
             ///
+            /// While items are loaded, the reload is a refresh: the items stay visible, and a failure
+            /// keeps them and sets ``refreshError``. Without loaded items, the state is `.loading`
+            /// and a failure sets it to `.error` with the error's description.
             /// If the reload is cancelled, the source restores the page and state it had before
             /// loading, so pagination continues and the reload can be retried.
             public func reload() async {
@@ -270,9 +283,11 @@
 
             /// Loads the first page of data if no page is currently loaded.
             ///
-            /// Sets the state to `.loading`, performs the `firstPageLoader` operation,
-            /// and updates the `items` and `state` based on the result. Cancellation keeps the
-            /// items and restores the state from before loading, so the load can be retried.
+            /// Sets the state to `.loading` unless items are loaded, performs the `firstPageLoader`
+            /// operation, and updates the `items` and `state` based on the result. A failure sets the
+            /// state to `.error` with the error's description, or keeps loaded items and sets
+            /// ``refreshError``. Cancellation keeps the items and restores the state from before
+            /// loading, so the load can be retried.
             public func load() async {
                 guard currentPage == nil, !isLoadingFirstPage, !Task.isCancelled else {
                     return
@@ -284,10 +299,13 @@
                 if cancellationRestorePoint == nil {
                     cancellationRestorePoint = (currentPage, state)
                 }
+                let isRefreshing = !items.isEmpty
                 currentPage = nil
                 let requestId = currentRequestId
                 isLoadingFirstPage = true
-                state = .loading
+                if !isRefreshing {
+                    state = .loading
+                }
                 defer {
                     if requestId == currentRequestId {
                         isLoadingFirstPage = false
@@ -316,10 +334,14 @@
                         return
                     }
                     os_log("%{public}@", log: .default, type: .error, String(describing: error))
-                    count = nil
-                    currentPage = nil
-                    items = []
-                    state = .error(nil)
+                    if isRefreshing {
+                        currentPage = cancellationRestorePoint?.page
+                        refreshError = error
+                    } else {
+                        count = nil
+                        items = []
+                        state = .error(error.localizedDescription)
+                    }
                 }
             }
 
@@ -336,6 +358,7 @@
                 isLoadingFirstPage = false
                 isLoadingNextPage = false
                 nextPageError = nil
+                refreshError = nil
             }
 
             /// Recalculates the current view state based on the number of loaded items.

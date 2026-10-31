@@ -9,6 +9,14 @@ the changes in each release across all Calder modules. <doc:PaginatedLists> and 
 describe the current behavior of paginated lists and barcode views, including changes to data
 source counts, next-page failures, multi-selection limits, and scanner state.
 
+### Paginated lists
+
+`PaginatedList.DataSource` keeps loaded items visible while it reloads, so its `state` stays
+`.displaying` during a refresh instead of becoming `.loading`. A failed refresh keeps the items,
+count, and page and sets `refreshError` instead of clearing the list; show that error yourself,
+for example in an alert. A failed first load with no loaded items sets `state` to `.error` with
+the error's `localizedDescription`, so ``GenericStateView`` shows the message.
+
 ### Forms and inputs
 
 `InputPassword` hides its text by default. Pass `isSecuredEntry: false` to start with the

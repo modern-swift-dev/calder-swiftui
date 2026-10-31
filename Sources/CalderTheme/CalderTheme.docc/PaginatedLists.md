@@ -66,7 +66,15 @@ struct ArticleList: View {
 
 ``GenericStateView`` shows a progress indicator while the first page loads, an empty or error
 indicator when there are no items or the first page fails, and the list once items are available.
-Call the data source's `reload()` to retry a failed first page, for example from a refresh action.
+The error indicator shows the error's `localizedDescription`. Call the data source's `reload()` to
+retry a failed first page, for example from a refresh action.
+
+### Refresh loaded items
+
+Reloading while items are loaded is a refresh. The items stay visible and `state` stays
+`.displaying` until the new first page replaces them. When a refresh fails, the data source keeps
+the items, count, and page, so pagination continues, and exposes the failure as `refreshError`.
+The next reload clears it.
 
 To show items in sections, pass a grouping key to ``PaginatedList/Grouped``:
 

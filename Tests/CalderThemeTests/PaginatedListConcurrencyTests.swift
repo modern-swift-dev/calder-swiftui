@@ -300,6 +300,56 @@
             }
         }
 
+        @Test func `refresh keeps the loaded items visible while it loads`() async {
+            let source = PaginatedList.DataSource<Item>(items: [])
+            await source.configureAndLoad(firstPageLoader: { .init(next: nil, hasNext: true, results: [Item(id: 1)]) }, nextPageLoader: { _ in .init(results: []) })
+            let loader = Loader()
+            let refresh = Task {
+                await source.configureAndLoad(firstPageLoader: { try await loader.load() }, nextPageLoader: { _ in .init(results: []) })
+            }
+            await loader.waitUntilStarted()
+            #expect(source.items.map(\.id) == [1])
+            if case .displaying = source.state {} else {
+                Issue.record("A refresh must keep showing the loaded items, got \(source.state)")
+            }
+
+            loader.finish(id: 3)
+            await refresh.value
+            #expect(source.items.map(\.id) == [3])
+            #expect(source.refreshError == nil)
+        }
+
+        @Test func `failed refresh keeps the items and pagination and exposes the error`() async {
+            let source = PaginatedList.DataSource<Item>(items: [])
+            await source.configureAndLoad(firstPageLoader: { .init(count: 7, next: nil, hasNext: true, results: [Item(id: 1)]) }, nextPageLoader: { _ in .init(results: [Item(id: 2)]) })
+            let loader = Loader()
+            let refresh = Task {
+                await source.configureAndLoad(firstPageLoader: { try await loader.load() }, nextPageLoader: { _ in .init(results: [Item(id: 2)]) })
+            }
+            await loader.waitUntilStarted()
+            loader.finish(failing: true)
+            await refresh.value
+
+            #expect(source.items.map(\.id) == [1])
+            #expect(source.count == 7)
+            #expect(source.hasNext)
+            #expect(source.refreshError is Failure)
+            if case .displaying = source.state {} else {
+                Issue.record("A failed refresh must keep showing the loaded items, got \(source.state)")
+            }
+
+            await source.next()
+            #expect(source.items.map(\.id) == [1, 2])
+
+            let retry = Task { await source.reload() }
+            await loader.waitUntilStarted()
+            #expect(source.refreshError == nil)
+            loader.finish(id: 3)
+            await retry.value
+            #expect(source.items.map(\.id) == [3])
+            #expect(source.refreshError == nil)
+        }
+
         @Test func `cancelled next page preserves cursor for retry`() async {
             let source = PaginatedList.DataSource<Item>(items: [])
             let loader = Loader()

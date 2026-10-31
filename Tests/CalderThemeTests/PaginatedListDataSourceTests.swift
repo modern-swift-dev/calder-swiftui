@@ -273,10 +273,8 @@
             #expect(source.nextPageError == nil)
         }
 
-        @Test func `loader error clears items count and sets error state`() async {
-            let source = PaginatedList.DataSource(items: [
-                item(1)
-            ])
+        @Test func `first load error clears the count and sets an error state with the message`() async {
+            let source = PaginatedList.DataSource<PaginatedListTestItem>(items: [])
 
             await source.configureAndLoad {
                 throw PaginatedListDataSourceTestError.failed
@@ -287,7 +285,12 @@
             #expect(source.items.isEmpty)
             #expect(source.count == nil)
             #expect(!source.hasNext)
-            expectError(source.state)
+            #expect(source.refreshError == nil)
+            guard case let .error(message, _) = source.state else {
+                Issue.record("Expected .error, got \(source.state)")
+                return
+            }
+            #expect(message == PaginatedListDataSourceTestError.failed.localizedDescription)
         }
 
         private func item(_ id: Int, title: String? = nil) -> PaginatedListTestItem {
@@ -313,15 +316,6 @@
                     break
                 default:
                     Issue.record("Expected .empty, got \(state)")
-            }
-        }
-
-        private func expectError(_ state: GenericState) {
-            switch state {
-                case .error:
-                    break
-                default:
-                    Issue.record("Expected .error, got \(state)")
             }
         }
     }
