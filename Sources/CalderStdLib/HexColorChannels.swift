@@ -31,13 +31,13 @@ package enum HexColorChannels {
     /// Formats channel values as two uppercase hexadecimal digits each, rounding to the nearest step.
     ///
     /// Values outside `0...1`, such as extended-range sRGB components of wide-gamut colors,
-    /// are clamped to `00` and `FF`.
+    /// are clamped to `00` and `FF`, and `nan` is formatted as `00`.
     ///
     /// - Parameters:
     ///   - channels: The channel values.
     ///   - prefix: The string placed before the digits, such as `#` or `0x`.
     /// - Returns: The prefix followed by two digits per channel.
     package static func format(_ channels: [Double], prefix: String) -> String {
-        prefix + channels.map { String(format: "%02X", Int((min(max($0, 0), 1) * 255).rounded())) }.joined()
+        prefix + channels.map { String(format: "%02X", Int(((0 ... 1).clampedValue($0) * 255).rounded())) }.joined()
     }
 }

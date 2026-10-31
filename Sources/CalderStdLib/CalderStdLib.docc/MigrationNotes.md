@@ -19,3 +19,7 @@ returns only its in-range part, which is empty when the start is at or beyond th
 `Array.hashMap(predicate:)` rethrows errors from `predicate` instead of silently dropping the
 element; callers that pass a throwing transform must now use `try`. When several elements produce
 the same key, the last element wins.
+
+### Ranges
+
+`ClosedRange.clampedValue(_:)` now returns the lower bound for a value that isn't ordered with respect to the bounds, such as a floating-point `nan`, instead of returning the value unchanged. Clamping a colour channel therefore never produces `nan`, and hex formatting treats a `nan` channel as `00`.
