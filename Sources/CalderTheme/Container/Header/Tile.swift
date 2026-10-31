@@ -36,7 +36,7 @@
         /// Initializes a new `Tile` view.
         ///
         /// - Parameters:
-        ///   - icon: The SF Symbol image to display.
+        ///   - icon: The SF Symbol image to display. It isn't mirrored in right-to-left layouts.
         ///   - label: The main label text, displayed unchanged.
         ///   - text: The primary text value.
         ///   - variant: The visual style variant.
@@ -58,7 +58,7 @@
         /// SwiftUI looks up the label in its bundle and table using the environment's locale.
         ///
         /// - Parameters:
-        ///   - icon: The SF Symbol image to display.
+        ///   - icon: The SF Symbol image to display. It isn't mirrored in right-to-left layouts.
         ///   - label: The localized main label.
         ///   - text: The primary text value, displayed unchanged.
         ///   - variant: The visual style variant.
@@ -91,6 +91,19 @@
             self.action = action
         }
 
+        /// The caller's icon, tinted for the variant.
+        ///
+        /// The icon isn't mirrored in right-to-left layouts, so pass a right-to-left image for a
+        /// directional icon.
+        var iconView: some View {
+            icon
+                .symbolRenderingMode(.monochrome)
+                .renderingMode(.template)
+                .imageScale(.small)
+                .font(.title3)
+                .foregroundColor(variant.foregroundColor(theme: theme))
+        }
+
         public var body: some View {
             Button(
                 action: {
@@ -99,13 +112,7 @@
                 label: {
                     VStack(alignment: .leading, spacing: .spacingMedium) {
                         HStack(alignment: .center, spacing: .spacingSmall) {
-                            icon
-                                .symbolRenderingMode(.monochrome)
-                                .renderingMode(.template)
-                                .flipsForRightToLeftLayoutDirection(true)
-                                .imageScale(.small)
-                                .font(.title3)
-                                .foregroundColor(variant.foregroundColor(theme: theme))
+                            iconView
 
                             variant.label(candidate: label, length: 10)
                                 .font(.title3)
