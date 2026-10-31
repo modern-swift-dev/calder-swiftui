@@ -29,19 +29,19 @@
                             MessageBox(
                                 variant: .warn,
                                 icon: Image(systemSymbol: .videoSlashFill),
-                                title: "Camera access is off",
-                                message: "Allow camera access in Settings to scan codes."
+                                title: LocalizedStringResource("barcodeScanner.permissionDenied.title", bundle: .module),
+                                message: LocalizedStringResource("barcodeScanner.permissionDenied.message", bundle: .module)
                             )
                             Button(action: openSettings) {
-                                Text(verbatim: "Open Settings")
+                                Text(LocalizedStringResource("barcodeScanner.permissionDenied.openSettings", bundle: .module))
                             }
                             .buttonStyle(ThemedButtonStyle())
                         case .unsupported:
                             MessageBox(
                                 variant: .info,
                                 icon: Image(systemSymbol: .cameraFill),
-                                title: "Scanning unavailable",
-                                message: "This device cannot scan codes with its camera."
+                                title: LocalizedStringResource("barcodeScanner.unsupported.title", bundle: .module),
+                                message: LocalizedStringResource("barcodeScanner.unsupported.message", bundle: .module)
                             )
                     }
                 }

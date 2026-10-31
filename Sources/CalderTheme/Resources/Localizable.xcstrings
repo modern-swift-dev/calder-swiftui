@@ -1,6 +1,78 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "barcodeGenerator.generationFailed" : {
+      "comment" : "Message a barcode generator shows when its payload cannot be encoded.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to generate barcode"
+          }
+        }
+      }
+    },
+    "barcodeScanner.permissionDenied.message" : {
+      "comment" : "Explanation shown when camera access is off, telling the user to allow it in Settings.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow camera access in Settings to scan codes."
+          }
+        }
+      }
+    },
+    "barcodeScanner.permissionDenied.openSettings" : {
+      "comment" : "Button that opens the app's page in the Settings app so the user can allow camera access.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "barcodeScanner.permissionDenied.title" : {
+      "comment" : "Title of the message a barcode scanner shows when camera access is off.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera access is off"
+          }
+        }
+      }
+    },
+    "barcodeScanner.unsupported.message" : {
+      "comment" : "Explanation shown on a device that cannot scan codes with its camera.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device cannot scan codes with its camera."
+          }
+        }
+      }
+    },
+    "barcodeScanner.unsupported.title" : {
+      "comment" : "Title of the message a barcode scanner shows on a device that cannot scan codes.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanning unavailable"
+          }
+        }
+      }
+    },
     "chart.noData" : {
       "comment" : "Message of the empty state a chart shows when it has no data points.",
       "extractionState" : "manual",

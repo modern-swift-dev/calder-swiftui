@@ -129,6 +129,12 @@ rounded down in the same way, such as `-50` for `-42`, and has a mark at that mi
 Tick counts below one use one interval, and tick spacing is always positive. Pareto
 percentages remain finite when all category values are zero.
 
+### Barcodes
+
+The scanner's unavailable and camera-access-denied messages and Open Settings button, and
+``BarcodeGeneratorView``'s "Unable to generate barcode" message, come from the CalderTheme string
+catalog and use the environment's locale. Their English text is unchanged.
+
 ### Migrating to the new names
 
 Misspelled names were corrected. The old names remain as deprecated type aliases, so existing

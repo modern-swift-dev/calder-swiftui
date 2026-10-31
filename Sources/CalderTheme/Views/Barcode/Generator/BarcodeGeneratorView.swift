@@ -96,7 +96,7 @@
                                 .foregroundStyle(theme.error)
                                 .font(.title)
 
-                            Text(verbatim: "Unable to generate barcode")
+                            Text(LocalizedStringResource("barcodeGenerator.generationFailed", bundle: .module))
                                 .font(.body)
                                 .foregroundStyle(theme.text1)
                         }
