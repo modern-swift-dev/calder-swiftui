@@ -53,6 +53,8 @@ When a second `transition(fromChild:toNewChild:inContainerView:duration:delay:co
 
 `UIDevice.isCar` is deprecated. `UIDevice.current.userInterfaceIdiom` never reports `.carPlay`, so the property was always `false`. Check `traitCollection.userInterfaceIdiom == .carPlay` on a view controller or screen in the CarPlay scene instead.
 
+`UIApplication.appInterfaceOrientation()` now falls back to the orientation of any connected window scene when no scene is foreground-active, such as during launch, and returns `.unknown` instead of `.portrait` when there is no window scene.
+
 ### Tables and collections
 
 `UITableView.indexPathForLastRow(inSection:)`, `UICollectionView.indexPathForLastItem(inSection:)`, `indexPathForLastRow`, and `indexPathForLastItem` return `nil` for empty or out-of-range sections instead of row or item 0. `UITableView.safeScrollToRow(at:at:animated:)` ignores negative indices.

@@ -58,5 +58,20 @@
             #expect(SceneLookup.window(in: [scene], for: .foregroundActive) == nil)
             #expect(SceneLookup.windows(in: [scene], for: .foregroundActive).isEmpty)
         }
+
+        @Test func `foreground active or any prefers the active scene`() {
+            let background = FakeScene(activationState: .background, windows: [])
+            let active = FakeScene(activationState: .foregroundActive, windows: [UIWindow()])
+
+            #expect(SceneLookup.foregroundActiveOrAny(in: [background, active])?.activationState == .foregroundActive)
+        }
+
+        @Test func `foreground active or any falls back to any scene`() {
+            let background = FakeScene(activationState: .background, windows: [])
+            let inactive = FakeScene(activationState: .foregroundInactive, windows: [])
+
+            #expect(SceneLookup.foregroundActiveOrAny(in: [background, inactive])?.activationState == .background)
+            #expect(SceneLookup.foregroundActiveOrAny(in: [FakeScene]()) == nil)
+        }
     }
 #endif

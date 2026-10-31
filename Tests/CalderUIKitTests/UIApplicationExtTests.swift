@@ -68,6 +68,18 @@
                     #expect(UIApplication.shared.isMacCatalyst == false)
                 }
             #endif
+
+            // MARK: - appInterfaceOrientation Tests
+
+            #if !os(tvOS)
+                @Test func `app interface orientation is unknown without a window scene`() {
+                    let application = UIApplication.shared
+                    let hasWindowScene = application.connectedScenes.contains { $0 is UIWindowScene }
+                    if !hasWindowScene {
+                        #expect(application.appInterfaceOrientation() == .unknown)
+                    }
+                }
+            #endif
         }
     #endif
 

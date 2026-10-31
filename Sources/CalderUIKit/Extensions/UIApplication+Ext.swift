@@ -53,8 +53,12 @@
         #if !os(tvOS)
             public extension UIApplication {
                 /// Returns the current user interface orientation of the application.
+                ///
+                /// The orientation comes from the foreground-active window scene. While no scene is active, such as
+                /// during launch, it comes from any other connected window scene.
+                /// - Returns: The scene's `interfaceOrientation`, or `.unknown` if no window scene is connected.
                 func appInterfaceOrientation() -> UIInterfaceOrientation {
-                    UIApplication.shared.windowScene(for: .foregroundActive)?.interfaceOrientation ?? .portrait
+                    SceneLookup.foregroundActiveOrAny(in: connectedScenes.compactMap { $0 as? UIWindowScene })?.interfaceOrientation ?? .unknown
                 }
             }
         #endif

@@ -12,6 +12,11 @@
                 return matching.filter { $0.keyWindow != nil } + matching.filter { $0.keyWindow == nil }
             }
 
+            /// The scene to read state such as the interface orientation from: the first foreground-active scene, otherwise any scene.
+            static func foregroundActiveOrAny<Scene: SceneWindowing>(in scenes: [Scene]) -> Scene? {
+                self.scenes(in: scenes, for: .foregroundActive).first ?? scenes.first
+            }
+
             static func keyWindow(in scenes: [some SceneWindowing], for state: UIScene.ActivationState) -> UIWindow? {
                 self.scenes(in: scenes, for: state).lazy.compactMap(\.keyWindow).first
             }
