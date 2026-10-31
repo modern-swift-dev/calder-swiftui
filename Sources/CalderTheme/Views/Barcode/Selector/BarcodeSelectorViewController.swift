@@ -59,15 +59,24 @@
                 DataScannerViewController.isAvailable
             }
 
-            /// The theme used by the message shown when the device cannot scan.
+            /// The theme used by the message shown when the selector cannot scan.
             public var themeDefinition = ThemeDefinition() {
                 didSet {
                     unavailableHost?.rootView = unavailableMessage
                 }
             }
 
-            /// Whether the device supports the data scanner. Read once, when the view loads.
+            /// Whether the device supports the data scanner. Read once, when the selector is created.
             var isScannerSupported = BarcodeSelectorViewController.isSupported
+
+            /// Whether the data scanner can be used now, for example because camera access is granted. Read once, when the
+            /// selector is created.
+            var isScannerAvailable = BarcodeSelectorViewController.isAvailable
+
+            /// Whether the selector shows the scanner instead of a message.
+            private var canScan: Bool {
+                isScannerSupported && isScannerAvailable
+            }
 
             /// Why the selector shows a message instead of the scanner, if it does.
             private(set) var unavailableReason: BarcodeScannerUnavailableView.Reason?
@@ -75,9 +84,14 @@
             /// The hosting controller that displays the unsupported message.
             private var unavailableHost: UIHostingController<AnyView>?
 
-            /// The themed unsupported message.
+            /// The themed message for ``unavailableReason``.
             private var unavailableMessage: AnyView {
-                AnyView(BarcodeScannerUnavailableView(reason: .unsupported).environment(\.themeDefinition, themeDefinition))
+                AnyView(
+                    BarcodeScannerUnavailableView(reason: unavailableReason ?? .unsupported) { [weak self] in
+                        self?.openSettings()
+                    }
+                    .environment(\.themeDefinition, themeDefinition)
+                )
             }
 
             /// A dictionary to keep track of highlight views by their `RecognizedItem` UUID.
@@ -107,16 +121,17 @@
             ]
 
             /// Called after the controller's view is loaded into memory.
-            /// Configures the layout of the scanner view within the controller's view, or shows an unsupported message
-            /// when the device cannot run the data scanner.
+            /// Configures the layout of the scanner view within the controller's view. Shows an unsupported message when
+            /// the device cannot run the data scanner, or the permission-denied message with an Open Settings button when
+            /// the scanner isn't available, for example because camera access is denied.
             override public func viewDidLoad() {
                 super.viewDidLoad()
                 let child: UIViewController
-                if isScannerSupported {
+                if canScan {
                     child = scanner
                 } else {
+                    unavailableReason = isScannerSupported ? .permissionDenied : .unsupported
                     let host = UIHostingController(rootView: unavailableMessage)
-                    unavailableReason = .unsupported
                     unavailableHost = host
                     child = host
                 }
@@ -141,17 +156,17 @@
                 stop()
             }
 
-            /// Stops the barcode scanning session. Does nothing on devices without data scanner support.
+            /// Stops the barcode scanning session. Does nothing when the scanner isn't supported or available.
             public func stop() {
-                guard isScannerSupported else {
+                guard canScan else {
                     return
                 }
                 scanner.stopScanning()
             }
 
-            /// Starts the barcode scanning session. Does nothing on devices without data scanner support.
+            /// Starts the barcode scanning session. Does nothing when the scanner isn't supported or available.
             public func start() {
-                guard isScannerSupported else {
+                guard canScan else {
                     return
                 }
                 do {
@@ -159,6 +174,14 @@
                 } catch {
                     os_log("%{public}@", log: .default, type: .error, String(describing: error))
                 }
+            }
+
+            /// Opens the app's page in the Settings app.
+            private func openSettings() {
+                guard let url = URL(string: UIApplication.openSettingsURLString) else {
+                    return
+                }
+                view.window?.windowScene?.open(url, options: nil)
             }
         }
 

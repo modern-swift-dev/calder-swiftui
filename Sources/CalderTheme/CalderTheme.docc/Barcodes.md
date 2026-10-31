@@ -84,6 +84,11 @@ undetermined. When access is denied or restricted, they show a message, themed w
 environment's `themeDefinition`, with a button that opens Settings, and they start scanning
 when the app becomes active with access granted.
 
+`BarcodeSelector` and `BarcodeSelectorViewController` don't prompt for camera access. When the
+device supports scanning but `BarcodeSelectorViewController.isAvailable` is `false` as the view
+loads, for example because access is denied, they show the same message with the Settings button
+instead of a black screen.
+
 On devices that cannot scan, such as Simulator, the scanner and selector show an unavailable
 message instead of a blank view. Check `BarcodeScannerViewController.isSupported`,
 `BarcodeSelectorViewController.isSupported`, and `BarcodeSelectorViewController.isAvailable` to

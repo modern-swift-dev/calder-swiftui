@@ -34,6 +34,40 @@
                 #expect(!controller.children.contains { $0 is DataScannerViewController })
             }
 
+            @Test func `supported device without camera access shows the permission denied message`() {
+                let controller = BarcodeSelectorViewController()
+                controller.isScannerSupported = true
+                controller.isScannerAvailable = false
+
+                controller.loadViewIfNeeded()
+                controller.start()
+
+                #expect(controller.unavailableReason == .permissionDenied)
+                #expect(!controller.children.contains { $0 is DataScannerViewController })
+                #expect(controller.children.contains { $0 is UIHostingController<AnyView> })
+            }
+
+            @Test func `unsupported device keeps the unsupported message when access is also unavailable`() {
+                let controller = BarcodeSelectorViewController()
+                controller.isScannerSupported = false
+                controller.isScannerAvailable = false
+
+                controller.loadViewIfNeeded()
+
+                #expect(controller.unavailableReason == .unsupported)
+            }
+
+            @Test func `available scanner shows no message`() {
+                let controller = BarcodeSelectorViewController()
+                controller.isScannerSupported = true
+                controller.isScannerAvailable = true
+
+                controller.loadViewIfNeeded()
+
+                #expect(controller.unavailableReason == nil)
+                #expect(controller.children.contains { $0 is DataScannerViewController })
+            }
+
             @Test func `selector passes recognized types to its view controller`() throws {
                 let types: Set<DataScannerViewController.RecognizedDataType> = [.barcode(symbologies: [.ean13])]
                 let selector = BarcodeSelector(recognizedTypes: types, scannedCode: .constant(nil))
