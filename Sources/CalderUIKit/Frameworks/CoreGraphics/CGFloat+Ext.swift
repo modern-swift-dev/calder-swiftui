@@ -29,7 +29,9 @@
             }
 
             #if canImport(SwiftUI)
-                /// Returns a `EdgeInsets` with all insets equal to the `CGFloat` value.
+                /// Returns a SwiftUI `EdgeInsets` with all insets equal to the `CGFloat` value.
+                ///
+                /// This is the single spelling for this conversion; CalderSwiftUI's `asEdgeInsets` is deprecated.
                 var edgeInset: EdgeInsets {
                     EdgeInsets(top: self, leading: self, bottom: self, trailing: self)
                 }

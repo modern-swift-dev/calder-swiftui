@@ -28,7 +28,9 @@
                 interfaceType() == .carPlay
             }
 
-            /// A boolean indicating if the device is running on a Mac Catalyst build (i.e., UIKit on macOS).
+            /// A boolean indicating if the app is running on a Mac Catalyst build (i.e., UIKit on macOS).
+            ///
+            /// This is the single spelling for the check; `UIApplication.isMacCatalyst` is deprecated.
             static var isCatalyst: Bool {
                 #if targetEnvironment(macCatalyst)
                     true
@@ -37,7 +39,9 @@
                 #endif
             }
 
-            /// A boolean indicating if the device is a simulator.
+            /// A boolean indicating if the app is running on a simulator.
+            ///
+            /// This is the single spelling for the check; `UIApplication.isSimulator` is deprecated.
             static var isSimulator: Bool {
                 #if targetEnvironment(simulator)
                     true

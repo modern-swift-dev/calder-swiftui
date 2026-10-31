@@ -1,6 +1,7 @@
 #if canImport(SwiftUI) || canImport(UIKit) || canImport(AppKit)
     #if canImport(SwiftUI)
         @testable import CalderSwiftUI
+        import CalderUIKit
         import Foundation
         import SwiftUI
         import Testing
@@ -86,38 +87,44 @@
                 #expect(insets.trailing == 0)
             }
 
-            // MARK: - CGFloat asEdgeInsets
+            // MARK: - CGFloat edgeInset
 
-            @Test func `cg float as edge insets`() {
+            @Test func `cg float edge inset`() {
                 let value: CGFloat = 12
-                let insets = value.asEdgeInsets
+                let insets = value.edgeInset
                 #expect(insets.top == 12)
                 #expect(insets.leading == 12)
                 #expect(insets.bottom == 12)
                 #expect(insets.trailing == 12)
             }
 
-            @Test func `cg float zero as edge insets`() {
+            @available(*, deprecated)
+            @Test func `deprecated as edge insets forwards to edge inset`() {
+                let value: CGFloat = 9
+                #expect(value.asEdgeInsets == value.edgeInset)
+            }
+
+            @Test func `cg float zero edge inset`() {
                 let value: CGFloat = 0
-                let insets = value.asEdgeInsets
+                let insets = value.edgeInset
                 #expect(insets.top == 0)
                 #expect(insets.leading == 0)
                 #expect(insets.bottom == 0)
                 #expect(insets.trailing == 0)
             }
 
-            @Test func `cg float negative as edge insets`() {
+            @Test func `cg float negative edge inset`() {
                 let value: CGFloat = -5
-                let insets = value.asEdgeInsets
+                let insets = value.edgeInset
                 #expect(insets.top == -5)
                 #expect(insets.leading == -5)
                 #expect(insets.bottom == -5)
                 #expect(insets.trailing == -5)
             }
 
-            @Test func `cg float decimal as edge insets`() {
+            @Test func `cg float decimal edge inset`() {
                 let value: CGFloat = 7.5
-                let insets = value.asEdgeInsets
+                let insets = value.edgeInset
                 #expect(insets.top == 7.5)
                 #expect(insets.leading == 7.5)
                 #expect(insets.bottom == 7.5)

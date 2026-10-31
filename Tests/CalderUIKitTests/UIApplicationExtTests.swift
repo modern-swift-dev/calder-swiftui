@@ -49,25 +49,13 @@
                 #expect(isRunning == true)
             }
 
-            // MARK: - isSimulator Tests
+            // MARK: - Deprecated environment checks
 
-            #if targetEnvironment(simulator)
-                @Test func `is simulator is true on simulator`() {
-                    #expect(UIApplication.shared.isSimulator == true)
-                }
-            #endif
-
-            // MARK: - isMacCatalyst Tests
-
-            #if targetEnvironment(macCatalyst)
-                @Test func `is mac catalyst is true on mac catalyst`() {
-                    #expect(UIApplication.shared.isMacCatalyst == true)
-                }
-            #else
-                @Test func `is mac catalyst is false not on mac catalyst`() {
-                    #expect(UIApplication.shared.isMacCatalyst == false)
-                }
-            #endif
+            @available(*, deprecated)
+            @Test func `deprecated is simulator and is mac catalyst forward to UIDevice`() {
+                #expect(UIApplication.shared.isSimulator == UIDevice.isSimulator)
+                #expect(UIApplication.shared.isMacCatalyst == UIDevice.isCatalyst)
+            }
 
             // MARK: - appInterfaceOrientation Tests
 

@@ -43,3 +43,4 @@ also offer an Xcode fix-it. The deprecated names will be removed in the next maj
 | `EdgeInsets.zero` | SwiftUI's `EdgeInsets()`, which also creates zero insets. There's no fix-it; replace `.zero` with `EdgeInsets()` where the type is `EdgeInsets`. |
 | `NSColor.textColor` (instance property) | `contrastingTextColor()`. The instance property shared its name with AppKit's `NSColor.textColor` system color. |
 | `UIColor.textColor` (instance property) | `contrastingTextColor()`, as on `NSColor`. |
+| `CGFloat.asEdgeInsets` | CalderUIKit's `CGFloat.edgeInset`, which returns the same `EdgeInsets` and sits next to `uiEdgeInset` and `directionalEdgeInset`. |

@@ -29,10 +29,15 @@
         }
     }
 
+    @available(*, deprecated, renamed: "edgeInset")
     public extension CGFloat {
 
+        /// Edge insets with this value on every edge.
+        ///
+        /// Deprecated because CalderUIKit's `CGFloat.edgeInset` does the same, next to `uiEdgeInset` and
+        /// `directionalEdgeInset`.
         var asEdgeInsets: EdgeInsets {
-            .init(all: self)
+            edgeInset
         }
     }
 

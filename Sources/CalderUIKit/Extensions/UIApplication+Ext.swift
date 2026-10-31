@@ -32,21 +32,19 @@
             }
 
             /// A boolean indicating whether the application is running on a simulator.
+            ///
+            /// Deprecated because `UIDevice.isSimulator` reports the same value without needing an application instance.
+            @available(*, deprecated, message: "Use UIDevice.isSimulator instead.")
             var isSimulator: Bool {
-                #if targetEnvironment(simulator)
-                    true
-                #else
-                    false
-                #endif
+                UIDevice.isSimulator
             }
 
             /// A boolean indicating whether the application is running as a Mac Catalyst app.
+            ///
+            /// Deprecated because `UIDevice.isCatalyst` reports the same value without needing an application instance.
+            @available(*, deprecated, message: "Use UIDevice.isCatalyst instead.")
             var isMacCatalyst: Bool {
-                #if targetEnvironment(macCatalyst)
-                    true
-                #else
-                    false
-                #endif
+                UIDevice.isCatalyst
             }
         }
 

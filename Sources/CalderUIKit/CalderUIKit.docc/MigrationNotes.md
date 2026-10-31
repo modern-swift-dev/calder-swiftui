@@ -139,6 +139,7 @@ The deprecated names will be removed in the next major version.
 | `CGFloat.small`, `.medium`, `.large` | `.spacingSmall`, `.spacingMedium`, `.spacingLarge` | Generic names that other APIs also use. The values are unchanged: 12, 16, and 24. |
 | `NSUIColor`, `NSUIFont` | `CalderPlatformColor`, `CalderPlatformFont` | Other libraries, such as DGCharts, declare the same public type aliases. |
 | `debugDescription` on `CGFloat`, `CGPoint`, `CGSize`, and `CGRect` | `labeledDebugDescription` | Collides with the `CustomDebugStringConvertible` requirement, which Core Graphics already implements for `CGPoint`, `CGSize`, and `CGRect`. |
+| `UIApplication.isSimulator`, `UIApplication.isMacCatalyst` | `UIDevice.isSimulator`, `UIDevice.isCatalyst` | The same checks were available on two types. `UIDevice`'s static properties don't need an application instance. |
 
 `CGPoint`, `CGSize`, and `CGRect` already have a `debugDescription` from Core Graphics. While the
 deprecated members exist, a direct `debugDescription` call on these types is ambiguous in code that

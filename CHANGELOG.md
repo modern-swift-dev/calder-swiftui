@@ -81,6 +81,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `UIApplication.suspendApplication()` and `exitApplication(_:code:)` are deprecated. `suspendApplication()` no longer sends a private selector and does nothing; `exitApplication(_:code:)` no longer blocks the main thread or suspends the app first (#67).
 - `UIDevice.isCar` is deprecated because `UIDevice.current.userInterfaceIdiom` never reports `.carPlay`, so it was always `false`. Check `traitCollection.userInterfaceIdiom == .carPlay` instead (#115).
 - `UIColor.textColor` is deprecated in favour of `contrastingTextColor()`, as `NSColor.textColor` already is, and its documentation no longer says the result is charcoal (#159).
+- Duplicated helpers have one spelling each (#160). `CGFloat.asEdgeInsets` (CalderSwiftUI) is deprecated in favour of CalderUIKit's `CGFloat.edgeInset`, and `UIApplication.isSimulator` and `UIApplication.isMacCatalyst` are deprecated in favour of `UIDevice.isSimulator` and `UIDevice.isCatalyst`. The old names forward to the new ones.
 
 ### Additions
 
