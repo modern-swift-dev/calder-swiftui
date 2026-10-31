@@ -4,25 +4,25 @@
         import CoreGraphics
         import Foundation
 
-        #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
+        #if os(iOS) || os(tvOS) || os(visionOS) || os(watchOS) || targetEnvironment(macCatalyst)
             import UIKit
 
-            /// The platform color type: `UIColor` on iOS, tvOS, and Mac Catalyst, and `NSColor` on macOS.
+            /// The platform color type: `UIColor` on iOS, tvOS, visionOS, watchOS, and Mac Catalyst, and `NSColor` on macOS.
             public typealias CalderPlatformColor = UIColor
-            /// The platform font type: `UIFont` on iOS, tvOS, and Mac Catalyst, and `NSFont` on macOS.
+            /// The platform font type: `UIFont` on iOS, tvOS, visionOS, watchOS, and Mac Catalyst, and `NSFont` on macOS.
             public typealias CalderPlatformFont = UIFont
         #endif
 
         #if os(macOS) && !targetEnvironment(macCatalyst)
             import AppKit
 
-            /// The platform color type: `UIColor` on iOS, tvOS, and Mac Catalyst, and `NSColor` on macOS.
+            /// The platform color type: `UIColor` on iOS, tvOS, visionOS, watchOS, and Mac Catalyst, and `NSColor` on macOS.
             public typealias CalderPlatformColor = NSColor
-            /// The platform font type: `UIFont` on iOS, tvOS, and Mac Catalyst, and `NSFont` on macOS.
+            /// The platform font type: `UIFont` on iOS, tvOS, visionOS, watchOS, and Mac Catalyst, and `NSFont` on macOS.
             public typealias CalderPlatformFont = NSFont
         #endif
 
-        #if os(iOS) || os(tvOS) || os(macOS)
+        #if os(iOS) || os(tvOS) || os(visionOS) || os(watchOS) || os(macOS)
             /// The previous name of ``CalderPlatformColor``.
             ///
             /// Renamed because other libraries, such as DGCharts, declare a public `NSUIColor` too.
@@ -36,7 +36,7 @@
             public typealias NSUIFont = CalderPlatformFont
         #endif
 
-        #if os(iOS) || os(tvOS) || os(macOS)
+        #if os(iOS) || os(tvOS) || os(visionOS) || os(watchOS) || os(macOS)
             public extension CGContext {
 
                 /// Draws a circle within a specified frame.

@@ -1,11 +1,11 @@
 #if canImport(SwiftUI) || canImport(UIKit) || canImport(AppKit)
-    #if canImport(CoreGraphics) && (os(iOS) || os(tvOS) || os(macOS))
+    #if canImport(CoreGraphics) && (os(iOS) || os(tvOS) || os(visionOS) || os(watchOS) || os(macOS))
         import CalderUIKit
         import CoreGraphics
         import Foundation
         import Testing
 
-        #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
+        #if os(iOS) || os(tvOS) || os(visionOS) || os(watchOS) || targetEnvironment(macCatalyst)
             import UIKit
         #endif
 
