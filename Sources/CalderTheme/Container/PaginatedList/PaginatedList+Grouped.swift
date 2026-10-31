@@ -18,7 +18,7 @@
         /// that page fills. When a next-page request fails, the loading row is replaced by a row that
         /// retries the failed page. When the data source has no current page, the list requests the
         /// first page as soon as it appears.
-        struct Grouped<DataType: Identifiable & Codable & Sendable, Content: View>: View {
+        struct Grouped<DataType: Identifiable & Sendable, Content: View>: View {
             @Environment(\.theme) var theme
             /// The data source responsible for fetching and managing the paginated data.
             @Bindable var dataSource: DataSource<DataType>

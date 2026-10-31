@@ -10,10 +10,12 @@ display it:
 
 - ``PaginatedList/DataSource`` loads pages, stores the loaded items, and exposes the loading
   ``PaginatedList/DataSource/state``.
-- ``PaginatedList/Results`` is one page of a paginated response. It decodes JSON with `count`,
-  `next`, and `results` keys, and an optional `hasNext` key.
+- ``PaginatedList/Results`` is one page of a paginated response. When its items are `Codable`, it
+  decodes JSON with `count`, `next`, and `results` keys, and an optional `hasNext` key.
 - ``PaginatedList/Continuous`` shows the items in one list, ``PaginatedList/Grouped`` shows them
   in sections, and ``PaginatedList/Selection`` lets people pick one or several items.
+
+Items must be `Identifiable` and `Sendable`; they don't need to be `Codable`.
 
 The lists request the next page when people scroll to the end, so you only describe how to load
 the first page and how to load the page after a given one.

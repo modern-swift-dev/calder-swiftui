@@ -16,7 +16,7 @@
         /// When a next-page request fails, the indicator is replaced by a row that retries the failed page.
         /// When the data source has no current page, the list requests the first page as soon as it
         /// appears, whatever the height of its header.
-        struct Continuous<DataType: Identifiable & Codable & Sendable, Content: View, HeaderContent: View, FooterView: View>: View {
+        struct Continuous<DataType: Identifiable & Sendable, Content: View, HeaderContent: View, FooterView: View>: View {
             /// The data source responsible for fetching and managing the paginated data.
             @Bindable var dataSource: DataSource<DataType>
 

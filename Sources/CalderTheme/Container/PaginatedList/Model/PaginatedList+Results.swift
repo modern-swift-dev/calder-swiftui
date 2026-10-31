@@ -7,7 +7,8 @@
         ///
         /// This structure typically represents a single page of results from a paginated API endpoint,
         /// including the total count of items, a URL for the next page, and the actual results.
-        struct Results<T: Codable & Sendable>: Codable, Sendable {
+        /// `Results` conforms to `Codable` when its items do; the item type only needs to be `Sendable`.
+        struct Results<T: Sendable>: Sendable {
             /// The total count of all items available across all pages, if provided by the API.
             public let count: Int?
             /// The URL for the next page of results. If `nil`, there are no more pages.
@@ -60,32 +61,35 @@
                 case results
                 case hasNext
             }
+        }
+    }
 
-            /// Encodes the `Results` instance into the given encoder, including `hasNext`.
-            ///
-            /// - Parameter encoder: The encoder to write data to.
-            /// - Throws: An error if any value fails to encode.
-            public func encode(to encoder: any Encoder) throws {
-                var container = encoder.container(keyedBy: Results<T>.CodingKeys.self)
-                try container.encodeIfPresent(count, forKey: .count)
-                try container.encodeIfPresent(next, forKey: .next)
-                try container.encode(results, forKey: .results)
-                try container.encode(hasNext, forKey: .hasNext)
-            }
+    extension PaginatedList.Results: Codable where T: Codable {
+        /// Encodes the `Results` instance into the given encoder, including `hasNext`.
+        ///
+        /// - Parameter encoder: The encoder to write data to.
+        /// - Throws: An error if any value fails to encode.
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encodeIfPresent(count, forKey: .count)
+            try container.encodeIfPresent(next, forKey: .next)
+            try container.encode(results, forKey: .results)
+            try container.encode(hasNext, forKey: .hasNext)
+        }
 
-            /// Initializes a new `Results` instance from the given decoder.
-            ///
-            /// An explicit `hasNext` value is used when present. Otherwise, `hasNext` is `true`
-            /// only if a `next` URL is present and `results` is not empty.
-            /// - Parameter decoder: The decoder to read data from.
-            /// - Throws: `DecodingError` if the data is invalid.
-            public init(from decoder: any Decoder) throws {
-                let container: KeyedDecodingContainer<Results<T>.CodingKeys> = try decoder.container(keyedBy: Results<T>.CodingKeys.self)
-                count = try container.decodeIfPresent(Int.self, forKey: Results<T>.CodingKeys.count)
-                next = try container.decodeIfPresent(URL.self, forKey: Results<T>.CodingKeys.next)
-                results = try container.decode([T].self, forKey: Results<T>.CodingKeys.results)
-                hasNext = try container.decodeIfPresent(Bool.self, forKey: .hasNext) ?? ((next != nil) && !results.isEmpty)
-            }
+        /// Initializes a new `Results` instance from the given decoder.
+        ///
+        /// An explicit `hasNext` value is used when present. Otherwise, `hasNext` is `true`
+        /// only if a `next` URL is present and `results` is not empty.
+        /// - Parameter decoder: The decoder to read data from.
+        /// - Throws: `DecodingError` if the data is invalid.
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let count = try container.decodeIfPresent(Int.self, forKey: .count)
+            let next = try container.decodeIfPresent(URL.self, forKey: .next)
+            let results = try container.decode([T].self, forKey: .results)
+            let hasNext = try container.decodeIfPresent(Bool.self, forKey: .hasNext)
+            self.init(count: count, next: next, hasNext: hasNext, results: results)
         }
     }
 

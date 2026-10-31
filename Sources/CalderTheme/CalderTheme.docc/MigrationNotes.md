@@ -25,6 +25,10 @@ shows its loading row and requests the next page.
 selected items removed from the data source, or missing after a reload, are deselected, and the
 remaining selected items take their newly loaded values.
 
+Paginated list items no longer need to be `Codable`: the data source and lists require only
+`Identifiable` and `Sendable`. `PaginatedList.Results` is `Codable` when its items are, so existing
+decoding code is unchanged.
+
 `PaginatedList.Grouped` sorts its sections with `localizedStandardCompare(_:)`, as the Finder sorts
 file names, instead of comparing the grouping keys code point by code point. Lowercase and accented
 keys sort with their letters, and numbers in keys sort by value.

@@ -12,7 +12,7 @@
         ///
         /// Reloading or clearing the source invalidates outstanding requests. Results
         /// from those requests cannot change the current items or loading state.
-        @MainActor @Observable class DataSource<DataType: Identifiable & Codable & Sendable> {
+        @MainActor @Observable class DataSource<DataType: Identifiable & Sendable> {
 
             /// A unique identifier for debugging purposes.
             let debugId: UUID = .init()

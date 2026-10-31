@@ -82,6 +82,7 @@ This release fixes defects across every module and changes several defaults. Rea
 - `LineChart`, `VerticalBarChart`, `HorizontalBarChart`, and `ParetoChart` accept `LocalizedStringResource` titles and axis labels, and `PercentBar` accepts a `LocalizedStringResource` suffix. Category names stay `String` values (#91).
 - `PaginatedList.DataSource.nextPageError` exposes a failed next page, and the continuous and grouped lists show a row that retries it (#25).
 - `PaginatedList.DataSource.refreshError` exposes a failed reload of loaded items (#108).
+- `PaginatedList.DataSource`, `Continuous`, `Grouped`, and `Selection` accept item types that aren't `Codable`; their items need only be `Identifiable` and `Sendable`. `PaginatedList.Results` requires `Sendable` items and is `Codable` when its items are, with the same JSON keys (#179).
 - The barcode scanner and selector show a themed message with an Open Settings button when camera access is denied (#13), and an unavailable message on devices that can't scan (#14). `BarcodeScannerViewController.isSupported` is new, `BarcodeSelectorViewController.isSupported` and `isAvailable` are public, and both controllers have a `themeDefinition` property.
 - `BarcodeScanner.ScanResult` is `Sendable` (#12). `BarcodeGeneratorView.Model.generationFailed` reports a payload that can't be encoded, and QR codes accept non-ASCII text (#22).
 - `CIImage.WriteError.encodingFailed` is thrown by `writePNG(uiImage:)` and `writeJpeg(uiImage:compression:)` when encoding fails (#65).

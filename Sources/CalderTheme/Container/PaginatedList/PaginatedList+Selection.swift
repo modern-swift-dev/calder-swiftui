@@ -15,7 +15,7 @@
         /// items that were loaded and are no longer in the data source, such as after
         /// `remove(_:)` or a reload, leave the selection, and the other selected items are
         /// replaced with their loaded values. Selected items that haven't been loaded stay selected.
-        struct Selection<DataType: Identifiable & Codable & Sendable, Content: View, Header: View, Footer: View>: View {
+        struct Selection<DataType: Identifiable & Sendable, Content: View, Header: View, Footer: View>: View {
 
             /// Defines the selection mode for the list.
             public enum Mode: Equatable {
