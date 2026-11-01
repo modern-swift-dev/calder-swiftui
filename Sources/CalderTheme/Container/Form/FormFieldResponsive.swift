@@ -85,7 +85,7 @@
             self.init(nameText: .localized(name), mandatory: mandatory, accessory: accessory, content: content)
         }
 
-        private init(
+        init(
             nameText: LocalizableText,
             mandatory: Bool,
             accessory: Image?,

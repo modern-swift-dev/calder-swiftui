@@ -182,10 +182,13 @@
             }
 
             public var body: some View {
-                FormField(
+                // On compact width the name sits above the picker. The compact picker reserves a width that
+                // varies with the current date, so beside it the name could be squeezed into mid-word breaks.
+                FormFieldResponsive(
                     nameText: nameText,
-                    mandatory: mandatory
-                ) {
+                    mandatory: mandatory,
+                    accessory: nil
+                ) { _ in
                     // The row name is the picker's hidden label, so VoiceOver announces it.
                     DatePicker(
                         selection: $value,

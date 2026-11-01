@@ -49,6 +49,8 @@ keys sort with their letters, and numbers in keys sort by value. To choose anoth
 
 ### Forms and inputs
 
+`FormDatePicker` now lays out like ``FormFieldResponsive``: in a compact horizontal size class (iPhone portrait) the name is shown above the picker rather than beside it, so the compact picker's reserved width can no longer squeeze the name into mid-word line breaks. In a regular size class the name and picker stay side by side. Review screenshots of date rows on iPhone (#190).
+
 `InputPassword` hides its text by default. Pass `isSecuredEntry: false` to start with the
 password revealed.
 
