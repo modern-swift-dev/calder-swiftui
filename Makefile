@@ -4,9 +4,9 @@ SWIFT_FILES ?= .
 SHELL := /bin/bash
 
 SCHEME ?= Calder-Package
-# Simulator runtimes match CI and the snapshot baselines (Xcode 27.2). Each test target creates its
+# Simulator runtimes match CI and the snapshot baselines (Xcode 27.2 with the 27.0 runtimes). Each test target creates its
 # simulator when it doesn't exist; override a *_DESTINATION (for example `id=<udid>`) to use another device.
-RUNTIME_VERSION ?= 27.2
+RUNTIME_VERSION ?= 27.0
 IOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'iPhone 17 Pro' iOS $(RUNTIME_VERSION))
 TVOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple TV 4K (3rd generation)' tvOS $(RUNTIME_VERSION))
 WATCHOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple Watch Series 12 (46mm)' watchOS $(RUNTIME_VERSION))

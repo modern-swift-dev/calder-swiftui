@@ -46,19 +46,19 @@ jobs:
             simulator-name: iPhone 17 Pro
             runtime-platform: iOS
             # Must match the runtime used to record snapshot baselines.
-            runtime-version: '27.2'
+            runtime-version: '27.0'
           - platform: tvOS
             simulator-name: Apple TV 4K (3rd generation)
             runtime-platform: tvOS
-            runtime-version: '27.2'
+            runtime-version: '27.0'
           - platform: visionOS
             simulator-name: Apple Vision Pro
             runtime-platform: visionOS
-            runtime-version: '27.2'
+            runtime-version: '27.0'
           - platform: watchOS
             simulator-name: Apple Watch Series 12 (46mm)
             runtime-platform: watchOS
-            runtime-version: '27.2'
+            runtime-version: '27.0'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Cache SwiftPM dependencies
@@ -124,10 +124,17 @@ jobs:
             destination="id=$SIMULATOR_ID"
           fi
 
+          # Two watchOS 27.0 runs with coverage skipped the CalderUIKitTests bundle and exited 65; that was never
+          # seen without coverage, but the cause is unconfirmed (see #142 and #149).
+          coverage=YES
+          if [ '${{ matrix.platform }}' = 'watchOS' ]; then
+            coverage=NO
+          fi
+
           xcodebuild test -scheme Calder-Package -destination "$destination" \
-            -enableCodeCoverage YES -resultBundlePath "$RESULT_BUNDLE" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
+            -enableCodeCoverage "$coverage" -resultBundlePath "$RESULT_BUNDLE" 2>&1 | mint run --no-install cpisciotta/xcbeautify -q
       - name: Report ${{ matrix.platform }} coverage
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.platform != 'watchOS' }}
         env:
           RESULT_BUNDLE: ${{ runner.temp }}/${{ matrix.platform }}.xcresult
         run: |
