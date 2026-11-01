@@ -4,13 +4,15 @@ SWIFT_FILES ?= .
 SHELL := /bin/bash
 
 SCHEME ?= Calder-Package
-# Simulator runtimes match CI and the snapshot baselines (Xcode 27.2 with the 27.0 runtimes). Each test target creates its
-# simulator when it doesn't exist; override a *_DESTINATION (for example `id=<udid>`) to use another device.
-RUNTIME_VERSION ?= 27.0
-IOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'iPhone 17 Pro' iOS $(RUNTIME_VERSION))
-TVOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple TV 4K (3rd generation)' tvOS $(RUNTIME_VERSION))
-WATCHOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple Watch Series 12 (46mm)' watchOS $(RUNTIME_VERSION))
-VISIONOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple Vision Pro' visionOS $(RUNTIME_VERSION))
+# iOS runs on the runtime the snapshot baselines were recorded on (Xcode 27.2 with iOS 27.0). The other platforms
+# have no snapshots and use the newest installed 27.x runtime. Each test target creates its simulator when it doesn't
+# exist; override a *_DESTINATION (for example `id=<udid>`) or a *_RUNTIME to use another device or runtime.
+IOS_RUNTIME ?= 27.0
+OTHER_RUNTIME ?= 27
+IOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'iPhone 17 Pro' iOS $(IOS_RUNTIME))
+TVOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple TV 4K (3rd generation)' tvOS $(OTHER_RUNTIME))
+WATCHOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple Watch Series 12 (46mm)' watchOS $(OTHER_RUNTIME))
+VISIONOS_DESTINATION ?= id=$$(bash Scripts/ensure-simulator.sh 'Apple Vision Pro' visionOS $(OTHER_RUNTIME))
 
 .PHONY: setup lint format documentation test test-macos test-ios test-tvos test-watchos test-visionos
 

@@ -2,10 +2,10 @@
 # Prints the UDID of an available simulator with the given name on the given runtime, creating it if needed.
 #
 # Usage: Scripts/ensure-simulator.sh "<device name>" <platform> <runtime version>
-# Example: Scripts/ensure-simulator.sh "iPhone 17 Pro" iOS 27.2
+# Example: Scripts/ensure-simulator.sh "iPhone 17 Pro" iOS 27.0
 #
-# The runtime must match the platform and version exactly and support the device type, so device-specific
-# runtimes with the same version are skipped.
+# The runtime must match the platform and support the device type, so device-specific runtimes are skipped.
+# A full version such as 27.0 must match exactly; a major version such as 27 picks the newest installed 27.x.
 set -euo pipefail
 
 if [ "$#" -ne 3 ]; then
@@ -29,9 +29,9 @@ runtime="$(
   xcrun simctl list runtimes available --json |
     jq -er --arg platform "$platform" --arg version "$version" --arg type "$device_type" '
       first(
-        .runtimes[]
+        (.runtimes | sort_by(.version | split(".") | map(tonumber)) | reverse)[]
         | select(.name | startswith($platform + " "))
-        | select(.version == $version)
+        | select(.version == $version or (($version | contains(".") | not) and (.version | startswith($version + "."))))
         | select(any(.supportedDeviceTypes[]?; .identifier == $type))
         | .identifier
       )
