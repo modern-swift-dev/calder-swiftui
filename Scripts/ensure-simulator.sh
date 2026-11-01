@@ -38,6 +38,8 @@ runtime="$(
     '
 )" || {
   echo "error: no available $platform $version runtime that supports \"$name\"; install it with xcodebuild -downloadPlatform $platform" >&2
+  echo "Available runtimes:" >&2
+  xcrun simctl list runtimes available >&2
   exit 1
 }
 
